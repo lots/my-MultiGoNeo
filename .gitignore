@@ -1,0 +1,10 @@
+node_modules/
+release/
+dist/
+.npm-cache/
+.electron-cache/
+.electron-builder-cache/
+.chrome-*/
+.reference/
+.inspect/
+*.log

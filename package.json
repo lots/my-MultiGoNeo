@@ -1,0 +1,77 @@
+{
+  "name": "multigo-neo",
+  "productName": "MultiGo Neo",
+  "version": "1.0.0",
+  "description": "A tree-based Go SGF editor and player modelled on the MultiGo workspace.",
+  "main": "electron/main.js",
+  "author": "ILLEGEAR",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "node scripts/test-tree.js",
+    "test:legacy": "node scripts/test-engine.js",
+    "bundle": "node scripts/build-sabaki-bundle.mjs",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "devDependencies": {
+    "@sabaki/go-board": "^1.4.3",
+    "@sabaki/immutable-gametree": "^1.9.4",
+    "@sabaki/sgf": "^3.5.0",
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.0",
+    "esbuild": "^0.28.2"
+  },
+  "build": {
+    "appId": "com.illegear.multigoneo",
+    "productName": "MultiGo Neo",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    }
+  },
+  "dependencies": {}
+}

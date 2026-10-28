@@ -1,0 +1,591 @@
+import {h, Component} from 'preact'
+import classNames from 'classnames'
+import sgf from '@sabaki/sgf'
+import {BoundedGoban} from '@sabaki/shudan'
+
+import i18n from '../i18n.js'
+import {getAnalysisHeatMapCell} from '../modules/analysis.js'
+import * as gametree from '../modules/gametree.js'
+import * as gobantransformer from '../modules/gobantransformer.js'
+import * as helper from '../modules/helper.js'
+import {normalizeLineColor} from '../modules/linecolor.js'
+import {dimPaintValue, toDimEntries, toDimRange} from '../modules/dim.js'
+
+const t = i18n.context('Goban')
+const setting = {
+  get: (key) => window.sabaki.setting.get(key),
+  getThemes: () => window.sabaki.setting.getThemes(),
+}
+const alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
+
+export default class Goban extends Component {
+  constructor(props) {
+    super(props)
+
+    for (let handler of [
+      'handleVertexMouseUp',
+      'handleVertexMouseDown',
+      'handleVertexMouseMove',
+      'handleVertexMouseEnter',
+      'handleVertexMouseLeave',
+    ]) {
+      let oldHandler = this[handler].bind(this)
+      this[handler] = (evt, vertex) => {
+        let transformation = this.props.transformation
+        let inverse = gobantransformer.invert(transformation)
+        let {width, height} = gobantransformer.transformSize(
+          this.props.board.width,
+          this.props.board.height,
+          transformation,
+        )
+
+        let originalVertex = gobantransformer.transformVertex(
+          vertex,
+          inverse,
+          width,
+          height,
+        )
+
+        oldHandler(evt, originalVertex)
+      }
+    }
+  }
+
+  componentDidMount() {
+    document.addEventListener('mouseup', () => {
+      this.mouseDown = false
+
+      if (this.state.temporaryLine) {
+        this.setState({temporaryLine: null})
+      }
+    })
+
+    // Resize board when window is resizing
+
+    window.addEventListener('resize', () => {
+      this.resize()
+    })
+
+    this.resize()
+    this.componentWillReceiveProps()
+  }
+
+  componentDidUpdate() {
+    if (!this.element || !this.element.parentElement) return
+
+    let {maxWidth, maxHeight} = this.state
+
+    setTimeout(() => {
+      let {width, height} = this.element.getBoundingClientRect()
+
+      let left = Math.round((maxWidth - width) / 2)
+      let top = Math.round((maxHeight - height) / 2)
+
+      if (left !== this.state.left || top !== this.state.top) {
+        this.setState({left, top})
+      }
+    }, 0)
+  }
+
+  componentWillReceiveProps(nextProps = {}) {
+    if (nextProps.playVariation !== this.props.playVariation) {
+      if (nextProps.playVariation != null) {
+        let {sign, moves, sibling} = nextProps.playVariation
+
+        this.stopPlayingVariation()
+        this.playVariation(sign, moves, sibling)
+      } else {
+        this.stopPlayingVariation()
+      }
+    } else if (this.props.treePosition !== nextProps.treePosition) {
+      this.stopPlayingVariation()
+    }
+  }
+
+  resize() {
+    let {offsetWidth: maxWidth, offsetHeight: maxHeight} =
+      this.element.parentElement
+
+    if (
+      maxWidth !== this.state.maxWidth ||
+      maxHeight !== this.state.maxHeight
+    ) {
+      this.setState({maxWidth, maxHeight})
+    }
+  }
+
+  handleVertexMouseDown(evt, vertex) {
+    this.mouseDown = true
+    this.startVertex = vertex
+  }
+
+  // Where inside the clicked cell the pointer was, as a fraction of the cell
+  // measured from its centre (+x right, +y down). Shudan gives us the raw mouse
+  // event, but `currentTarget` is only valid while the handler runs, so it has
+  // to be captured here rather than passed along.
+  getCellOffset(evt) {
+    let element = evt.currentTarget
+
+    if (
+      element == null ||
+      typeof element.getBoundingClientRect !== 'function'
+    ) {
+      return null
+    }
+
+    let rect = element.getBoundingClientRect()
+
+    if (rect.width === 0 || rect.height === 0) return null
+
+    return {
+      dx: (evt.clientX - (rect.left + rect.width / 2)) / rect.width,
+      dy: (evt.clientY - (rect.top + rect.height / 2)) / rect.height,
+    }
+  }
+
+  handleVertexMouseUp(evt, vertex) {
+    if (!this.mouseDown) return
+
+    let {onVertexClick = helper.noop, onLineDraw = helper.noop} = this.props
+
+    this.mouseDown = false
+    evt.vertex = vertex
+    evt.line = this.state.temporaryLine
+
+    if (evt.x == null) evt.x = evt.clientX
+    if (evt.y == null) evt.y = evt.clientY
+
+    evt.cellOffset = this.getCellOffset(evt)
+
+    if (evt.line) {
+      onLineDraw(evt)
+    } else {
+      this.stopPlayingVariation()
+      onVertexClick(evt)
+    }
+
+    this.setState({clicked: true})
+    setTimeout(() => this.setState({clicked: false}), 200)
+  }
+
+  handleVertexMouseMove(evt, vertex) {
+    let {drawLineMode, onVertexMouseMove = helper.noop} = this.props
+
+    onVertexMouseMove(
+      Object.assign(evt, {
+        mouseDown: this.mouseDown,
+        startVertex: this.startVertex,
+        vertex,
+      }),
+    )
+
+    if (!!drawLineMode && evt.mouseDown && evt.button === 0) {
+      let temporaryLine = {v1: evt.startVertex, v2: evt.vertex}
+
+      if (!helper.equals(temporaryLine, this.state.temporaryLine)) {
+        this.setState({temporaryLine})
+      }
+    }
+  }
+
+  handleVertexMouseEnter(evt, vertex) {
+    if (this.props.analysis == null) return
+
+    let {sign, variations} = this.props.analysis
+    let variation = variations.find((x) =>
+      helper.vertexEquals(x.vertex, vertex),
+    )
+    if (variation == null) return
+
+    this.playVariation(sign, variation.moves)
+  }
+
+  handleVertexMouseLeave(evt, vertex) {
+    this.stopPlayingVariation()
+  }
+
+  playVariation(sign, moves, sibling = false) {
+    let replayMode = setting.get('board.variation_replay_mode')
+    if (replayMode === 'instantly') {
+      this.variationIntervalId = true
+
+      this.setState({
+        variationMoves: moves,
+        variationSign: sign,
+        variationSibling: sibling,
+        variationIndex: moves.length,
+      })
+    } else if (replayMode === 'move_by_move') {
+      clearInterval(this.variationIntervalId)
+
+      this.variationIntervalId = setInterval(() => {
+        this.setState(({variationIndex = -1}) => ({
+          variationMoves: moves,
+          variationSign: sign,
+          variationSibling: sibling,
+          variationIndex: variationIndex + 1,
+        }))
+      }, setting.get('board.variation_replay_interval'))
+    } else {
+      this.stopPlayingVariation()
+    }
+  }
+
+  stopPlayingVariation() {
+    if (this.variationIntervalId == null) return
+
+    clearInterval(this.variationIntervalId)
+    this.variationIntervalId = null
+
+    this.setState({
+      variationMoves: null,
+      variationIndex: -1,
+    })
+  }
+
+  render(
+    {
+      gameTree,
+      treePosition,
+      board,
+      paintMap = [],
+      analysis,
+      analysisType,
+      analysisValueType,
+      highlightVertices = [],
+      dimmedStones = [],
+
+      crosshair = false,
+      showCoordinates = false,
+      showMoveColorization = true,
+      showMoveNumbers = false,
+      moveNumbersType,
+      showNextMoves = true,
+      showSiblings = true,
+      fuzzyStonePlacement = true,
+      animateStonePlacement = true,
+
+      drawLineMode = null,
+      lineColor = null,
+      dimColor = null,
+      transformation = '',
+      currentThemeId,
+    },
+    {
+      top = 0,
+      left = 0,
+      maxWidth = 100,
+      maxHeight = 100,
+      clicked = false,
+      temporaryLine = null,
+
+      variationMoves = null,
+      variationSign = 1,
+      variationSibling = false,
+      variationIndex = -1,
+    },
+  ) {
+    let currentTheme = setting.getThemes()[currentThemeId]
+    let stoneVariations = currentTheme?.stoneVariations
+    let stoneVariationCounts = {
+      1: stoneVariations?.black,
+      [-1]: stoneVariations?.white,
+    }
+
+    let signMap = board.signMap
+    let markerMap = board.markers
+
+    let transformLine = (line) =>
+      gobantransformer.transformLine(
+        line,
+        transformation,
+        board.width,
+        board.height,
+      )
+    let transformVertex = (v) =>
+      gobantransformer.transformVertex(
+        v,
+        transformation,
+        board.width,
+        board.height,
+      )
+
+    // Shudan only forwards {v1, v2, type, vertexSize} to its Line component, so
+    // the colour rides along in `type` (e.g. "arrow:red"). The patched renderer
+    // in src/vendor/shudanLine.js is what understands it.
+    let toShudanLine = (line) => {
+      let {v1, v2, type, color} = transformLine(line)
+      let normalized = normalizeLineColor(color)
+
+      return {
+        v1,
+        v2,
+        type: normalized == null ? type : `${type}:${normalized}`,
+      }
+    }
+
+    // Calculate coordinates
+
+    let getCoordFunctions = (coordinatesType) => {
+      if (coordinatesType === '1-1') {
+        return [(x) => x + 1, (y) => y + 1]
+      } else if (coordinatesType === 'relative') {
+        let relativeCoord = (x, size) => {
+          let halfSize = Math.ceil(size / 2)
+          if (size === 19 && x === 10) return 'X'
+
+          let ix = size - x + 1
+          if (ix < halfSize) return `${ix}*`
+
+          return x.toString()
+        }
+
+        return [
+          (x) => relativeCoord(x + 1, board.width),
+          (y) => relativeCoord(board.height - y, board.height),
+        ]
+      } else {
+        return [(x) => alpha[x], (y) => board.height - y] // Default
+      }
+    }
+
+    let coordinatesType = setting.get('view.coordinates_type')
+    let coordFunctions = getCoordFunctions(coordinatesType)
+    let {coordX, coordY} = gobantransformer.transformCoords(
+      coordFunctions[0],
+      coordFunctions[1],
+      transformation,
+      board.width,
+      board.height,
+    )
+
+    // Calculate lines
+
+    let drawTemporaryLine =
+      !!drawLineMode && !!temporaryLine && drawLineMode !== 'dim'
+    let lines = board.lines.filter(({v1, v2, type}) => {
+      if (
+        drawTemporaryLine &&
+        (helper.equals([v1, v2], [temporaryLine.v1, temporaryLine.v2]) ||
+          ((type !== 'arrow' || drawLineMode === 'line') &&
+            helper.equals([v2, v1], [temporaryLine.v1, temporaryLine.v2])))
+      ) {
+        drawTemporaryLine = false
+        return false
+      }
+
+      return true
+    })
+
+    if (drawTemporaryLine)
+      lines.push({
+        v1: temporaryLine.v1,
+        v2: temporaryLine.v2,
+        type: drawLineMode,
+        color: lineColor,
+      })
+
+    // Dimmed areas (SGF DD). Shudan's paint layer sits above the stones, which
+    // is exactly what a wash needs; territory painting in scoring/guess mode
+    // owns that layer, so dimming only takes it over when nothing else uses it.
+    // Each entry's colour becomes a distinct paint value (see src/modules/dim.js)
+    // so the patched Vertex can tag it with a per-colour class. While dragging a
+    // rectangle, the pending area is previewed in the selected colour too.
+
+    let dimPaintMap = null
+
+    if (paintMap.length === 0) {
+      let dimEntries = board.dimmed || []
+
+      if (drawLineMode === 'dim' && temporaryLine != null) {
+        let range = toDimRange(temporaryLine.v1, temporaryLine.v2)
+        dimEntries = dimEntries.concat(
+          toDimEntries([range], {[range]: normalizeLineColor(dimColor)}),
+        )
+      }
+
+      if (dimEntries.length > 0) {
+        dimPaintMap = board.signMap.map((row) => row.map((_) => 0))
+
+        for (let {vertex, color} of dimEntries) {
+          let [x, y] = vertex
+
+          if (dimPaintMap[y] == null) continue
+          dimPaintMap[y][x] = dimPaintValue(color)
+        }
+      }
+    }
+
+    // Calculate ghost stones
+
+    let ghostStoneMap = []
+
+    if (showNextMoves || showSiblings) {
+      ghostStoneMap = board.signMap.map((row) => row.map((_) => null))
+
+      if (showSiblings) {
+        for (let v in board.siblingsInfo) {
+          let [x, y] = v.split(',').map((x) => +x)
+          let {sign} = board.siblingsInfo[v]
+
+          ghostStoneMap[y][x] = {sign, faint: showNextMoves}
+        }
+      }
+
+      if (showNextMoves) {
+        for (let v in board.childrenInfo) {
+          let [x, y] = v.split(',').map((x) => +x)
+          let {sign, type} = board.childrenInfo[v]
+
+          ghostStoneMap[y][x] = {sign, type: showMoveColorization ? type : null}
+        }
+      }
+    }
+
+    // Draw move numbers
+
+    if (showMoveNumbers) {
+      // Copy each row (markerMap aliases board.markers) so numbers overwrite
+      // only their own vertices without dropping other markup.
+      markerMap = markerMap.map((row) => [...row])
+
+      let variation = false
+      let hotspot = false
+      let history = [gameTree.get(treePosition)]
+      for (const node of gameTree.listNodesVertically(treePosition, -1, {})) {
+        if (node.id === treePosition) continue // already added
+        if (node.parentId == null) {
+          // The root node is never numbered, but it can still be the branch
+          // point of a variation when it has more than one child.
+          if (moveNumbersType === 'variation' && node.children.length > 1) {
+            variation = true
+          }
+          break
+        }
+        if (moveNumbersType === 'variation' && node.children.length > 1) {
+          variation = true
+          break
+        }
+        if (moveNumbersType === 'hotspot' && node.data.HO != null) {
+          hotspot = true
+          break
+        }
+        history.push(node)
+      }
+      if (
+        (moveNumbersType === 'variation' &&
+          gameTree.onMainLine(treePosition)) ||
+        (moveNumbersType === 'variation' && !variation) ||
+        (moveNumbersType === 'hotspot' && !hotspot)
+      ) {
+        history = []
+      }
+      history.reverse()
+
+      for (let i = 0; i < history.length; i++) {
+        let node = history[i]
+        let vertex = [-1, -1]
+
+        if (node.data.B != null) vertex = sgf.parseVertex(node.data.B[0])
+        else if (node.data.W != null) vertex = sgf.parseVertex(node.data.W[0])
+
+        let [x, y] = vertex
+
+        if (markerMap[y] != null && x < markerMap[y].length) {
+          markerMap[y][x] = {type: 'label', label: (i + 1).toString()}
+        }
+      }
+    }
+
+    // Draw variationMoves
+
+    let drawHeatMap = true
+
+    if (variationMoves != null) {
+      markerMap = board.markers.map((x) => [...x])
+
+      if (variationSibling) {
+        let prevPosition = gameTree.navigate(treePosition, -1, {})
+
+        if (prevPosition != null) {
+          board = gametree.getBoard(gameTree, prevPosition.id)
+          signMap = board.signMap
+        }
+      }
+
+      let variationBoard = variationMoves
+        .slice(0, variationIndex + 1)
+        .reduce((board, [x, y], i) => {
+          let sign = i % 2 === 0 ? variationSign : -variationSign
+          markerMap[y][x] = {type: 'label', label: (i + 1).toString()}
+
+          return board.makeMove(sign, [x, y])
+        }, board)
+
+      drawHeatMap = false
+      signMap = variationBoard.signMap
+    }
+
+    // Draw heatmap
+
+    let heatMap = []
+
+    if (drawHeatMap && analysis != null) {
+      let maxVisitsWin = Math.max(
+        ...analysis.variations.map((x) => x.visits * x.winrate),
+      )
+      heatMap = board.signMap.map((row) => row.map((_) => null))
+
+      for (let variation of analysis.variations) {
+        let [x, y] = variation.vertex
+
+        heatMap[y][x] = getAnalysisHeatMapCell(
+          variation,
+          analysis,
+          maxVisitsWin,
+          {analysisType, analysisValueType},
+          i18n.formatNumber,
+        )
+      }
+    }
+
+    return h(BoundedGoban, {
+      id: 'goban',
+      class: classNames({crosshair, 'dim-area': dimPaintMap != null}),
+      style: {top, left},
+      innerProps: {ref: (el) => (this.element = el)},
+
+      maxWidth,
+      maxHeight,
+
+      showCoordinates,
+      coordX,
+      coordY,
+      fuzzyStonePlacement,
+      animateStonePlacement: clicked && animateStonePlacement,
+      stoneVariationCounts,
+
+      signMap: gobantransformer.transformMap(signMap, transformation),
+      markerMap: gobantransformer.transformMap(markerMap, transformation),
+      ghostStoneMap: gobantransformer.transformMap(
+        ghostStoneMap,
+        transformation,
+      ),
+      paintMap: gobantransformer.transformMap(
+        paintMap.length > 0 ? paintMap : dimPaintMap || [],
+        transformation,
+        {ignoreInvert: true},
+      ),
+      heatMap: gobantransformer.transformMap(heatMap, transformation),
+      lines: lines.map(toShudanLine),
+      selectedVertices: highlightVertices.map(transformVertex),
+      dimmedVertices: dimmedStones.map(transformVertex),
+
+      onVertexMouseUp: this.handleVertexMouseUp,
+      onVertexMouseDown: this.handleVertexMouseDown,
+      onVertexMouseMove: this.handleVertexMouseMove,
+      onVertexMouseEnter: this.handleVertexMouseEnter,
+      onVertexMouseLeave: this.handleVertexMouseLeave,
+    })
+  }
+}
