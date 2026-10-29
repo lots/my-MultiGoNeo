@@ -8,5 +8,7 @@ dist/
 .chrome-*/
 .reference/
 .inspect/
+# Local SGF collections and scratch folders, not part of the app
+/AQ/
 test_error_report/
 *.log
