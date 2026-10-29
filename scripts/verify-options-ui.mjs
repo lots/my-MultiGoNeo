@@ -69,6 +69,14 @@ async function clickAction(action) {
   await evaluate(`document.querySelector('.menu-item[data-action="${action}"]').click()`)
   await sleep(120)
 }
+async function menuSelect(id, value) {
+  await evaluate(`(() => {
+    const select = document.getElementById('${id}');
+    select.value = '${value}';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  await sleep(180)
+}
 
 await send('Page.enable')
 await send('Runtime.enable')
@@ -153,7 +161,7 @@ const messageAfter = await evaluate(`({
 })`)
 
 // Switch to Chinese and verify the shell.
-await clickAction('language-zh')
+await menuSelect('options-language', 'zh')
 await sleep(250)
 const chinese = await evaluate(`({
   language: __figdesk.settings().language,
@@ -166,7 +174,7 @@ const chinese = await evaluate(`({
   messageTitle: document.querySelector('#pane-message .panel-head span').textContent.trim(),
   pass: document.getElementById('tool-pass').textContent.trim(),
   status: document.getElementById('status-next').textContent.trim(),
-  zhChecked: document.querySelector('.menu-item[data-action="language-zh"]').getAttribute('aria-checked'),
+  zhChecked: document.getElementById('options-language').value === 'zh',
 })`)
 await shot('preview-chinese.png')
 
@@ -181,7 +189,7 @@ const bilingualReload = await evaluate(`({
 })`)
 
 // Return to English for the final screenshots.
-await clickAction('language-en')
+await menuSelect('options-language', 'en')
 await sleep(200)
 
 await evaluate(`document.getElementById('menu-options').click()`)
@@ -194,13 +202,14 @@ const optionsMenu = await evaluate(`(() => {
     items: popup.querySelectorAll('.menu-item').length,
     bottom: Math.round(rect.bottom),
     viewport: window.innerHeight,
-    delayChecked: [...popup.querySelectorAll('.menu-item[data-delay]')].filter((x) => x.getAttribute('aria-checked') === 'true').map((x) => x.dataset.action),
+    delayChecked: document.getElementById('options-delay').value,
+    themeValue: document.getElementById('options-theme').value,
     rememberChecked: document.querySelector('.menu-item[data-action="toggle-remember-size"]').getAttribute('aria-checked'),
   };
 })()`)
 await shot('preview-options-menu.png')
 await evaluate(`document.getElementById('menu-options').click()`)
-await clickAction('delay-500')
+await menuSelect('options-delay', '500')
 const delay = await evaluate(`__figdesk.settings().autoPlayDelay`)
 
 console.log(JSON.stringify({

@@ -1,0 +1,50 @@
+name: Windows build
+
+# Builds the installer and the portable executable on a clean Windows runner.
+# Artifacts are attached to the workflow run; tag pushes also get a GitHub release
+# only when a maintainer uploads them manually.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'electron/**'
+      - 'src/**'
+      - 'build/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron-builder.config.js'
+      - '.github/workflows/windows-build.yml'
+
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build installer and portable exe
+        run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MultiGo-Neo-windows-x64
+          path: |
+            release/*.exe
+            release/win-unpacked/MultiGo Neo.exe
+          if-no-files-found: error
+          retention-days: 30

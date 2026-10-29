@@ -4,7 +4,9 @@ dist/
 .npm-cache/
 .electron-cache/
 .electron-builder-cache/
+.cache/
 .chrome-*/
 .reference/
 .inspect/
+test_error_report/
 *.log

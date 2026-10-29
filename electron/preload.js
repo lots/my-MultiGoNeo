@@ -14,6 +14,7 @@ const api = {
   }),
   quit: () => ipcRenderer.invoke('app:quit'),
   openGame: () => ipcRenderer.invoke('game:open'),
+  openRecent: (filePath) => ipcRenderer.invoke('game:open-path', { filePath }),
   saveGame: (payload) => ipcRenderer.invoke('game:save', payload),
 };
 

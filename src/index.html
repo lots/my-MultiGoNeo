@@ -7,6 +7,10 @@
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Untitled — MultiGo Neo</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="themes/classic.css">
+  <link rel="stylesheet" href="themes/flat.css">
+  <link rel="stylesheet" href="themes/dark.css">
+  <link rel="stylesheet" href="themes/paper.css">
 </head>
 <body>
   <svg class="sprite" aria-hidden="true" focusable="false">
@@ -24,12 +28,10 @@
       <path d="M7 3v6h9V3M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="1.6"/>
     </symbol>
     <symbol id="i-undo" viewBox="0 0 24 24">
-      <path d="M9 7L4 12l5 5" fill="none" stroke="currentColor" stroke-width="1.7"/>
-      <path d="M5 12h9a6 6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.7" transform="translate(0,-6)"/>
+      <path d="M18 5h-7a5 5 0 0 0 0 10h3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="i-redo" viewBox="0 0 24 24">
-      <path d="M15 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7"/>
-      <path d="M19 12h-9a6 6 0 0 0 0 12" fill="none" stroke="currentColor" stroke-width="1.7" transform="translate(0,-6)"/>
+      <path d="M6 5h7a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="i-first" viewBox="0 0 24 24">
       <path d="M6 5v14" fill="none" stroke="currentColor" stroke-width="1.8"/>
@@ -88,6 +90,13 @@
           <button type="button" class="menu-item" role="menuitem" data-action="open-sgf">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Open SGF…</span><kbd data-accel="Ctrl+O">Ctrl+O</kbd>
           </button>
+          <div class="menu-separator" role="separator"></div>
+          <div class="menu-heading">Recent Files</div>
+          <div class="recent-files" id="recent-files"></div>
+          <button type="button" class="menu-item" role="menuitem" data-action="clear-recents" id="clear-recents">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Clear Recent Files</span>
+          </button>
+          <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="save-sgf">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Save SGF</span><kbd data-accel="Ctrl+S">Ctrl+S</kbd>
           </button>
@@ -114,6 +123,9 @@
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-edit" aria-checked="false">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Edit Mode</span><kbd data-accel="Ctrl+E">Ctrl+E</kbd>
+          </button>
+          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-readonly" aria-checked="false">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Read Only</span>
           </button>
           <button type="button" class="menu-item" role="menuitem" data-action="focus-info">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Edit Game Info</span>
@@ -213,57 +225,43 @@
         <button type="button" class="menu-trigger" id="menu-view" role="menuitem"
                 aria-haspopup="true" aria-expanded="false" aria-controls="popup-view" data-key="v">View</button>
         <div class="menu-popup" id="popup-view" role="menu" aria-labelledby="menu-view" hidden>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="size-9" data-size="9" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">9 × 9 Board</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="size-13" data-size="13" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">13 × 13 Board</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="size-19" data-size="19" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">19 × 19 Board</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="size-custom" data-size="custom" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Custom Board Size…</span>
-          </button>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="view-board-size">Board Size</label>
+            <select class="menu-select" id="view-board-size" data-menu-select="size">
+              <option value="9">9 × 9</option>
+              <option value="13">13 × 13</option>
+              <option value="19">19 × 19</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="view-coords">Coordinates</label>
+            <select class="menu-select" id="view-coords" data-menu-select="coords">
+              <option value="none">None</option>
+              <option value="A1">A1</option>
+              <option value="1-1">1–1</option>
+              <option value="CJK">四4</option>
+            </select>
+          </div>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="view-numbers">Move Numbers</label>
+            <select class="menu-select" id="view-numbers" data-menu-select="numbers">
+              <option value="none">None</option>
+              <option value="all">All</option>
+              <option value="10">Last 10</option>
+              <option value="25">Last 25</option>
+              <option value="50">Last 50</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="view-numbering">Numbering</label>
+            <select class="menu-select" id="view-numbering" data-menu-select="numbering">
+              <option value="start">Game Start</option>
+              <option value="variation">Variation Start</option>
+            </select>
+          </div>
           <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-coords" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Show Coordinates</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="coords-a1" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Coordinates: A1</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="coords-11" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Coordinates: 1–1</span>
-          </button>
-          <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-none" data-number-limit="-1" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">No Move Numbers</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-all" data-number-limit="0" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">All Move Numbers</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-10" data-number-limit="10" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Last 10 Moves</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-25" data-number-limit="25" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Last 25 Moves</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-50" data-number-limit="50" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Last 50 Moves</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-custom" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Custom Move Count…</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-start" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Numbers From Game Start</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="numbers-variation" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Numbers From Variation Start</span>
-          </button>
-          <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-colorize" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Colorize Moves</span>
-          </button>
           <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-next-moves" aria-checked="false">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Show Next Moves</span>
           </button>
@@ -286,6 +284,9 @@
           <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-tree" aria-checked="true">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Show Game Tree</span>
           </button>
+          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-auto-layout" aria-checked="true">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Responsive Layout</span>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="reset-layout">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reset Panel Layout</span>
@@ -303,6 +304,9 @@
           <button type="button" class="menu-item" role="menuitem" data-action="paste-sgf">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Load SGF from Clipboard</span>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="copy-position-link">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Copy Position Link</span>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="clear-messages">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Clear Messages</span>
@@ -318,28 +322,35 @@
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Preferences…</span>
           </button>
           <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="language-en" data-lang="en" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">English</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="language-zh" data-lang="zh" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">简体中文</span>
-          </button>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="options-language">Language</label>
+            <select class="menu-select" id="options-language" data-menu-select="language">
+              <option value="en">English</option>
+              <option value="zh">简体中文</option>
+            </select>
+          </div>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="options-theme">Theme</label>
+            <select class="menu-select" id="options-theme" data-menu-select="theme">
+              <option value="classic">Classic</option>
+              <option value="flat">Flat</option>
+              <option value="dark">Dark</option>
+              <option value="paper">Paper</option>
+            </select>
+          </div>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-remember-size" aria-checked="true">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Remember Last Board Size</span>
           </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="delay-500" data-delay="500" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Autoplay Delay: 0.5 seconds</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="delay-1000" data-delay="1000" aria-checked="true">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Autoplay Delay: 1 second</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="delay-2000" data-delay="2000" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Autoplay Delay: 2 seconds</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitemradio" data-action="delay-3000" data-delay="3000" aria-checked="false">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Autoplay Delay: 3 seconds</span>
-          </button>
+          <div class="menu-select-row">
+            <label class="menu-select-label" for="options-delay">Autoplay Delay</label>
+            <select class="menu-select" id="options-delay" data-menu-select="delay">
+              <option value="500">0.5 s</option>
+              <option value="1000">1 s</option>
+              <option value="2000">2 s</option>
+              <option value="3000">3 s</option>
+            </select>
+          </div>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="reset-settings">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reset All Settings</span>
@@ -476,18 +487,24 @@
               <button type="button" class="tab is-active" id="tab-info" role="tab" aria-selected="true" aria-controls="panel-info" data-tab="info">Info</button>
               <button type="button" class="tab" id="tab-comment" role="tab" aria-selected="false" aria-controls="panel-comment" data-tab="comment">Comment</button>
             </div>
-            <span class="panel-meta" id="file-label">Untitled</span>
+            <div class="info-head-actions">
+              <span class="panel-meta" id="file-label">Untitled</span>
+              <button type="button" class="info-done" id="info-done" hidden>Done</button>
+            </div>
           </div>
 
           <div class="tab-panel" id="panel-info" role="tabpanel" aria-labelledby="tab-info">
             <form class="game-info" id="game-info" autocomplete="off" spellcheck="false">
+              <label class="info-field full"><span>Game name</span><input id="info-game-name" placeholder="Game name"></label>
               <label class="info-field"><span>Black</span><input id="info-black" placeholder="Black player"></label>
               <label class="info-field"><span>Black rank</span><input id="info-black-rank" placeholder="e.g. 3d"></label>
+              <label class="info-field"><span>Black team</span><input id="info-black-team" placeholder="Black team"></label>
               <label class="info-field"><span>White</span><input id="info-white" placeholder="White player"></label>
               <label class="info-field"><span>White rank</span><input id="info-white-rank" placeholder="e.g. 2k"></label>
-              <label class="info-field"><span>Result</span><input id="info-result" placeholder="e.g. B+2.5"></label>
+              <label class="info-field"><span>White team</span><input id="info-white-team" placeholder="White team"></label>
               <label class="info-field"><span>Komi</span><input id="info-komi" placeholder="6.5" inputmode="decimal"></label>
               <label class="info-field"><span>Handicap</span><input id="info-handicap" placeholder="0" inputmode="numeric"></label>
+              <label class="info-field"><span>Result</span><input id="info-result" placeholder="e.g. B+2.5"></label>
               <label class="info-field"><span>Rules</span>
                 <select id="info-rules">
                   <option>Japanese</option>
@@ -499,16 +516,21 @@
                 </select>
               </label>
               <label class="info-field"><span>Date</span><input id="info-date" placeholder="YYYY-MM-DD"></label>
-              <label class="info-field"><span>Event</span><input id="info-event" placeholder="Event"></label>
+              <label class="info-field"><span>Time</span><input id="info-time" placeholder="e.g. 3600"></label>
               <label class="info-field"><span>Place</span><input id="info-place" placeholder="Place"></label>
-              <label class="info-field"><span>Game name</span><input id="info-game-name" placeholder="Game name"></label>
+              <label class="info-field"><span>Round</span><input id="info-round" placeholder="Round"></label>
+              <label class="info-field full"><span>Event</span><input id="info-event" placeholder="Event"></label>
+              <label class="info-field"><span>User</span><input id="info-user" placeholder="User"></label>
+              <label class="info-field"><span>Source</span><input id="info-source" placeholder="Source"></label>
               <label class="info-field full"><span>Game comment</span><textarea id="info-comment" rows="2" placeholder="Game comment"></textarea></label>
+              <label class="info-field full"><span>Copyright</span><input id="info-copyright" placeholder="Copyright"></label>
+              <label class="info-field full"><span>Annotation</span><textarea id="info-annotation" rows="2" placeholder="Annotation"></textarea></label>
             </form>
           </div>
 
           <div class="tab-panel" id="panel-comment" role="tabpanel" aria-labelledby="tab-comment" hidden>
             <div class="comment-head" id="comment-title">Node comment</div>
-            <textarea class="comment-input" id="comment-input" placeholder="Write a comment for this node. Markdown is supported."></textarea>
+            <textarea class="comment-input" id="comment-input" rows="7" placeholder="Write a comment for this node. Markdown is supported."></textarea>
             <div class="comment-preview" id="comment-preview"></div>
           </div>
         </section>
@@ -541,6 +563,7 @@
 
     <footer class="statusbar" aria-label="Status">
       <div class="statuscells">
+        <span class="status-cell readonly-cell" id="status-readonly" hidden>READ ONLY</span>
         <span class="status-cell" id="status-next">Next: Black</span>
         <span class="status-cell" id="status-captures">Captures: B 0 · W 0</span>
         <span class="status-cell" id="status-stones">Stones: B 0 · W 0</span>
@@ -608,30 +631,154 @@
     </div>
   </dialog>
 
-  <dialog id="preferences-dialog" aria-labelledby="preferences-title">
+  <dialog id="setup-dialog" class="setup-dialog" aria-labelledby="setup-title">
     <div class="dialog-head">
-      <h2 class="dialog-title" id="preferences-title">Preferences</h2>
+      <h2 class="dialog-title" id="setup-title">Preferences</h2>
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
-    <div class="dialog-body">
-      <div class="pref-grid">
-        <label for="pref-size">Default board size</label>
-        <select id="pref-size">
-          <option value="9">9 × 9</option>
-          <option value="13">13 × 13</option>
-          <option value="19">19 × 19</option>
-        </select>
-        <label for="pref-delay">Auto-play delay</label>
-        <div class="input-suffix"><input id="pref-delay" type="number" min="200" max="5000" step="100"> <span>ms</span></div>
-        <label for="pref-coords">Board coordinates</label>
-        <label class="check"><input id="pref-coords" type="checkbox"> Show A–T / 1–19</label>
-        <label for="pref-numbers">Move numbers</label>
-        <label class="check"><input id="pref-numbers" type="checkbox"> Draw numbers on stones</label>
+    <div class="setup-layout">
+      <nav class="setup-nav" aria-label="Set Up categories">
+        <button type="button" class="setup-tab is-active" data-setup-tab="board">Board</button>
+        <button type="button" class="setup-tab" data-setup-tab="stones">Stones</button>
+        <button type="button" class="setup-tab" data-setup-tab="markers">Markers &amp; Numbers</button>
+        <button type="button" class="setup-tab" data-setup-tab="other">Other</button>
+        <button type="button" class="setup-tab" data-setup-tab="traverse">Traverse</button>
+        <button type="button" class="setup-tab" data-setup-tab="edit">Edit</button>
+      </nav>
+      <div class="setup-panels">
+        <section class="setup-panel" data-setup-panel="board">
+          <h3>Board</h3>
+          <div class="setup-row"><label for="setup-theme">Board theme</label>
+            <select id="setup-theme">
+              <option value="classic">Classic</option>
+              <option value="flat">Flat</option>
+              <option value="dark">Dark</option>
+              <option value="paper">Paper</option>
+            </select>
+          </div>
+          <div class="setup-row"><label for="setup-brightness">Brightness</label>
+            <div class="setup-slider"><input id="setup-brightness" type="range" min="50" max="150" step="1"> <output id="setup-brightness-value">100%</output></div>
+          </div>
+          <div class="setup-row"><label for="setup-coords">Coordinates</label>
+            <label class="check"><input id="setup-coords" type="checkbox"> Show coordinates</label>
+          </div>
+          <div class="setup-row"><label for="setup-coord-style">Coordinate style</label>
+            <select id="setup-coord-style">
+              <option value="A1">A1</option>
+              <option value="1-1">1–1</option>
+              <option value="CJK">四4</option>
+            </select>
+          </div>
+          <div class="setup-row"><label for="setup-default-size">Default board size</label>
+            <select id="setup-default-size">
+              <option value="9">9 × 9</option>
+              <option value="13">13 × 13</option>
+              <option value="19">19 × 19</option>
+            </select>
+          </div>
+          <p class="setup-note">The canvas renderer uses CSS themes instead of a bitmap board path. Brightness is applied to the board surface.</p>
+        </section>
+
+        <section class="setup-panel" data-setup-panel="stones" hidden>
+          <h3>Stones</h3>
+          <div class="setup-row"><label for="setup-stone-texture">Surface</label>
+            <label class="check"><input id="setup-stone-texture" type="checkbox"> Use stone texture</label>
+          </div>
+          <p class="setup-note">Bitmap stone paths and random stone images are not applicable to the procedural canvas stones. The selected board theme supplies the stone palette.</p>
+        </section>
+
+        <section class="setup-panel" data-setup-panel="markers" hidden>
+          <h3>Markers &amp; Numbers</h3>
+          <div class="setup-row"><label for="setup-focus-marker">Focus marker</label>
+            <select id="setup-focus-marker">
+              <option value="triangle">Triangle</option>
+              <option value="dot">Dot</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+          <div class="setup-row"><label for="setup-focus-color">Focus colour</label>
+            <select id="setup-focus-color">
+              <option value="red">Red</option>
+              <option value="blue">Blue</option>
+              <option value="green">Green</option>
+              <option value="yellow">Yellow</option>
+              <option value="white">White</option>
+              <option value="black">Black</option>
+            </select>
+          </div>
+          <div class="setup-row"><label for="setup-hide-markers">Markup</label>
+            <label class="check"><input id="setup-hide-markers" type="checkbox"> Hide markers</label>
+          </div>
+          <div class="setup-row"><label for="setup-next-moves">Branching</label>
+            <label class="check"><input id="setup-next-moves" type="checkbox"> Show next moves</label>
+          </div>
+          <div class="setup-row"><label for="setup-siblings"></label>
+            <label class="check"><input id="setup-siblings" type="checkbox"> Show sibling variations</label>
+          </div>
+          <div class="setup-row"><label for="setup-numbers">Move numbers</label>
+            <select id="setup-numbers">
+              <option value="none">None</option>
+              <option value="all">All</option>
+              <option value="10">Last 10</option>
+              <option value="25">Last 25</option>
+              <option value="50">Last 50</option>
+            </select>
+          </div>
+          <div class="setup-row"><label for="setup-numbering">Numbering</label>
+            <select id="setup-numbering">
+              <option value="start">Game Start</option>
+              <option value="variation">Variation Start</option>
+            </select>
+          </div>
+          <div class="setup-row"><label for="setup-label-char">Label start character</label>
+            <input id="setup-label-char" maxlength="1" size="3">
+          </div>
+        </section>
+
+        <section class="setup-panel" data-setup-panel="other" hidden>
+          <h3>Other</h3>
+          <div class="setup-row"><label for="setup-result-title">Title</label>
+            <label class="check"><input id="setup-result-title" type="checkbox"> Show game result in title</label>
+          </div>
+          <p class="setup-note">Window-side / tree-position choices and custom panel background colours from MultiGo are omitted because the FigDesk shell owns those panels. The result-title option updates both the window title and file label.</p>
+        </section>
+
+        <section class="setup-panel" data-setup-panel="traverse" hidden>
+          <h3>Traverse</h3>
+          <div class="setup-row"><label for="setup-sound">Sound</label>
+            <label class="check"><input id="setup-sound" type="checkbox"> Play sound on moves</label>
+          </div>
+          <div class="setup-row"><label for="setup-delay">Auto-play interval</label>
+            <div class="input-suffix"><input id="setup-delay" type="number" min="200" max="5000" step="100"> <span>ms</span></div>
+          </div>
+          <div class="setup-row"><label for="setup-prefer-variation">Variations</label>
+            <label class="check"><input id="setup-prefer-variation" type="checkbox"> Visit variation branch first when traversing next</label>
+          </div>
+          <p class="setup-note">Sound is generated with Web Audio (best effort). Fast-forward step counts and “resume last position” are not implemented yet.</p>
+        </section>
+
+        <section class="setup-panel" data-setup-panel="edit" hidden>
+          <h3>Edit</h3>
+          <div class="setup-row"><label for="setup-komi">Default Komi</label>
+            <input id="setup-komi" type="number" step="0.5" min="0" max="100">
+          </div>
+          <div class="setup-row"><label for="setup-white-first">New games</label>
+            <label class="check"><input id="setup-white-first" type="checkbox"> White move first</label>
+          </div>
+          <div class="setup-row"><label for="setup-right-click-undo">Play mode</label>
+            <label class="check"><input id="setup-right-click-undo" type="checkbox"> Right-click board removes the current move</label>
+          </div>
+          <div class="setup-row"><label for="setup-open-readonly">Documents</label>
+            <label class="check"><input id="setup-open-readonly" type="checkbox"> Open existing file as Read Only</label>
+          </div>
+          <p class="setup-note">BIG5 auto-detection, new-file templates and automatic branch merging are not implemented.</p>
+        </section>
       </div>
     </div>
     <div class="dialog-actions">
+      <button type="button" class="btn" id="setup-reset">Reset Defaults</button>
       <button type="button" class="btn" data-close-dialog>Cancel</button>
-      <button type="button" class="btn btn-primary" id="pref-save">Save</button>
+      <button type="button" class="btn btn-primary" id="setup-ok">OK</button>
     </div>
   </dialog>
 
@@ -685,6 +832,7 @@
 
   <input type="file" id="sgf-file" accept=".sgf,application/x-go-sgf,text/plain" hidden>
   <script src="sabaki-bundle.js"></script>
+  <script src="path-spec.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

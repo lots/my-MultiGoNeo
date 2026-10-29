@@ -45,7 +45,9 @@ function createWindow() {
     },
   });
 
-  win.loadFile(path.join(__dirname, '..', 'src', 'index.html')).catch((error) => {
+  const pathArgument = process.argv.find((argument) => argument.startsWith('--path='));
+  const loadOptions = pathArgument ? { query: { path: pathArgument.slice('--path='.length) } } : undefined;
+  win.loadFile(path.join(__dirname, '..', 'src', 'index.html'), loadOptions).catch((error) => {
     dialog.showErrorBox('MultiGo Neo failed to start', error.message);
     app.quit();
   });
@@ -155,6 +157,17 @@ function registerIpc() {
     const stats = await fs.stat(filePath);
     if (stats.size > 5_000_000) throw new Error('That SGF file is too large to open.');
 
+    const content = await fs.readFile(filePath, 'utf8');
+    rememberDialogDirectory(filePath);
+    return { canceled: false, filePath, content };
+  });
+
+  ipcMain.handle('game:open-path', async (_event, payload) => {
+    const filePath = payload && typeof payload.filePath === 'string' ? payload.filePath : '';
+    if (!filePath) throw new Error('No file path was provided.');
+    const stats = await fs.stat(filePath);
+    if (!stats.isFile()) throw new Error('That recent entry is not a file.');
+    if (stats.size > 5_000_000) throw new Error('That SGF file is too large to open.');
     const content = await fs.readFile(filePath, 'utf8');
     rememberDialogDirectory(filePath);
     return { canceled: false, filePath, content };

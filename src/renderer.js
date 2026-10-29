@@ -42,7 +42,62 @@
     if (x < 0 || y < 0 || x >= w || y >= h) return '?';
     return `${columnLabel(x)}${h - y}`;
   }
+  function numberToCJK(value) {
+    const digits = '一二三四五六七八九';
+    const number = Math.floor(Number(value));
+    if (!Number.isFinite(number) || number < 1) return '';
+    if (number >= 20) {
+      return `${digits[Math.floor(number / 10) - 1]}十${number % 10 ? digits[(number - 1) % 10] : ''}`;
+    }
+    if (number >= 10) return `十${number % 10 ? digits[(number - 1) % 10] : ''}`;
+    return digits[(number - 1) % 10];
+  }
   const colorCss = { black: '#111', white: '#f5f5f5', red: '#d92b2b', yellow: '#e6b800', blue: '#2f6fed', green: '#1a7f37' };
+  // Board themes live in src/themes/*.css; the canvas reads these custom properties.
+  const THEMES = ['classic', 'flat', 'dark', 'paper'];
+  const DEFAULT_PALETTE = Object.freeze({
+    surface: '#d7a760',
+    edge: 'rgba(91,56,17,.45)',
+    line: 'rgba(38,22,5,.86)',
+    lineWidth: 1,
+    star: 'rgba(37,22,5,.8)',
+    label: 'rgba(61,39,13,.8)',
+    blackHi: '#6f6f6f', blackMid: '#292929', blackLow: '#000',
+    whiteHi: '#fff', whiteMid: '#f2f2f2', whiteLow: '#c9c9c9', whiteEdge: 'rgba(0,0,0,.28)',
+    variant: '#be0119',
+    last: '#0165fc', both: '#9a0eea', backer: 'rgba(255,248,235,.82)',
+    halo: 'rgba(255,255,255,.88)',
+  });
+  let palette = { ...DEFAULT_PALETTE };
+
+  function refreshPalette() {
+    const style = getComputedStyle(document.documentElement);
+    const read = (name, fallback) => {
+      const value = style.getPropertyValue(name).trim();
+      return value || fallback;
+    };
+    palette = {
+      surface: read('--board-surface', DEFAULT_PALETTE.surface),
+      edge: read('--board-edge', DEFAULT_PALETTE.edge),
+      line: read('--board-line', DEFAULT_PALETTE.line),
+      lineWidth: Number.parseFloat(read('--board-line-width', '1')) || 1,
+      star: read('--board-star', DEFAULT_PALETTE.star),
+      label: read('--board-label', DEFAULT_PALETTE.label),
+      blackHi: read('--stone-black-hi', DEFAULT_PALETTE.blackHi),
+      blackMid: read('--stone-black-mid', DEFAULT_PALETTE.blackMid),
+      blackLow: read('--stone-black-low', DEFAULT_PALETTE.blackLow),
+      whiteHi: read('--stone-white-hi', DEFAULT_PALETTE.whiteHi),
+      whiteMid: read('--stone-white-mid', DEFAULT_PALETTE.whiteMid),
+      whiteLow: read('--stone-white-low', DEFAULT_PALETTE.whiteLow),
+      whiteEdge: read('--stone-white-edge', DEFAULT_PALETTE.whiteEdge),
+      variant: read('--overlay-variant', DEFAULT_PALETTE.variant),
+      last: read('--overlay-last', DEFAULT_PALETTE.last),
+      both: read('--overlay-both', DEFAULT_PALETTE.both),
+      backer: read('--overlay-backer', DEFAULT_PALETTE.backer),
+      halo: read('--overlay-halo', DEFAULT_PALETTE.halo),
+    };
+  }
+
   // AR is double the original 1.8 px stroke; LN is triple.
   const GAME_MARK_ARROW_WIDTH = 1.8 * 2;
   const GAME_MARK_LINE_WIDTH = 1.8 * 3;
@@ -66,17 +121,20 @@
   const statusStones = $('#status-stones');
   const statusCursor = $('#status-cursor');
   const statusMove = $('#status-move');
+  const statusReadonly = $('#status-readonly');
   const fileLabel = $('#file-label');
+  const infoDone = $('#info-done');
   const treeMeta = $('#tree-meta');
   const gameTree = $('#game-tree');
   const infoFields = {
-    black: $('#info-black'), blackRank: $('#info-black-rank'),
-    white: $('#info-white'), whiteRank: $('#info-white-rank'),
+    black: $('#info-black'), blackRank: $('#info-black-rank'), blackTeam: $('#info-black-team'),
+    white: $('#info-white'), whiteRank: $('#info-white-rank'), whiteTeam: $('#info-white-team'),
     result: $('#info-result'), komi: $('#info-komi'),
     handicap: $('#info-handicap'), rules: $('#info-rules'),
-    date: $('#info-date'), event: $('#info-event'),
-    place: $('#info-place'), gameName: $('#info-game-name'),
-    comment: $('#info-comment'),
+    date: $('#info-date'), time: $('#info-time'), event: $('#info-event'),
+    place: $('#info-place'), round: $('#info-round'), gameName: $('#info-game-name'),
+    user: $('#info-user'), source: $('#info-source'), copyright: $('#info-copyright'),
+    comment: $('#info-comment'), annotation: $('#info-annotation'),
   };
   const toolUndo = $('#tool-undo');
   const toolRedo = $('#tool-redo');
@@ -118,11 +176,32 @@
   const customSizeInput = $('#custom-size-input');
   const customSizeError = $('#custom-size-error');
   const customSizeApply = $('#custom-size-apply');
-  const preferencesDialog = $('#preferences-dialog');
-  const prefSize = $('#pref-size');
-  const prefDelay = $('#pref-delay');
-  const prefCoords = $('#pref-coords');
-  const prefNumbers = $('#pref-numbers');
+  const setupDialog = $('#setup-dialog');
+  const setupTheme = $('#setup-theme');
+  const setupBrightness = $('#setup-brightness');
+  const setupBrightnessValue = $('#setup-brightness-value');
+  const setupCoords = $('#setup-coords');
+  const setupCoordStyle = $('#setup-coord-style');
+  const setupDefaultSize = $('#setup-default-size');
+  const setupStoneTexture = $('#setup-stone-texture');
+  const setupFocusMarker = $('#setup-focus-marker');
+  const setupFocusColor = $('#setup-focus-color');
+  const setupHideMarkers = $('#setup-hide-markers');
+  const setupNextMoves = $('#setup-next-moves');
+  const setupSiblings = $('#setup-siblings');
+  const setupNumbers = $('#setup-numbers');
+  const setupNumbering = $('#setup-numbering');
+  const setupLabelChar = $('#setup-label-char');
+  const setupResultTitle = $('#setup-result-title');
+  const setupSound = $('#setup-sound');
+  const setupDelay = $('#setup-delay');
+  const setupPreferVariation = $('#setup-prefer-variation');
+  const setupKomi = $('#setup-komi');
+  const setupWhiteFirst = $('#setup-white-first');
+  const setupRightClickUndo = $('#setup-right-click-undo');
+  const setupOpenReadOnly = $('#setup-open-readonly');
+  const setupTabs = $$('.setup-tab');
+  const setupPanels = $$('.setup-panel');
   const aboutDialog = $('#about-dialog');
   const shortcutsDialog = $('#shortcuts-dialog');
   const aboutRuntime = $('#about-runtime');
@@ -141,17 +220,31 @@
     moveNumberLimit: -1,
     coordinatesStyle: 'A1',
     moveNumbersMode: 'start',
-    colorizeMoves: false,
     showNextMoves: false,
     showSiblings: false,
     zoom: 1,
     showTree: true,
     language: 'en',
+    theme: 'classic',
+    autoLayout: true,
     rememberBoardSize: true,
     boardWidth: null,
     boardHeight: null,
     autoPlayDelay: 1000,
     defaultSize: 13,
+    boardBrightness: 1,
+    stoneTexture: true,
+    focusMarker: 'triangle',
+    focusColor: 'red',
+    hideMarkers: false,
+    labelStartChar: 'A',
+    showResultInTitle: true,
+    soundEnabled: false,
+    preferVariationChild: false,
+    defaultKomi: 6.5,
+    whiteFirst: false,
+    rightClickUndo: false,
+    openReadOnly: false,
   };
   let settings = (() => {
     try {
@@ -165,19 +258,35 @@
           && Number(parsed.moveNumberLimit) <= 999
           ? Number(parsed.moveNumberLimit)
           : (parsed.numbers === true ? 0 : -1),
-        coordinatesStyle: parsed.coordinatesStyle === '1-1' ? '1-1' : 'A1',
+        coordinatesStyle: ['A1', '1-1', 'CJK'].includes(parsed.coordinatesStyle)
+          ? parsed.coordinatesStyle
+          : 'A1',
         moveNumbersMode: parsed.moveNumbersMode === 'variation' ? 'variation' : 'start',
-        colorizeMoves: parsed.colorizeMoves === true,
         showNextMoves: parsed.showNextMoves === true,
         showSiblings: parsed.showSiblings === true,
         zoom: clamp(Number(parsed.zoom) || 1, 0.5, 2),
         showTree: parsed.showTree !== false,
         language: parsed.language === 'zh' ? 'zh' : 'en',
+        theme: THEMES.includes(parsed.theme) ? parsed.theme : 'classic',
+        autoLayout: parsed.autoLayout !== false,
         rememberBoardSize: parsed.rememberBoardSize !== false,
         boardWidth: validBoardSide(parsed.boardWidth),
         boardHeight: validBoardSide(parsed.boardHeight),
         autoPlayDelay: clamp(Number(parsed.autoPlayDelay) || 1000, 200, 5000),
         defaultSize: [9, 13, 19].includes(Number(parsed.defaultSize)) ? Number(parsed.defaultSize) : 13,
+        boardBrightness: clamp(Number(parsed.boardBrightness) || 1, 0.5, 1.5),
+        stoneTexture: parsed.stoneTexture !== false,
+        focusMarker: ['triangle', 'dot', 'none'].includes(parsed.focusMarker) ? parsed.focusMarker : 'triangle',
+        focusColor: ['red', 'blue', 'green', 'yellow', 'white', 'black'].includes(parsed.focusColor) ? parsed.focusColor : 'red',
+        hideMarkers: parsed.hideMarkers === true,
+        labelStartChar: String(parsed.labelStartChar || 'A').slice(0, 1).toUpperCase() || 'A',
+        showResultInTitle: parsed.showResultInTitle !== false,
+        soundEnabled: parsed.soundEnabled === true,
+        preferVariationChild: parsed.preferVariationChild === true,
+        defaultKomi: Number.isFinite(Number(parsed.defaultKomi)) ? Number(parsed.defaultKomi) : 6.5,
+        whiteFirst: parsed.whiteFirst === true,
+        rightClickUndo: parsed.rightClickUndo === true,
+        openReadOnly: parsed.openReadOnly === true,
       };
     } catch {
       return { ...DEFAULT_SETTINGS };
@@ -188,10 +297,105 @@
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* session only */ }
   }
 
+  // Recent files ---------------------------------------------------------
+  const RECENT_KEY = 'figdesk.recent.v1';
+  const RECENT_LIMIT = 7;
+  let recentFiles = loadRecentFiles();
+
+  function loadRecentFiles() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter((entry) => entry && typeof entry.name === 'string' && entry.name)
+        .slice(0, RECENT_LIMIT)
+        .map((entry) => ({
+          name: entry.name,
+          path: typeof entry.path === 'string' ? entry.path : null,
+          content: typeof entry.content === 'string' ? entry.content : null,
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  function persistRecentFiles() {
+    try {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(recentFiles));
+    } catch {
+      // If the cache is full, keep the file names but drop cached SGF text.
+      recentFiles = recentFiles.map((entry) => ({ ...entry, content: null }));
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(recentFiles)); } catch { /* session only */ }
+    }
+  }
+
+  function rememberRecent(source, content) {
+    if (!source || ['the clipboard', 'the link', 'test case'].includes(source)) return;
+    const name = isElectron ? basename(source) : source;
+    const key = isElectron ? source : name;
+    const entry = { name, path: isElectron ? source : null, content: null };
+    if (!isElectron && typeof content === 'string' && content.length <= 400000) entry.content = content;
+    recentFiles = [entry, ...recentFiles.filter((item) => (isElectron ? item.path : item.name) !== key)]
+      .slice(0, RECENT_LIMIT);
+    persistRecentFiles();
+    renderRecentFiles();
+  }
+
+  function clearRecentFiles() {
+    if (!recentFiles.length) { log('There are no recent files to clear.', 'warn'); return; }
+    recentFiles = [];
+    persistRecentFiles();
+    renderRecentFiles();
+    log('Recent files cleared.');
+  }
+
+  function renderRecentFiles() {
+    const container = $('#recent-files');
+    if (!container) return;
+    container.replaceChildren();
+    if (!recentFiles.length) {
+      const empty = document.createElement('button');
+      empty.type = 'button';
+      empty.className = 'menu-item';
+      empty.disabled = true;
+      empty.setAttribute('role', 'menuitem');
+      const check = document.createElement('span');
+      check.className = 'menu-check';
+      check.setAttribute('aria-hidden', 'true');
+      const label = document.createElement('span');
+      label.className = 'menu-label';
+      label.__enText = 'No recent files';
+      label.textContent = t('No recent files');
+      empty.append(check, label);
+      container.append(empty);
+    } else {
+      recentFiles.forEach((entry, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'menu-item';
+        button.dataset.recentIndex = String(index);
+        button.title = entry.path || entry.name;
+        button.setAttribute('role', 'menuitem');
+        const check = document.createElement('span');
+        check.className = 'menu-check';
+        check.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('span');
+        label.className = 'menu-label';
+        label.textContent = `${index + 1}. ${entry.name}`;
+        button.append(check, label);
+        container.append(button);
+      });
+    }
+    const clear = $('#clear-recents');
+    if (clear) clear.disabled = recentFiles.length === 0;
+  }
+
+
   const ZH = {
     File: '文件', Edit: '编辑', Advanced: '高级', Play: '对局', View: '视图', Tools: '工具', Options: '选项', Help: '帮助',
     'New Game': '新建对局', 'Open SGF…': '打开 SGF…', 'Save SGF': '保存 SGF', 'Save SGF As…': '另存为 SGF…', Quit: '退出',
-    Undo: '撤销', Redo: '重做', 'Edit Mode': '编辑模式', 'Delete Node': '删除节点',
+    'Recent Files': '最近文件', 'Clear Recent Files': '清除最近文件', 'No recent files': '暂无最近文件',
+    Undo: '撤销', Redo: '重做', 'Edit Mode': '编辑模式', 'Read Only': '只读', 'READ ONLY': '只读', 'Delete Node': '删除节点',
     'Make Main Variation': '设为主变化', 'Shift Variation Left': '左移变化', 'Shift Variation Right': '右移变化',
     'Remove Other Variations': '删除其他变化', 'Clear Node Markup': '清除节点标记', 'Edit Game Info': '编辑对局信息',
     'Edit Node Comment': '编辑节点注释', 'Cut Current Node': '剪切当前节点',
@@ -202,25 +406,47 @@
     'Clear Messages': '清除消息', Pass: '停一手', 'Auto Play': '自动播放', 'Pause Auto Play': '暂停自动播放',
     'First Move': '第一手', 'Parent Node': '父节点', 'First Child': '第一个子节点', 'Last Move': '最后一手',
     '9 × 9 Board': '9×9 棋盘', '13 × 13 Board': '13×13 棋盘', '19 × 19 Board': '19×19 棋盘',
+    'Board Size': '棋盘尺寸', Coordinates: '坐标', 'Move Numbers': '手数', Numbering: '编号起始',
+    None: '无', All: '全部', 'Last 10': '最近 10 手', 'Last 25': '最近 25 手', 'Last 50': '最近 50 手',
+    'Custom…': '自定义…', 'From Game Start': '从对局开始', 'From Variation Start': '从变化开始',
+    'Game Start': '对局开始', 'Variation Start': '变化开始',
     'Custom Board Size…': '自定义棋盘尺寸…', 'Show Coordinates': '显示坐标', 'Coordinates: A1': '坐标：A1',
-    'Coordinates: 1–1': '坐标：1–1', 'Show Move Numbers': '显示手数',
+    'Coordinates: 1–1': '坐标：1–1', 'Coordinates: 四4': '坐标：四4', 'Show Move Numbers': '显示手数',
     'No Move Numbers': '不显示手数', 'All Move Numbers': '显示全部手数', 'Last 10 Moves': '最近 10 手',
     'Last 25 Moves': '最近 25 手', 'Last 50 Moves': '最近 50 手', 'Custom Move Count…': '自定义手数范围…',
     'Move numbers: last N moves': '手数：显示最近 N 手',
     'Enter a whole number of moves from 1 to 999.': '请输入 1 到 999 之间的整数手数。',
     'Numbers From Game Start': '从对局开始编号', 'Numbers From Variation Start': '从变化开始编号',
-    'Colorize Moves': '手数着色', 'Show Next Moves': '显示下一手', 'Show Sibling Variations': '显示同父变化',
+    'Show Next Moves': '显示下一手', 'Show Sibling Variations': '显示同父变化',
+    Theme: '主题', Classic: '经典', Flat: '平面', Dark: '暗色', Paper: '纸张',
+    'Theme: Classic': '主题：经典', 'Theme: Flat': '主题：平面', 'Theme: Dark': '主题：暗色', 'Theme: Paper': '主题：纸张',
+    'Responsive Layout': '自适应布局', 'Copy Position Link': '复制局面链接',
     'Zoom In': '放大', 'Zoom Out': '缩小', 'Reset Zoom': '重置缩放', 'Toggle Full Screen': '切换全屏',
-    'Show Game Tree': '显示棋谱树', 'Reset Panel Layout': '重置面板布局',
-    'Preferences…': '首选项…', Language: '语言', English: 'English', '简体中文': '简体中文',
+    'Show Game Tree': '显示棋谱树', 'Reset Panel Layout': '重置面板布局', Done: '完成',
+    'Preferences…': '首选项…', 'Set Up…': '设置…', 'Options — Set Up': '选项 — 设置',
+    Board: '棋盘', Stones: '棋子', 'Markers & Numbers': '标记与手数', Other: '其他', Traverse: '浏览', 'Set Up categories': '设置分类',
+    Brightness: '亮度', 'Show coordinates': '显示坐标', 'Coordinate style': '坐标样式', Surface: '表面',
+    'Use stone texture': '使用棋子纹理', 'Focus marker': '焦点标记', 'Focus colour': '焦点颜色',
+    Triangle: '三角形', Dot: '圆点', None: '无', Markup: '标记', 'Hide markers': '隐藏标记',
+    Branching: '分支', 'Show next moves': '显示下一手', 'Show sibling variations': '显示同父变化',
+    'Move numbers': '手数', Numbering: '编号方式', 'Label start character': '标签起始字符',
+    Title: '标题', 'Show game result in title': '在标题显示对局结果', Sound: '声音',
+    'Play sound on moves': '落子时播放声音', 'Auto-play interval': '自动播放间隔', Variations: '变化',
+    'Visit variation branch first when traversing next': '前进时优先访问变化分支',
+    'Default Komi': '默认贴目', 'New games': '新对局', 'White move first': '白方先行',
+    'Play mode': '对局模式', 'Right-click board removes the current move': '右键移除当前着法',
+    Documents: '文档', 'Open existing file as Read Only': '以只读方式打开现有文件',
+    'Reset Defaults': '重置默认', OK: '确定',
     'Remember Last Board Size': '记住上次棋盘尺寸',
-    'Autoplay Delay: 0.5 seconds': '自动播放间隔：0.5 秒', 'Autoplay Delay: 1 second': '自动播放间隔：1 秒',
-    'Autoplay Delay: 2 seconds': '自动播放间隔：2 秒', 'Autoplay Delay: 3 seconds': '自动播放间隔：3 秒',
+    'Autoplay Delay': '自动播放间隔',
     'Reset All Settings': '重置所有设置', 'Keyboard Shortcuts': '快捷键', 'About MultiGo Neo': '关于 MultiGo Neo',
     Info: '信息', Comment: '注释', 'Game Tree': '棋谱树', Message: '消息', Clear: '清除',
-    Black: '黑方', 'Black rank': '黑方段位', White: '白方', 'White rank': '白方段位',
-    Result: '结果', Komi: '贴目', Handicap: '让子', Rules: '规则', Date: '日期', Event: '赛事',
-    Place: '地点', 'Game name': '对局名称', 'Game comment': '对局注释',
+    Black: '黑方', 'Black rank': '黑方段位', 'Black team': '黑方队伍',
+    White: '白方', 'White rank': '白方段位', 'White team': '白方队伍',
+    Result: '结果', Komi: '贴目', Handicap: '让子', Rules: '规则', Date: '日期', Time: '时间',
+    Event: '赛事', Place: '地点', Round: '轮次', 'Game name': '对局名称',
+    User: '用户', Source: '来源', Copyright: '版权', Annotation: '备注',
+    'Game comment': '对局注释',
     'Black player': '黑方棋手', 'e.g. 3d': '例：3段', 'White player': '白方棋手', 'e.g. 2k': '例：2级',
     'e.g. B+2.5': '例：B+2.5', 'Game name': '对局名称',
     Japanese: '日本规则', Chinese: '中国规则', AGA: '美国规则', Korean: '韩国规则', NZ: '新西兰规则', Other: '其他',
@@ -232,6 +458,8 @@
     Square: '方块', Circle: '圆形', Line: '线段', Arrow: '箭头', Dim: '阴影', Label: '标签', Number: '数字',
     Red: '红色', Yellow: '黄色', Blue: '蓝色', Green: '绿色',
     'Black stone — click to place': '黑子 — 点击落子', 'White stone — click to place': '白子 — 点击落子',
+    'Black stone — click to place, click again to remove': '黑子 — 点击放置，再次点击移除',
+    'White stone — click to place, click again to remove': '白子 — 点击放置，再次点击移除',
     'Eraser — click a stone': '橡皮 — 点击棋子', 'Cross — click to toggle': '叉 — 点击切换',
     'Triangle — click to toggle': '三角 — 点击切换', 'Square — click to toggle': '方块 — 点击切换',
     'Circle — click to toggle': '圆形 — 点击切换', 'Line — click start, then end': '线段 — 点击起点，再点终点',
@@ -306,17 +534,33 @@
   let activeTab = 'info';
   let commentNodeId = null;
   let variationClipboard = '';
+  let readOnly = false;
+  let cleanTree = null;
+  let cleanNodeId = null;
   let undoStack = [];
   let redoStack = [];
   let autoPlayTimer = null;
   let filePath = null;
+  let infoFocusSnapshot = null;
   let dirty = false;
   let cursor = null;
   let hover = null;
   let currentBoard = null;
   let lastBoardError = '';
+  let portraitLayout = false;
+  let responsiveFrame = 0;
+
+  const startupParams = new URLSearchParams(window.location.search);
+  const startupSgf = startupParams.get('sgf');
+  const startupPath = startupParams.get('path') || '';
+  let startupPathApplied = false;
 
   const currentNode = () => (tree && nodeId != null ? tree.get(nodeId) : null);
+
+  function markClean() {
+    cleanTree = tree;
+    cleanNodeId = nodeId;
+  }
 
   function rootProperty(prop, fallback = null) {
     if (!tree) return fallback;
@@ -327,6 +571,21 @@
   function gameSize() {
     const [width, height] = S.getGameInfo(tree).size;
     return { width, height: height || width };
+  }
+
+  function gameInfoForNewGame() {
+    return {
+      ...S.getGameInfo(tree),
+      blackTeam: rootProperty('BT', ''),
+      whiteTeam: rootProperty('WT', ''),
+      time: rootProperty('TM', ''),
+      place: rootProperty('PC', ''),
+      round: rootProperty('RO', ''),
+      user: rootProperty('US', ''),
+      source: rootProperty('SO', ''),
+      copyright: rootProperty('CP', ''),
+      annotation: rootProperty('AN', ''),
+    };
   }
 
   function rememberBoardSize(width, height) {
@@ -346,7 +605,9 @@
       data: {
         GM: ['1'], FF: ['4'], CA: ['UTF-8'], AP: ['MultiGo Neo:1.0'],
         SZ: [width === height ? String(width) : `${width}:${height}`],
-        KM: ['6.5'], RU: ['Japanese'], DT: [todayString()],
+        KM: [String(Number.isFinite(settings.defaultKomi) ? settings.defaultKomi : 6.5)],
+        RU: ['Japanese'], DT: [todayString()],
+        ...(settings.whiteFirst ? { PL: ['W'] } : {}),
       },
       parentId: null,
       children: [],
@@ -369,9 +630,11 @@
     if (options.persistSize !== false) rememberBoardSize(width, height);
     const root = createRoot(width, height);
     const map = {
-      blackName: 'PB', blackRank: 'BR', whiteName: 'PW', whiteRank: 'WR',
+      blackName: 'PB', blackRank: 'BR', blackTeam: 'BT',
+      whiteName: 'PW', whiteRank: 'WR', whiteTeam: 'WT',
       result: 'RE', komi: 'KM', handicap: 'HA', rules: 'RU', date: 'DT',
-      eventName: 'EV', gameComment: 'GC', gameName: 'GN',
+      time: 'TM', eventName: 'EV', place: 'PC', round: 'RO', gameComment: 'GC',
+      gameName: 'GN', user: 'US', source: 'SO', copyright: 'CP', annotation: 'AN',
     };
     if (options.info) {
       for (const [key, prop] of Object.entries(map)) {
@@ -402,6 +665,7 @@
     renderAll();
     resizeBoard();
     updateTitle();
+    if (!dirty) markClean();
   }
 
   function refreshBoard() {
@@ -420,6 +684,7 @@
 
   // Mutations and undo ---------------------------------------------------
   function mutateTree(mutator, { message = null, select = null, undoable = true } = {}) {
+    if (readOnly) { log('Read Only: the game tree is locked.', 'warn'); return false; }
     const previousTree = tree;
     const previousNode = nodeId;
     let nextTree;
@@ -447,6 +712,7 @@
   }
 
   function undo() {
+    if (readOnly) { log('Read Only: undo is disabled.', 'warn'); return; }
     if (!undoStack.length) { log('Nothing to undo.', 'warn'); return; }
     stopAutoPlay();
     redoStack.push({ tree, nodeId });
@@ -463,6 +729,7 @@
   }
 
   function redo() {
+    if (readOnly) { log('Read Only: redo is disabled.', 'warn'); return; }
     if (!redoStack.length) { log('Nothing to redo.', 'warn'); return; }
     stopAutoPlay();
     undoStack.push({ tree, nodeId });
@@ -488,6 +755,7 @@
     hover = null;
     refreshBoard();
     renderAll();
+    logNodeProperties(tree.get(id));
   }
 
   function goToParent() {
@@ -496,10 +764,16 @@
     selectNode(node.parentId);
   }
 
+  function preferredChild(node) {
+    if (!node || node.children.length === 0) return null;
+    return settings.preferVariationChild ? node.children[node.children.length - 1] : node.children[0];
+  }
+
   function goToChild() {
     const node = currentNode();
-    if (!node || node.children.length === 0) { log('No continuation from this node.', 'warn'); return; }
-    selectNode(node.children[0].id);
+    const child = preferredChild(node);
+    if (!child) { log('No continuation from this node.', 'warn'); return; }
+    selectNode(child.id);
   }
 
   function goToSibling(direction) {
@@ -515,8 +789,40 @@
 
   function goToEnd() {
     let node = tree.root;
-    while (node.children.length) node = node.children[0];
+    while (node.children.length) node = preferredChild(node);
     selectNode(node.id);
+  }
+
+  // Position-path DSL (see src/path-spec.js) ------------------------------
+  function applyPositionPath(spec) {
+    if (!tree || !window.MultiGoPath) return false;
+    const tokens = window.MultiGoPath.parse(spec);
+    if (!tokens.length) { log('The position path is empty.', 'warn'); return false; }
+    const target = window.MultiGoPath.resolve(spec, tree, tree.root.id);
+    if (target == null) { log('Could not resolve the position path.', 'warn'); return false; }
+    selectNode(target);
+    log(`Position path applied: ${spec}.`);
+    return true;
+  }
+
+  function maybeApplyStartupPath() {
+    if (!startupPath || startupPathApplied || !tree || tree.getHeight() <= 1) return false;
+    startupPathApplied = true;
+    return applyPositionPath(startupPath);
+  }
+
+  async function copyPositionLink() {
+    if (!tree) return;
+    const spec = window.MultiGoPath ? window.MultiGoPath.build(tree, nodeId) : '';
+    const sgf = S.sgf.stringify([tree.root], { linebreak: '', indent: '' });
+    const base = window.location.href.split(/[?#]/)[0];
+    const url = `${base}?sgf=${encodeURIComponent(sgf)}&path=${encodeURIComponent(spec)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      log('Position link copied to the clipboard.', 'success');
+    } catch {
+      log('Clipboard write was blocked by the browser.', 'warn');
+    }
   }
 
   function stopAutoPlay() {
@@ -540,8 +846,9 @@
     if (!node || !node.children.length) { log('There are no further moves.', 'warn'); return; }
     autoPlayTimer = setInterval(() => {
       const current = currentNode();
-      if (current && current.children.length) {
-        nodeId = current.children[0].id;
+      const next = preferredChild(current);
+      if (next) {
+        nodeId = next.id;
         pending = null;
         cursor = null;
         refreshBoard();
@@ -560,6 +867,27 @@
   function findChildMove(prop, value) {
     const node = currentNode();
     return node ? node.children.find((child) => child.data[prop] && child.data[prop][0] === value) : null;
+  }
+
+  let moveAudioContext = null;
+
+  function playMoveSound(pass = false) {
+    if (!settings.soundEnabled) return;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      moveAudioContext ||= new AudioContextClass();
+      const oscillator = moveAudioContext.createOscillator();
+      const gain = moveAudioContext.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = pass ? 330 : 660;
+      gain.gain.setValueAtTime(0.0001, moveAudioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.06, moveAudioContext.currentTime + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, moveAudioContext.currentTime + 0.055);
+      oscillator.connect(gain).connect(moveAudioContext.destination);
+      oscillator.start();
+      oscillator.stop(moveAudioContext.currentTime + 0.06);
+    } catch { /* sound is best-effort */ }
   }
 
   function playAt(x, y) {
@@ -584,8 +912,9 @@
     if (ok) {
       cursor = { x, y };
       hover = null;
+      playMoveSound();
       renderStatus();
-      log(`${signName(sign)} ${coordLabel(x, y)}.`);
+      logNodeProperties(currentNode());
     }
   }
 
@@ -600,7 +929,10 @@
       (draft) => { selectedId = draft.appendNode(nodeId, { [prop]: [''] }); },
       { select: () => selectedId },
     );
-    if (ok) log(`${signName(sign)} passes.`);
+    if (ok) {
+      playMoveSound(true);
+      logNodeProperties(currentNode());
+    }
   }
 
   // Markup ---------------------------------------------------------------
@@ -631,26 +963,73 @@
     writeList(draft, id, prop, expandValues(data).filter((value) => value !== point));
   }
 
+  const LOG_PROPERTY_ORDER = [
+    'B', 'W', 'AB', 'AW', 'AE', 'PL', 'CR', 'SQ', 'TR', 'MA', 'SL', 'LB',
+    'AR', 'LN', 'DD', 'SBKDD',
+  ];
+  const LOG_PROPERTY_EXCLUDED = new Set([
+    'GM', 'FF', 'CA', 'AP', 'SZ', 'ST',
+    'PB', 'BR', 'BT', 'PW', 'WR', 'WT', 'HA', 'KM', 'RU', 'TM', 'OT',
+    'DT', 'EV', 'GN', 'PC', 'RO', 'GC', 'ON', 'RE', 'AN', 'CP', 'SO', 'US',
+    'C',
+  ]);
+
+  function sgfPropertyText(prop, values) {
+    const list = Array.isArray(values) ? values : [];
+    return `${prop}${list.length
+      ? list.map((value) => `[${value ?? ''}]`).join('')
+      : '[]'}`;
+  }
+
+  function logNodeProperties(node) {
+    if (!node || !node.data) return;
+    const properties = Object.keys(node.data)
+      .filter((prop) => !LOG_PROPERTY_EXCLUDED.has(prop) && Array.isArray(node.data[prop]))
+      .sort((a, b) => {
+        const ai = LOG_PROPERTY_ORDER.indexOf(a);
+        const bi = LOG_PROPERTY_ORDER.indexOf(b);
+        return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+      });
+    for (const prop of properties) {
+      if (!node.data[prop].length) continue;
+      log(`${nodeMoveNumber(node.id)}. ${sgfPropertyText(prop, node.data[prop])}`);
+    }
+  }
+
+  function logNodeProperty(prop) {
+    const node = currentNode();
+    if (!node) return;
+    const values = node.data?.[prop] || [];
+    if (prop === 'SBKDD' && !values.length) return;
+    log(`${nodeMoveNumber()}. ${sgfPropertyText(prop, values)}`);
+  }
+
   function setSetupStone(x, y, sign) {
     const point = sgfPoint(x, y);
     const node = currentNode();
     if (!node) return;
     const data = node.data;
+    const existing = currentBoard?.get([x, y]) ?? 0;
+    // Same colour again removes the stone, matching BesoGo's setup tools.
+    const remove = sign === 0 || (sign > 0 && existing > 0) || (sign < 0 && existing < 0);
+    if (sign === 0 && !existing) return;
     const ab = expandValues(data.AB).filter((value) => value !== point);
     const aw = expandValues(data.AW).filter((value) => value !== point);
     const ae = expandValues(data.AE).filter((value) => value !== point);
-    const hasStone = currentBoard?.get([x, y]) !== 0;
-    if (sign === 0 && !hasStone) return;
-    if (sign > 0) ab.push(point);
-    else if (sign < 0) aw.push(point);
-    else if (hasStone) ae.push(point);
+    if (remove) ae.push(point);
+    else if (sign > 0) ab.push(point);
+    else aw.push(point);
 
     const changed = mutateTree((draft) => {
       writeList(draft, nodeId, 'AB', ab);
       writeList(draft, nodeId, 'AW', aw);
       writeList(draft, nodeId, 'AE', ae);
-    }, { message: sign === 0 ? `Removed stone at ${coordLabel(x, y)}.` : `${signName(sign)} stone at ${coordLabel(x, y)}.` });
-    if (changed) { cursor = { x, y }; renderStatus(); }
+    }, { message: null });
+    if (changed) {
+      cursor = { x, y };
+      renderStatus();
+      logNodeProperty(remove ? 'AE' : sign > 0 ? 'AB' : 'AW');
+    }
   }
 
   function setMarkAt(x, y, tool) {
@@ -669,8 +1048,12 @@
         points.push(point);
         writeList(draft, nodeId, prop, points);
       }
-    }, { message: `${has ? 'Removed' : 'Added'} ${tool} at ${coordLabel(x, y)}.` });
-    if (changed) { cursor = { x, y }; renderStatus(); }
+    }, { message: null });
+    if (changed) {
+      cursor = { x, y };
+      renderStatus();
+      logNodeProperty(prop);
+    }
   }
 
   function setLabelAt(x, y, text) {
@@ -682,15 +1065,19 @@
       return sep <= 0 || value.slice(0, sep) !== point;
     });
     if (!trimmed) {
-      mutateTree((draft) => removePointFromProperty(draft, nodeId, 'LB', point), { message: 'Label removed.' });
+      const changed = mutateTree((draft) => removePointFromProperty(draft, nodeId, 'LB', point), { message: null });
+      if (changed) logNodeProperty('LB');
       return;
     }
     const next = [...existing, `${point}:${trimmed}`];
-    mutateTree((draft) => {
+    const changed = mutateTree((draft) => {
       for (const markProp of MARK_PROPS) removePointFromProperty(draft, nodeId, markProp, point);
       draft.updateProperty(nodeId, 'LB', next);
-    }, { message: `Label ${trimmed} at ${coordLabel(x, y)}.` });
-    cursor = { x, y };
+    }, { message: null });
+    if (changed) {
+      cursor = { x, y };
+      logNodeProperty('LB');
+    }
   }
 
   function nextNumberLabel() {
@@ -714,7 +1101,8 @@
     const index = values.indexOf(value);
     if (index >= 0) values.splice(index, 1);
     else values.push(value);
-    mutateTree((draft) => writeList(draft, nodeId, prop, values), { message: index >= 0 ? 'Line removed.' : `${tool === 'arrow' ? 'Arrow' : 'Line'} added.` });
+    const changed = mutateTree((draft) => writeList(draft, nodeId, prop, values), { message: null });
+    if (changed) logNodeProperty(prop);
   }
 
   function addDim(x1, y1, x2, y2) {
@@ -723,10 +1111,14 @@
     const range = S.toDimRange([x1, y1], [x2, y2]);
     const result = S.applyDimRectangle(ranges, colors, range, dimColor);
     const sbkdd = Object.entries(result.colors).map(([key, color]) => `${color}:${key}`);
-    mutateTree((draft) => {
+    const changed = mutateTree((draft) => {
       writeList(draft, nodeId, 'DD', result.ranges.length ? result.ranges : ['']);
       writeList(draft, nodeId, 'SBKDD', sbkdd);
-    }, { message: 'Dim area updated.' });
+    }, { message: null });
+    if (changed) {
+      logNodeProperty('DD');
+      logNodeProperty('SBKDD');
+    }
   }
 
   function eraseAt(x, y) {
@@ -735,19 +1127,25 @@
     if (!node) return;
     for (const prop of MARK_PROPS) {
       if (expandValues(node.data[prop]).includes(point)) {
-        mutateTree((draft) => removePointFromProperty(draft, nodeId, prop, point), { message: 'Mark erased.' });
+        const changed = mutateTree((draft) => removePointFromProperty(draft, nodeId, prop, point), { message: null });
+        if (changed) logNodeProperty(prop);
         return;
       }
     }
     if ((node.data.LB || []).some((value) => value.startsWith(`${point}:`))) {
-      mutateTree((draft) => removePointFromProperty(draft, nodeId, 'LB', point), { message: 'Label erased.' });
+      const changed = mutateTree((draft) => removePointFromProperty(draft, nodeId, 'LB', point), { message: null });
+      if (changed) logNodeProperty('LB');
       return;
     }
     for (const prop of ['AR', 'LN']) {
       const values = node.data[prop] || [];
       const index = values.findIndex((value) => S.parseLineValue(value).points.includes(point));
       if (index >= 0) {
-        mutateTree((draft) => writeList(draft, nodeId, prop, values.filter((_, i) => i !== index)), { message: 'Line erased.' });
+        const changed = mutateTree(
+          (draft) => writeList(draft, nodeId, prop, values.filter((_, i) => i !== index)),
+          { message: null },
+        );
+        if (changed) logNodeProperty(prop);
         return;
       }
     }
@@ -759,10 +1157,14 @@
       ranges.splice(index, 1);
       delete colors[range];
       const sbkdd = Object.entries(colors).map(([key, color]) => `${color}:${key}`);
-      mutateTree((draft) => {
+      const changed = mutateTree((draft) => {
         writeList(draft, nodeId, 'DD', ranges.length ? ranges : ['']);
         writeList(draft, nodeId, 'SBKDD', sbkdd);
-      }, { message: 'Dim area erased.' });
+      }, { message: null });
+      if (changed) {
+        logNodeProperty('DD');
+        logNodeProperty('SBKDD');
+      }
       return;
     }
     if (currentBoard && currentBoard.get([x, y]) !== 0) { setSetupStone(x, y, 0); return; }
@@ -793,7 +1195,7 @@
         break;
       case 'label': {
         const targetId = nodeId;
-        askText('', 'Label').then((text) => { if (text != null && nodeId === targetId) setLabelAt(x, y, text); });
+        askText(labelAtPoint(x, y), 'Label').then((text) => { if (text != null && nodeId === targetId) setLabelAt(x, y, text); });
         break;
       }
       case 'number': setLabelAt(x, y, nextNumberLabel()); break;
@@ -914,33 +1316,112 @@
     return 'rgba(24,24,24,.9)';
   }
 
-  function drawStone(x, y, sign, radius, alpha = 1) {
+  // Stable per-intersection noise: stones keep the same texture across redraws.
+  function hashPoint(x, y) {
+    let hash = Math.imul(x + 1, 374761393) ^ Math.imul(y + 1, 668265263);
+    hash = Math.imul(hash ^ (hash >>> 13), 1274126177);
+    return (hash ^ (hash >>> 16)) >>> 0;
+  }
+
+  function rand01(seed, salt) {
+    let value = (seed ^ Math.imul(salt + 1, 0x9e3779b1)) >>> 0;
+    value = Math.imul(value ^ (value >>> 15), 0x85ebca6b) >>> 0;
+    value ^= value >>> 13;
+    return (value >>> 0) / 4294967296;
+  }
+
+  function drawStoneTexture(x, y, sign, px, py, radius) {
+    const context = boardContext;
+    const seed = hashPoint(x, y);
+    context.save();
+    context.shadowColor = 'transparent';
+    context.beginPath();
+    context.arc(px, py, radius * 0.97, 0, Math.PI * 2);
+    context.clip();
+    if (sign > 0) {
+      // Slate: a few faint mineral flecks plus one soft streak.
+      const flecks = 3 + (seed % 3);
+      for (let i = 0; i < flecks; i += 1) {
+        const angle = rand01(seed, i * 3) * Math.PI * 2;
+        const distance = radius * (0.18 + rand01(seed, i * 3 + 1) * 0.62);
+        const size = radius * (0.022 + rand01(seed, i * 3 + 2) * 0.045);
+        context.fillStyle = `rgba(196, 201, 206, ${0.03 + rand01(seed, i + 9) * 0.045})`;
+        context.beginPath();
+        context.arc(px + Math.cos(angle) * distance, py + Math.sin(angle) * distance, size, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+      context.lineWidth = Math.max(1, radius * 0.03);
+      const offset = (rand01(seed, 21) - 0.5) * radius * 0.45;
+      context.beginPath();
+      context.arc(px, py + offset, radius * 0.6, Math.PI * 1.05, Math.PI * 1.5);
+      context.stroke();
+    } else {
+      // Shell: two or three fine concentric arcs plus a tiny highlight.
+      const arcs = 2 + (seed % 2);
+      for (let i = 0; i < arcs; i += 1) {
+        context.strokeStyle = `rgba(150, 140, 122, ${0.045 + rand01(seed, i + 4) * 0.04})`;
+        context.lineWidth = Math.max(0.6, radius * 0.018);
+        context.beginPath();
+        context.arc(
+          px - radius * 0.08, py - radius * 0.12,
+          radius * (0.4 + i * 0.17),
+          Math.PI * 1.02, Math.PI * 1.62,
+        );
+        context.stroke();
+      }
+      const fleckAngle = rand01(seed, 31) * Math.PI * 2;
+      context.fillStyle = 'rgba(255, 255, 255, 0.32)';
+      context.beginPath();
+      context.arc(
+        px + Math.cos(fleckAngle) * radius * 0.42,
+        py + Math.sin(fleckAngle) * radius * 0.42,
+        Math.max(0.8, radius * 0.035), 0, Math.PI * 2,
+      );
+      context.fill();
+    }
+    context.restore();
+  }
+
+  function drawStone(x, y, sign, radius, alpha = 1, detail = true) {
     const context = boardContext;
     const { x: px, y: py } = pointPosition(x, y);
+    const seed = hashPoint(x, y);
+    const ghost = alpha < 0.8;
     context.save();
     context.globalAlpha = alpha;
-    context.shadowColor = 'rgba(0,0,0,.34)';
-    context.shadowBlur = Math.max(2, radius * 0.3);
-    context.shadowOffsetY = Math.max(1, radius * 0.08);
+    context.shadowColor = ghost ? 'rgba(0,0,0,.12)' : 'rgba(0,0,0,.34)';
+    context.shadowBlur = ghost ? Math.max(1, radius * 0.1) : Math.max(2, radius * 0.3);
+    context.shadowOffsetY = ghost ? Math.max(0.5, radius * 0.03) : Math.max(1, radius * 0.08);
     context.beginPath();
     context.arc(px, py, radius, 0, Math.PI * 2);
     if (sign > 0) {
-      const gradient = context.createRadialGradient(px - radius * 0.34, py - radius * 0.38, radius * 0.12, px, py, radius * 1.1);
-      gradient.addColorStop(0, '#6f6f6f');
-      gradient.addColorStop(0.36, '#292929');
-      gradient.addColorStop(1, '#000');
+      const jitterX = 0.26 + rand01(seed, 1) * 0.14;
+      const jitterY = 0.30 + rand01(seed, 2) * 0.14;
+      const gradient = context.createRadialGradient(
+        px - radius * jitterX, py - radius * jitterY, radius * 0.12,
+        px, py, radius * 1.1,
+      );
+      gradient.addColorStop(0, palette.blackHi);
+      gradient.addColorStop(0.36, palette.blackMid);
+      gradient.addColorStop(1, palette.blackLow);
       context.fillStyle = gradient;
       context.fill();
+      if (detail && alpha > 0.95 && radius > 8 && settings.stoneTexture !== false) drawStoneTexture(x, y, sign, px, py, radius);
     } else {
-      const gradient = context.createRadialGradient(px - radius * 0.32, py - radius * 0.36, radius * 0.15, px, py, radius * 1.05);
-      gradient.addColorStop(0, '#fff');
-      gradient.addColorStop(0.65, '#f2f2f2');
-      gradient.addColorStop(1, '#c9c9c9');
+      const gradient = context.createRadialGradient(
+        px - radius * 0.32, py - radius * 0.36, radius * 0.15,
+        px, py, radius * 1.05,
+      );
+      gradient.addColorStop(0, palette.whiteHi);
+      gradient.addColorStop(0.65, palette.whiteMid);
+      gradient.addColorStop(1, palette.whiteLow);
       context.fillStyle = gradient;
       context.fill();
+      if (detail && alpha > 0.95 && radius > 8 && settings.stoneTexture !== false) drawStoneTexture(x, y, sign, px, py, radius);
       context.shadowColor = 'transparent';
       context.lineWidth = Math.max(0.7, radius * 0.055);
-      context.strokeStyle = 'rgba(0,0,0,.28)';
+      context.strokeStyle = palette.whiteEdge;
       context.stroke();
     }
     context.restore();
@@ -1002,6 +1483,186 @@
     context.restore();
   }
 
+  function drawPlus(x, y, color, radius, alpha = 1) {
+    const context = boardContext;
+    const { x: px, y: py } = pointPosition(x, y);
+    const arm = radius * 0.54;
+    context.save();
+    context.globalAlpha = alpha;
+    context.strokeStyle = color;
+    context.lineWidth = Math.max(2, radius * 0.17);
+    context.lineCap = 'round';
+    context.beginPath();
+    context.moveTo(px - arm, py);
+    context.lineTo(px + arm, py);
+    context.moveTo(px, py - arm);
+    context.lineTo(px, py + arm);
+    context.stroke();
+    context.restore();
+  }
+
+  function drawCross(x, y, color, radius, alpha = 1) {
+    const context = boardContext;
+    const { x: px, y: py } = pointPosition(x, y);
+    const arm = radius * 0.52;
+    context.save();
+    context.globalAlpha = alpha;
+    context.strokeStyle = color;
+    context.lineWidth = Math.max(1.8, radius * 0.15);
+    context.lineCap = 'round';
+    context.beginPath();
+    context.moveTo(px - arm, py - arm);
+    context.lineTo(px + arm, py + arm);
+    context.moveTo(px + arm, py - arm);
+    context.lineTo(px - arm, py + arm);
+    context.stroke();
+    context.restore();
+  }
+
+  function drawVariationBadge(hint, radius, alpha = 1) {
+    const context = boardContext;
+    const { x: px, y: py } = pointPosition(hint.x, hint.y);
+    // MultiGo shows variation alternatives as blue letters at the move points.
+    const ink = 'rgba(43, 95, 217, 0.96)';
+    const halo = 'rgba(255, 255, 255, 0.96)';
+    context.save();
+    context.globalAlpha = alpha;
+    context.font = `700 ${Math.max(10, Math.round(radius * 0.78))}px ${BOARD_FONT}`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.lineWidth = Math.max(2.2, radius * 0.18);
+    context.strokeStyle = halo;
+    context.strokeText(hint.letter, px, py);
+    context.fillStyle = ink;
+    context.fillText(hint.letter, px, py);
+    context.restore();
+  }
+
+  function labelAtPoint(x, y) {
+    const node = currentNode();
+    if (!node) return settings.labelStartChar || 'A';
+    const point = `${sgfPoint(x, y)}:`;
+    const existing = (node.data.LB || []).find((value) => value.startsWith(point));
+    return existing ? existing.slice(point.length) || settings.labelStartChar : (settings.labelStartChar || 'A');
+  }
+
+  function hoverLabelText() {
+    return hover ? labelAtPoint(hover.x, hover.y) : (settings.labelStartChar || 'A');
+  }
+
+  function drawHoverMark(x, y, type, radius, label = null) {
+    const context = boardContext;
+    const { x: px, y: py } = pointPosition(x, y);
+    const color = markerColor(x, y);
+    const size = radius * 0.27;
+    if (!currentBoard.get([x, y])) {
+      context.save();
+      context.globalAlpha = 0.7;
+      context.fillStyle = palette.backer;
+      context.beginPath();
+      context.arc(px, py, radius * 0.72, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    }
+    context.save();
+    context.globalAlpha = 0.6;
+    context.strokeStyle = color;
+    context.fillStyle = color;
+    context.lineWidth = 1.7;
+    if (type === 'circle') {
+      context.beginPath();
+      context.arc(px, py, size, 0, Math.PI * 2);
+      context.stroke();
+    } else if (type === 'square') {
+      context.strokeRect(px - size, py - size, size * 2, size * 2);
+    } else if (type === 'triangle') {
+      context.beginPath();
+      context.moveTo(px, py - size * 1.12);
+      context.lineTo(px + size, py + size * 0.78);
+      context.lineTo(px - size, py + size * 0.78);
+      context.closePath();
+      context.stroke();
+    } else if (type === 'cross') {
+      const arm = size * 0.92;
+      context.beginPath();
+      context.moveTo(px - arm, py - arm);
+      context.lineTo(px + arm, py + arm);
+      context.moveTo(px + arm, py - arm);
+      context.lineTo(px - arm, py + arm);
+      context.stroke();
+    } else if (type === 'label') {
+      context.font = `600 ${Math.max(9, Math.round(boardView.spacing * 0.42))}px ${BOARD_FONT}`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(String(label ?? ''), px, py);
+    }
+    context.restore();
+  }
+
+  function drawHover(stoneRadius) {
+    const context = boardContext;
+    if (!hover) return;
+    const { x, y } = hover;
+    const existing = currentBoard.get([x, y]);
+
+    if (pending) {
+      const start = pointPosition(pending.x, pending.y);
+      const end = pointPosition(x, y);
+      if (pending.tool === 'dim') {
+        const x1 = Math.min(start.x, end.x) - boardView.spacing * 0.5;
+        const y1 = Math.min(start.y, end.y) - boardView.spacing * 0.5;
+        context.fillStyle = dimCss(dimColor);
+        context.fillRect(x1, y1, Math.abs(start.x - end.x) + boardView.spacing, Math.abs(start.y - end.y) + boardView.spacing);
+      } else {
+        context.save();
+        context.strokeStyle = lineColor ? colorCss[lineColor] : palette.line;
+        context.lineWidth = 1.5;
+        context.setLineDash([4, 3]);
+        context.beginPath();
+        context.moveTo(start.x, start.y);
+        context.lineTo(end.x, end.y);
+        context.stroke();
+        context.restore();
+      }
+      return;
+    }
+
+    if (mode !== 'edit') {
+      if (!existing) drawStone(x, y, playerToMove(), stoneRadius, 0.38, false);
+      return;
+    }
+
+    switch (selectedTool) {
+      case 'stone_1':
+      case 'stone_-1': {
+        const sign = selectedTool === 'stone_1' ? 1 : -1;
+        if (existing === sign) drawCross(x, y, palette.variant, stoneRadius, 0.72);
+        else {
+          drawStone(x, y, sign, stoneRadius * 0.94, existing ? 0.3 : 0.38, false);
+          drawPlus(x, y, palette.variant, stoneRadius * 0.8, 0.85);
+        }
+        break;
+      }
+      case 'erase':
+        if (existing) drawCross(x, y, palette.variant, stoneRadius, 0.8);
+        break;
+      case 'cross':
+      case 'triangle':
+      case 'square':
+      case 'circle':
+        drawHoverMark(x, y, selectedTool, stoneRadius);
+        break;
+      case 'number':
+        drawHoverMark(x, y, 'label', stoneRadius, nextNumberLabel());
+        break;
+      case 'label':
+        drawHoverMark(x, y, 'label', stoneRadius, hoverLabelText());
+        break;
+      default:
+        break;
+    }
+  }
+
   function dimCss(color) {
     if (color === 'red') return 'rgba(217,43,43,.25)';
     if (color === 'yellow') return 'rgba(230,184,0,.25)';
@@ -1043,6 +1704,45 @@
     return number > total - limit;
   }
 
+  function collectVariationHints() {
+    const node = currentNode();
+    const hints = [];
+    const seen = new Set();
+    const cols = currentBoard?.width || gameSize().width;
+    const rows = currentBoard?.height || gameSize().height;
+    const add = (entry, alpha, dim = false) => {
+      const value = (entry.data.B || entry.data.W)?.[0];
+      if (!value) return;
+      const [x, y] = S.sgf.parseVertex(value);
+      if (x < 0 || y < 0 || x >= cols || y >= rows) return;
+      const key = `${x},${y}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      hints.push({ x, y, sign: entry.data.B ? 1 : -1, alpha, dim });
+    };
+    if (settings.showNextMoves && node?.children.length) {
+      add(preferredChild(node), 0.55);
+    }
+    if (settings.showSiblings && node?.children.length) {
+      // Variations at the current position are the children of this node:
+      // they are sibling alternatives to one another, labelled A, B, C...
+      for (const child of node.children) add(child, 0.9);
+    }
+    hints.forEach((hint, index) => { hint.letter = String.fromCharCode(65 + (index % 26)); });
+
+    const move = node?.data?.B || node?.data?.W;
+    let lastPoint = null;
+    if (move && move[0] !== '') {
+      const [x, y] = S.sgf.parseVertex(move[0]);
+      if (x >= 0 && y >= 0 && x < cols && y < rows) lastPoint = { x, y };
+    }
+    return {
+      hints,
+      lastPoint,
+      overlayActive: Boolean(settings.showNextMoves || settings.showSiblings),
+    };
+  }
+
   function drawBoard() {
     const { cssWidth, cssHeight, spacing } = boardView;
     if (!cssWidth || !cssHeight || !currentBoard) return;
@@ -1050,37 +1750,15 @@
     const cols = currentBoard.width;
     const rows = currentBoard.height;
     context.clearRect(0, 0, cssWidth, cssHeight);
-    const wood = context.createLinearGradient(0, 0, cssWidth, cssHeight);
-    wood.addColorStop(0, '#e3bd7d');
-    wood.addColorStop(0.48, '#d7a760');
-    wood.addColorStop(1, '#c6934c');
-    roundRect(context, 0.5, 0.5, cssWidth - 1, cssHeight - 1, 5);
-    context.fillStyle = wood;
-    context.fill();
-    context.lineWidth = 1;
-    context.strokeStyle = 'rgba(91,56,17,.45)';
-    context.stroke();
-
     context.save();
-    roundRect(context, 1, 1, cssWidth - 2, cssHeight - 2, 4);
-    context.clip();
-    for (let line = 0; line < 58; line += 1) {
-      const offset = (line * 47) % Math.max(1, Math.round(cssHeight - boardView.margin * 2));
-      const y = boardView.margin + offset;
-      context.beginPath();
-      context.strokeStyle = `rgba(112,67,21,${0.018 + (line % 4) * 0.006})`;
-      context.lineWidth = 0.8 + (line % 3) * 0.35;
-      for (let x = 0; x <= cssWidth; x += 16) {
-        const wave = Math.sin((x + line * 29) * 0.021) * 3.2 + Math.sin((x + line * 7) * 0.047) * 1.2;
-        if (x === 0) context.moveTo(x, y + wave);
-        else context.lineTo(x, y + wave);
-      }
-      context.stroke();
-    }
+    context.strokeStyle = palette.edge;
+    context.lineWidth = 1;
+    roundRect(context, 0.5, 0.5, cssWidth - 1, cssHeight - 1, 4);
+    context.stroke();
     context.restore();
 
-    context.strokeStyle = 'rgba(38,22,5,.86)';
-    context.lineWidth = 1;
+    context.strokeStyle = palette.line;
+    context.lineWidth = palette.lineWidth;
     const gridWidth = (cols - 1) * spacing;
     const gridHeight = (rows - 1) * spacing;
     for (let i = 0; i < cols; i += 1) {
@@ -1098,7 +1776,7 @@
       context.stroke();
     }
 
-    context.fillStyle = 'rgba(37,22,5,.8)';
+    context.fillStyle = palette.star;
     for (const star of boardStarPoints(cols, rows)) {
       const { x: px, y: py } = pointPosition(star.x, star.y);
       context.beginPath();
@@ -1109,7 +1787,7 @@
     if (settings.coords) {
       const fontSize = Math.max(8, Math.min(12, Math.round(Math.min(cssWidth, cssHeight) * 0.0155)));
       context.font = `500 ${fontSize}px ${BOARD_FONT}`;
-      context.fillStyle = 'rgba(61,39,13,.8)';
+      context.fillStyle = palette.label;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       const topY = boardView.originY - boardView.margin * 0.5;
@@ -1124,6 +1802,15 @@
         for (let y = 0; y < rows; y += 1) {
           context.fillText(String(y + 1), leftX, boardView.originY + y * spacing);
           context.fillText(String(y + 1), rightX, boardView.originY + y * spacing);
+        }
+      } else if (settings.coordinatesStyle === 'CJK') {
+        for (let x = 0; x < cols; x += 1) {
+          context.fillText(String(x + 1), boardView.originX + x * spacing, topY);
+          context.fillText(String(x + 1), boardView.originX + x * spacing, bottomY);
+        }
+        for (let y = 0; y < rows; y += 1) {
+          context.fillText(numberToCJK(y + 1), leftX, boardView.originY + y * spacing);
+          context.fillText(numberToCJK(y + 1), rightX, boardView.originY + y * spacing);
         }
       } else {
         for (let x = 0; x < cols; x += 1) {
@@ -1145,19 +1832,6 @@
         const sign = currentBoard.signMap[y]?.[x] ?? 0;
         if (!sign) continue;
         drawStone(x, y, sign, stoneRadius);
-        if (settings.colorizeMoves) {
-          const number = numberMap.get(y * cols + x);
-          if (number) {
-            const { x: px, y: py } = pointPosition(x, y);
-            context.save();
-            context.strokeStyle = `hsl(${(number * 47) % 360}, 74%, 46%)`;
-            context.lineWidth = Math.max(1.5, stoneRadius * 0.12);
-            context.beginPath();
-            context.arc(px, py, stoneRadius * 1.02, 0, Math.PI * 2);
-            context.stroke();
-            context.restore();
-          }
-        }
       }
     }
 
@@ -1195,97 +1869,47 @@
       context.restore();
     }
 
-    for (let y = 0; y < rows; y += 1) {
-      for (let x = 0; x < cols; x += 1) {
-        const marker = currentBoard.markers?.[y]?.[x];
-        if (marker) drawMarker(x, y, marker);
+    if (!settings.hideMarkers) {
+      for (let y = 0; y < rows; y += 1) {
+        for (let x = 0; x < cols; x += 1) {
+          const marker = currentBoard.markers?.[y]?.[x];
+          if (marker) drawMarker(x, y, marker);
+        }
       }
     }
 
-    const hintNode = currentNode();
-    const drawHint = (entry, alpha) => {
-      const value = (entry.data.B || entry.data.W)?.[0];
-      if (!value) return;
-      const [x, y] = S.sgf.parseVertex(value);
-      if (x < 0 || y < 0 || x >= cols || y >= rows) return;
-      drawStone(x, y, entry.data.B ? 1 : -1, stoneRadius * 0.82, alpha);
-    };
-    if (settings.showNextMoves && hintNode) {
-      for (const child of hintNode.children) drawHint(child, 0.34);
-    }
-    if (settings.showSiblings && hintNode?.parentId != null) {
-      const parent = tree.get(hintNode.parentId);
-      for (const sibling of parent.children) {
-        if (sibling.id !== nodeId) drawHint(sibling, 0.2);
-      }
+    const { hints, lastPoint } = collectVariationHints();
+
+    for (const hint of hints) {
+      if (lastPoint && hint.x === lastPoint.x && hint.y === lastPoint.y) continue;
+      drawVariationBadge(hint, stoneRadius, 1);
     }
 
-    const node = currentNode();
-    const move = node?.data?.B || node?.data?.W;
-    if (move && move[0] !== '') {
-      const [x, y] = S.sgf.parseVertex(move[0]);
-      if (x >= 0 && y >= 0) {
-        const { x: px, y: py } = pointPosition(x, y);
-        const offset = stoneRadius * 0.55;
-        const size = Math.max(3.5, stoneRadius * 0.4);
-        const cx = px + offset;
-        const cy = py - offset;
-        context.beginPath();
+    if (lastPoint && settings.focusMarker !== 'none') {
+      const { x: px, y: py } = pointPosition(lastPoint.x, lastPoint.y);
+      const isTriangle = settings.focusMarker !== 'dot';
+      const offset = isTriangle ? stoneRadius * 0.55 : 0;
+      const size = Math.max(3.5, stoneRadius * 0.4);
+      const cx = px + offset;
+      const cy = py - offset;
+      const markerColor = colorCss[settings.focusColor] || palette.variant;
+      context.beginPath();
+      if (isTriangle) {
         context.moveTo(cx, cy - size * 0.8);
         context.lineTo(cx - size * 0.72, cy + size * 0.55);
         context.lineTo(cx + size * 0.72, cy + size * 0.55);
         context.closePath();
-        context.fillStyle = '#d92b2b';
-        context.fill();
-        context.strokeStyle = 'rgba(255,255,255,.9)';
-        context.lineWidth = 1;
-        context.stroke();
+      } else {
+        context.arc(cx, cy, size * 0.45, 0, Math.PI * 2);
       }
+      context.fillStyle = markerColor;
+      context.fill();
+      context.strokeStyle = palette.halo;
+      context.lineWidth = 1;
+      context.stroke();
     }
 
-    if (pending && hover) {
-      const start = pointPosition(pending.x, pending.y);
-      const end = pointPosition(hover.x, hover.y);
-      if (pending.tool === 'dim') {
-        const x1 = Math.min(start.x, end.x) - spacing * 0.5;
-        const y1 = Math.min(start.y, end.y) - spacing * 0.5;
-        context.fillStyle = dimCss(dimColor);
-        context.fillRect(x1, y1, Math.abs(start.x - end.x) + spacing, Math.abs(start.y - end.y) + spacing);
-      } else {
-        context.save();
-        context.strokeStyle = lineColor ? colorCss[lineColor] : '#222';
-        context.lineWidth = 1.5;
-        context.setLineDash([4, 3]);
-        context.beginPath();
-        context.moveTo(start.x, start.y);
-        context.lineTo(end.x, end.y);
-        context.stroke();
-        context.restore();
-      }
-    } else if (hover) {
-      if (mode === 'edit') {
-        if (selectedTool === 'stone_1' || selectedTool === 'stone_-1') {
-          if (currentBoard.get([hover.x, hover.y]) === 0) {
-            drawStone(hover.x, hover.y, selectedTool === 'stone_1' ? 1 : -1, stoneRadius, 0.38);
-          }
-        } else if (selectedTool === 'erase' && currentBoard.get([hover.x, hover.y]) !== 0) {
-          const { x: px, y: py } = pointPosition(hover.x, hover.y);
-          context.save();
-          context.strokeStyle = 'rgba(190,30,30,.85)';
-          context.lineWidth = 2.2;
-          const arm = stoneRadius * 0.55;
-          context.beginPath();
-          context.moveTo(px - arm, py - arm);
-          context.lineTo(px + arm, py + arm);
-          context.moveTo(px + arm, py - arm);
-          context.lineTo(px - arm, py + arm);
-          context.stroke();
-          context.restore();
-        }
-      } else if (currentBoard.get([hover.x, hover.y]) === 0) {
-        drawStone(hover.x, hover.y, playerToMove(), stoneRadius, 0.38);
-      }
-    }
+    drawHover(stoneRadius);
 
     if (settings.moveNumberLimit >= 0) {
       for (let y = 0; y < rows; y += 1) {
@@ -1308,11 +1932,23 @@
   }
 
   // Tree panel -----------------------------------------------------------
+  function moveIsPass(node, dims = gameSize()) {
+    const move = node?.data?.B || node?.data?.W;
+    if (!move || move[0] == null) return false;
+    if (move[0] === '') return true;
+    try {
+      const [x, y] = S.sgf.parseVertex(move[0]);
+      return x < 0 || y < 0 || x >= dims.width || y >= dims.height;
+    } catch {
+      return false;
+    }
+  }
+
   function nodeLabel(node, dims) {
     if (node.parentId == null) return 'Start';
     if (node.data.B || node.data.W) {
+      if (moveIsPass(node, dims)) return 'pass';
       const value = (node.data.B || node.data.W)[0];
-      if (value === '') return 'pass';
       const [x, y] = S.sgf.parseVertex(value);
       return x >= 0 ? coordLabel(x, y, dims.width, dims.height) : '?';
     }
@@ -1366,6 +2002,7 @@
       const [x, y] = position;
       const isMove = Boolean(node.data.B || node.data.W);
       const moveNumber = node.data.B || node.data.W ? S.getMoveNumber(tree, node.id) : null;
+      const isPass = isMove && moveIsPass(node, dims);
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'tree-node';
@@ -1381,7 +2018,8 @@
         button.setAttribute('aria-current', 'true');
       }
       if (node.data.C?.[0]) button.classList.add('has-comment');
-      button.textContent = node.parentId == null ? 'S' : isMove ? String(moveNumber) : '·';
+      if (isPass) button.classList.add('is-pass');
+      button.textContent = node.parentId == null ? 'S' : isMove ? (isPass ? 'p' : String(moveNumber)) : '·';
       button.title = `${nodeLabel(node, dims)}${node.data.C?.[0] ? ` — ${node.data.C[0]}` : ''}`;
       button.setAttribute('role', 'treeitem');
       button.setAttribute('aria-label', `Node ${S.getMoveNumber(tree, node.id)}: ${nodeLabel(node, dims)}`);
@@ -1428,8 +2066,10 @@
 
   function updateTitle() {
     const name = filePath ? basename(filePath) : t('Untitled');
-    document.title = `${name}${dirty ? ' •' : ''} — MultiGo Neo`;
-    fileLabel.textContent = `${name}${dirty ? ' •' : ''}`;
+    const result = settings.showResultInTitle ? rootProperty('RE', '') : '';
+    const suffix = `${result ? ` — ${result}` : ''}${dirty ? ' •' : ''}${readOnly ? ' — Read Only' : ''}`;
+    document.title = `${name}${suffix} — MultiGo Neo`;
+    fileLabel.textContent = `${name}${suffix}`;
   }
 
   function syncSizeSelect() {
@@ -1442,22 +2082,31 @@
       boardSizeSelect.append(option);
     }
     boardSizeSelect.value = value;
+    syncMenuSelects();
   }
 
   function syncInfoForm() {
     const info = S.getGameInfo(tree);
     infoFields.black.value = info.blackName || '';
     infoFields.blackRank.value = info.blackRank || '';
+    infoFields.blackTeam.value = rootProperty('BT', '');
     infoFields.white.value = info.whiteName || '';
     infoFields.whiteRank.value = info.whiteRank || '';
+    infoFields.whiteTeam.value = rootProperty('WT', '');
     infoFields.result.value = info.result || '';
     infoFields.komi.value = info.komi == null ? '' : String(info.komi);
     infoFields.handicap.value = info.handicap == null ? '' : String(info.handicap);
     infoFields.date.value = info.date || '';
+    infoFields.time.value = rootProperty('TM', '');
     infoFields.event.value = info.eventName || '';
     infoFields.gameName.value = info.gameName || '';
     infoFields.comment.value = info.gameComment || '';
     infoFields.place.value = rootProperty('PC', '');
+    infoFields.round.value = rootProperty('RO', '');
+    infoFields.user.value = rootProperty('US', '');
+    infoFields.source.value = rootProperty('SO', '');
+    infoFields.copyright.value = rootProperty('CP', '');
+    infoFields.annotation.value = rootProperty('AN', '');
     const rules = rootProperty('RU', 'Japanese');
     if (![...infoFields.rules.options].some((option) => option.value === rules)) {
       const option = document.createElement('option');
@@ -1485,11 +2134,14 @@
     if (!node) return;
     const text = node.data.C?.[0] || '';
     commentTitle.textContent = node.parentId == null ? t('Root node') : `${t('Node')} ${nodeMoveNumber()}: ${nodeLabel(node, gameSize())}`;
+    commentInput.hidden = readOnly;
+    commentInput.disabled = readOnly;
+    commentPreview.hidden = !readOnly;
     if (commentNodeId !== node.id || document.activeElement !== commentInput) {
       commentInput.value = text;
       commentNodeId = node.id;
     }
-    renderCommentPreview(commentInput.value);
+    renderCommentPreview(text);
   }
 
   function setTab(tab) {
@@ -1512,8 +2164,8 @@
     const hasChild = Boolean(node && node.children.length);
     const autoPlaying = Boolean(autoPlayTimer);
     const edit = mode === 'edit';
-    toolUndo.disabled = undoStack.length === 0;
-    toolRedo.disabled = redoStack.length === 0;
+    toolUndo.disabled = readOnly || undoStack.length === 0;
+    toolRedo.disabled = readOnly || redoStack.length === 0;
     toolFirst.disabled = !hasParent;
     toolPrev.disabled = !hasParent;
     toolNext.disabled = !hasChild;
@@ -1522,11 +2174,12 @@
     toolAutoPlay.setAttribute('aria-pressed', String(autoPlaying));
     const autoIcon = toolAutoPlay.querySelector('use');
     if (autoIcon) autoIcon.setAttribute('href', autoPlaying ? '#i-pause' : '#i-autoplay');
-    toolPass.disabled = edit;
-    toolEdit.setAttribute('aria-pressed', String(edit));
-    editbar.hidden = !edit;
+    toolPass.disabled = readOnly || edit;
+    toolEdit.disabled = readOnly;
+    toolEdit.setAttribute('aria-pressed', String(edit && !readOnly));
+    editbar.hidden = readOnly || !edit;
     toolTurn.textContent = `${t('Turn')}: ${t(signName(playerToMove()))}`;
-    toolTurn.disabled = !edit;
+    toolTurn.disabled = readOnly || !edit;
     toggleCoords.setAttribute('aria-pressed', String(settings.coords));
     toggleNumbers.setAttribute('aria-pressed', String(settings.moveNumberLimit >= 0));
     for (const button of editTools) {
@@ -1539,7 +2192,8 @@
       button.setAttribute('aria-pressed', String((button.dataset.color || null) === activeColor));
     }
     const hints = {
-      'stone_1': 'Black stone — click to place', 'stone_-1': 'White stone — click to place',
+      'stone_1': 'Black stone — click to place, click again to remove',
+      'stone_-1': 'White stone — click to place, click again to remove',
       erase: 'Eraser — click a stone', cross: 'Cross — click to toggle',
       triangle: 'Triangle — click to toggle', square: 'Square — click to toggle',
       circle: 'Circle — click to toggle', line: 'Line — click start, then end',
@@ -1559,43 +2213,56 @@
     for (const item of $$(`.menu-item[data-action="${action}"]`)) item.disabled = Boolean(disabled);
   }
 
+  function syncMenuSelects() {
+    if (!tree) return;
+    const dims = gameSize();
+    const presetSquare = dims.width === dims.height && [9, 13, 19].includes(dims.width);
+    const sizeSelect = $('#view-board-size');
+    if (sizeSelect) {
+      const custom = sizeSelect.querySelector('option[value="custom"]');
+      if (custom) custom.textContent = presetSquare ? 'Custom…' : `Custom (${dims.width}×${dims.height})…`;
+      sizeSelect.value = presetSquare ? String(dims.width) : 'custom';
+    }
+    const coordsSelect = $('#view-coords');
+    if (coordsSelect) coordsSelect.value = settings.coords ? settings.coordinatesStyle : 'none';
+    const numbersSelect = $('#view-numbers');
+    if (numbersSelect) {
+      const limit = settings.moveNumberLimit;
+      let value = 'custom';
+      if (limit < 0) value = 'none';
+      else if (limit === 0) value = 'all';
+      else if ([10, 25, 50].includes(limit)) value = String(limit);
+      const custom = numbersSelect.querySelector('option[value="custom"]');
+      if (custom) {
+        custom.textContent = limit > 0 && ![10, 25, 50].includes(limit)
+          ? `Custom (${limit})…`
+          : 'Custom…';
+      }
+      numbersSelect.value = value;
+    }
+    const numberingSelect = $('#view-numbering');
+    if (numberingSelect) numberingSelect.value = settings.moveNumbersMode;
+    const languageSelect = $('#options-language');
+    if (languageSelect) languageSelect.value = settings.language;
+    const themeSelect = $('#options-theme');
+    if (themeSelect) themeSelect.value = settings.theme;
+    const delaySelect = $('#options-delay');
+    if (delaySelect) delaySelect.value = String(settings.autoPlayDelay);
+  }
+
   function syncMenuState() {
     const node = currentNode();
     const hasParent = Boolean(node && node.parentId != null);
     const hasChild = Boolean(node && node.children.length);
-    const dims = gameSize();
-    const presetSquare = dims.width === dims.height && [9, 13, 19].includes(dims.width);
-    setMenuItemChecked('toggle-coords', settings.coords);
-    setMenuItemChecked('coords-a1', settings.coords && settings.coordinatesStyle === 'A1');
-    setMenuItemChecked('coords-11', settings.coords && settings.coordinatesStyle === '1-1');
-    setMenuItemChecked('numbers-start', settings.moveNumberLimit >= 0 && settings.moveNumbersMode === 'start');
-    setMenuItemChecked('numbers-variation', settings.moveNumberLimit >= 0 && settings.moveNumbersMode === 'variation');
-    for (const item of $$('.menu-item[data-number-limit]')) {
-      const limit = Number(item.dataset.numberLimit);
-      const checked = limit === -1 ? settings.moveNumberLimit < 0 : settings.moveNumberLimit === limit;
-      item.setAttribute('aria-checked', String(checked));
-    }
-    setMenuItemChecked('numbers-custom', settings.moveNumberLimit > 0 && ![10, 25, 50].includes(settings.moveNumberLimit));
-    setMenuItemChecked('toggle-colorize', settings.colorizeMoves);
     setMenuItemChecked('toggle-next-moves', settings.showNextMoves);
     setMenuItemChecked('toggle-siblings', settings.showSiblings);
+    setMenuItemChecked('toggle-auto-layout', settings.autoLayout !== false);
     setMenuItemChecked('toggle-tree', settings.showTree);
-    setMenuItemChecked('language-en', settings.language !== 'zh');
-    setMenuItemChecked('language-zh', settings.language === 'zh');
     setMenuItemChecked('toggle-remember-size', settings.rememberBoardSize !== false);
-    for (const item of $$('.menu-item[data-delay]')) {
-      item.setAttribute('aria-checked', String(Number(item.dataset.delay) === Number(settings.autoPlayDelay)));
-    }
     setMenuItemChecked('toggle-edit', mode === 'edit');
+    setMenuItemChecked('toggle-readonly', readOnly);
     setMenuItemChecked('toggle-autoplay', Boolean(autoPlayTimer));
     autoplayLabel.textContent = t(autoPlayTimer ? 'Pause Auto Play' : 'Auto Play');
-    for (const item of $$('.menu-item[data-size]')) {
-      const value = item.dataset.size;
-      const checked = value === 'custom'
-        ? !presetSquare
-        : dims.width === Number(value) && dims.height === Number(value);
-      item.setAttribute('aria-checked', String(checked));
-    }
     setMenuItemDisabled('undo', undoStack.length === 0);
     setMenuItemDisabled('redo', redoStack.length === 0);
     setMenuItemDisabled('first', !hasParent);
@@ -1610,6 +2277,19 @@
     setMenuItemDisabled('shift-right', !hasParent);
     setMenuItemDisabled('remove-siblings', !hasParent);
     setMenuItemDisabled('pass', mode === 'edit');
+    const readOnlyOnly = [
+      'new-game', 'save-sgf', 'save-sgf-as', 'toggle-edit',
+      'paste-variation', 'duplicate-node', 'insert-node', 'flatten-variation',
+      'clear-markup', 'paste-sgf', 'toggle-turn',
+      'size-9', 'size-13', 'size-19', 'size-custom',
+    ];
+    for (const action of readOnlyOnly) setMenuItemDisabled(action, readOnly);
+    if (readOnly) {
+      for (const action of ['undo', 'redo', 'delete-node', 'cut-variation', 'make-main', 'shift-left', 'shift-right', 'remove-siblings', 'pass']) {
+        setMenuItemDisabled(action, true);
+      }
+    }
+    syncMenuSelects();
   }
 
   function renderAll() {
@@ -1771,7 +2451,7 @@
   $$('[data-close-dialog]').forEach((button) => {
     button.addEventListener('click', () => button.closest('dialog')?.close());
   });
-  [aboutDialog, shortcutsDialog, preferencesDialog, labelDialog, customSizeDialog].forEach((dialog) => {
+  [aboutDialog, shortcutsDialog, setupDialog, labelDialog, customSizeDialog].forEach((dialog) => {
     dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
   });
 
@@ -1799,6 +2479,7 @@
   }
 
   async function newGame() {
+    if (readOnly) { log('Read Only: new games are disabled.', 'warn'); return; }
     if (dirty) {
       if (!(await askConfirm('Start a new game? Unsaved changes will be lost.', 'New game'))) return;
     }
@@ -1811,21 +2492,52 @@
     if (isElectron) {
       const result = await desktop.openGame();
       if (!result || result.canceled) { log('Open canceled.', 'warn'); return; }
-      applySgfText(result.content, result.filePath);
+      if (applySgfText(result.content, result.filePath)) {
+        rememberRecent(result.filePath, result.content);
+      }
     } else {
       sgfFileInput.value = '';
       sgfFileInput.click();
     }
   }
 
+  async function openRecent(index) {
+    const entry = recentFiles[index];
+    if (!entry) return;
+    if (dirty && !(await askConfirm('Open another game? Unsaved changes will be lost.', 'Open'))) return;
+    try {
+      if (isElectron) {
+        if (!entry.path) { log('That recent file has no path.', 'warn'); return; }
+        if (typeof desktop.openRecent !== 'function') {
+          log('Reopening recent files is not available in this build.', 'warn');
+          return;
+        }
+        const result = await desktop.openRecent(entry.path);
+        if (!result || result.canceled) { log('Open canceled.', 'warn'); return; }
+        if (applySgfText(result.content, result.filePath)) {
+          rememberRecent(result.filePath, result.content);
+        }
+      } else if (entry.content) {
+        if (applySgfText(entry.content, entry.name)) rememberRecent(entry.name, entry.content);
+      } else {
+        log('That recent file was too large to cache; use Open SGF.', 'warn');
+      }
+    } catch (error) {
+      log(`Could not open the recent file: ${error.message}`, 'error');
+    }
+  }
+
   sgfFileInput.addEventListener('change', async () => {
     const file = sgfFileInput.files?.[0];
     if (!file) return;
-    try { applySgfText(await file.text(), file.name); }
-    catch (error) { log(`Could not read the file: ${error.message}`, 'error'); }
+    try {
+      const text = await file.text();
+      if (applySgfText(text, file.name)) rememberRecent(file.name, text);
+    } catch (error) { log(`Could not read the file: ${error.message}`, 'error'); }
   });
 
   async function saveSgf(saveAs = false) {
+    if (readOnly) { log('Read Only: saving is disabled.', 'warn'); return; }
     let content;
     try { content = S.sgf.stringify([tree.root], { linebreak: '\n', indent: '  ' }); }
     catch (error) { log(`Could not build the SGF: ${error.message}`, 'error'); return; }
@@ -1836,27 +2548,31 @@
       if (!result || result.canceled) { log('Save canceled.', 'warn'); return; }
       filePath = result.filePath;
       dirty = false;
+      markClean();
       updateTitle();
       log(`Saved ${basename(filePath)}.`, 'success');
+      rememberRecent(filePath, content);
     } else {
       const name = defaultSgfName();
       downloadText(content, name);
       filePath = name;
       dirty = false;
+      markClean();
       updateTitle();
       log(`Downloaded ${name}.`, 'success');
+      rememberRecent(name, content);
     }
   }
 
   function applySgfText(text, source) {
     let roots;
     try { roots = S.sgf.parse(text, { getId }); }
-    catch (error) { log(`Could not parse ${source}: ${error.message}`, 'error'); return; }
-    if (!roots.length) { log('The SGF contains no games.', 'error'); return; }
+    catch (error) { log(`Could not parse ${source}: ${error.message}`, 'error'); return false; }
+    if (!roots.length) { log('The SGF contains no games.', 'error'); return false; }
     if (roots.length > 1) log('Only the first game in the SGF collection was loaded.', 'warn');
     stopAutoPlay();
     try { tree = new S.GameTree({ root: roots[0], getId, merger: S.nodeMerger }); }
-    catch (error) { log(`Could not build the game tree: ${error.message}`, 'error'); return; }
+    catch (error) { log(`Could not build the game tree: ${error.message}`, 'error'); return false; }
     nodeId = tree.root.id;
     S.clearBoardCache();
     currentBoard = null;
@@ -1871,6 +2587,7 @@
     filePath = source === 'the clipboard' ? null : source;
     dirty = source === 'the clipboard';
     commentNodeId = null;
+    markClean();
     syncSizeSelect();
     syncInfoForm();
     setTab('info');
@@ -1879,8 +2596,14 @@
     updateTitle();
     const { width, height } = gameSize();
     rememberBoardSize(width, height);
+    if (settings.openReadOnly && source !== 'the clipboard') {
+      readOnly = true;
+      applyReadOnlyUI();
+    }
     if (rootProperty('GM', '1') !== '1') log('This SGF is not marked as a Go game (GM != 1).', 'warn');
     log(`Loaded ${basename(source)} — ${tree.getHeight()} nodes.`, 'success');
+    maybeApplyStartupPath();
+    return true;
   }
 
   async function copySgf() {
@@ -1891,6 +2614,7 @@
   }
 
   async function pasteSgf() {
+    if (readOnly) { log('Read Only: loading from the clipboard is disabled.', 'warn'); return; }
     if (dirty && !(await askConfirm('Replace the current game with the clipboard SGF?', 'Load'))) return;
     try { applySgfText(await navigator.clipboard.readText(), 'the clipboard'); }
     catch { log('Clipboard read was blocked by the browser.', 'warn'); }
@@ -1934,7 +2658,18 @@
 
   function clearNodeMarkup() {
     const props = ['CR', 'MA', 'SQ', 'TR', 'LB', 'L', 'AR', 'LN', 'DD', 'SBKDD', 'BM', 'TE', 'DO', 'IT'];
-    mutateTree((draft) => { for (const prop of props) draft.removeProperty(nodeId, prop); }, { message: 'Markup cleared on this node.' });
+    const node = currentNode();
+    const present = props.filter((prop) => (node?.data?.[prop] || []).length);
+    const changed = mutateTree(
+      (draft) => { for (const prop of props) draft.removeProperty(nodeId, prop); },
+      { message: null },
+    );
+    if (!changed) return;
+    if (present.length) {
+      for (const prop of present) logNodeProperty(prop);
+    } else {
+      log('Markup cleared on this node.');
+    }
   }
 
   const ROOT_ONLY_PROPERTIES = new Set([
@@ -1969,6 +2704,7 @@
   }
 
   async function cutVariation() {
+    if (readOnly) { log('Read Only: cutting is disabled.', 'warn'); return; }
     const node = currentNode();
     if (!node || node.parentId == null) { log('The root node cannot be cut.', 'warn'); return; }
     const parentId = node.parentId;
@@ -1977,6 +2713,7 @@
   }
 
   async function pasteVariation() {
+    if (readOnly) { log('Read Only: pasting is disabled.', 'warn'); return; }
     let text = variationClipboard;
     if (!text && navigator.clipboard?.readText) {
       try { text = await navigator.clipboard.readText(); } catch { /* internal clipboard only */ }
@@ -2032,10 +2769,103 @@
 
   function focusComment() {
     setTab('comment');
-    commentInput.focus();
+    if (!readOnly) commentInput.focus();
+  }
+
+  function focusGameInfo() {
+    setTab('info');
+    if (!infoFocusSnapshot) infoFocusSnapshot = { ...layout };
+    const height = rightColumn.clientHeight;
+    if (height > 0) {
+      // Give Game Info the largest practical share while keeping the tree and log at their
+      // 48 px minima and leaving the two splitter rows visible. The right column also gets
+      // the widest allowed board split (82%).
+      const panelChrome = 96 + horizontalSplitter.offsetHeight + messageSplitter.offsetHeight;
+      const infoPercent = clamp(
+        ((height - panelChrome) / height) * 100,
+        LAYOUT_LIMITS.topPct[0],
+        LAYOUT_LIMITS.topPct[1],
+      );
+      const messagePercent = clamp(
+        (48 / height) * 100,
+        LAYOUT_LIMITS.messagePct[0],
+        LAYOUT_LIMITS.messagePct[1],
+      );
+      applyLayout({
+        leftPct: LAYOUT_LIMITS.leftPct[0],
+        topPct: infoPercent,
+        messagePct: messagePercent,
+      }, { persist: false });
+    } else {
+      applyLayout({ leftPct: LAYOUT_LIMITS.leftPct[0], topPct: 85, messagePct: 5 }, { persist: false });
+    }
+    infoDone.hidden = false;
+    log('Info panel expanded for editing.');
+    requestAnimationFrame(() => infoFields.black.focus());
+  }
+
+  function restoreInfoPanel() {
+    const previous = infoFocusSnapshot;
+    infoFocusSnapshot = null;
+    infoDone.hidden = true;
+    if (previous) applyLayout(previous, { persist: false });
+    log('Info panel restored.');
+  }
+
+  function applyReadOnlyUI() {
+    document.body.classList.toggle('is-readonly', readOnly);
+    statusReadonly.hidden = !readOnly;
+    boardSizeSelect.disabled = readOnly;
+    const viewSizeSelect = $('#view-board-size');
+    if (viewSizeSelect) viewSizeSelect.disabled = readOnly;
+    for (const element of Object.values(infoFields)) element.disabled = readOnly;
+    commentInput.disabled = readOnly;
+    if (readOnly) {
+      mode = 'play';
+      selectedTool = 'stone_1';
+      lineColor = null;
+      dimColor = null;
+      pending = null;
+      commentNodeId = null;
+    }
+    updateToolbar();
+    syncMenuState();
+    renderComment();
+    updateTitle();
+    scheduleBoardDraw();
+  }
+
+  async function toggleReadOnly() {
+    if (!readOnly && dirty) {
+      if (!(await askConfirm('Discard unsaved changes and enable Read Only?', 'Read Only'))) return;
+      if (cleanTree) {
+        tree = cleanTree;
+        nodeId = cleanNodeId != null && tree.get(cleanNodeId) ? cleanNodeId : tree.root.id;
+        undoStack = [];
+        redoStack = [];
+        pending = null;
+        commentNodeId = null;
+        dirty = false;
+        S.clearBoardCache();
+        refreshBoard();
+        syncInfoForm();
+        syncSizeSelect();
+        renderAll();
+        resizeBoard();
+      }
+    }
+    readOnly = !readOnly;
+    if (readOnly) {
+      mode = 'play';
+      selectedTool = 'stone_1';
+      pending = null;
+    }
+    applyReadOnlyUI();
+    log(readOnly ? 'Read Only enabled — viewing and tree navigation only.' : 'Read Only disabled.');
   }
 
   function toggleEditMode() {
+    if (readOnly) { log('Read Only: editing is disabled.', 'warn'); return; }
     mode = mode === 'edit' ? 'play' : 'edit';
     pending = null;
     if (mode === 'edit') selectedTool = 'stone_1';
@@ -2047,10 +2877,12 @@
   function toggleTurn() {
     const sign = playerToMove();
     const value = sign > 0 ? 'W' : 'B';
-    mutateTree((draft) => draft.updateProperty(nodeId, 'PL', [value]), { message: `Next player: ${value === 'B' ? 'Black' : 'White'}.` });
+    const changed = mutateTree((draft) => draft.updateProperty(nodeId, 'PL', [value]), { message: null });
+    if (changed) logNodeProperty('PL');
   }
 
   function selectTool(tool) {
+    if (readOnly) { log('Read Only: edit tools are disabled.', 'warn'); return; }
     if (mode !== 'edit') { mode = 'edit'; editbar.hidden = false; }
     selectedTool = tool;
     pending = null;
@@ -2139,6 +2971,11 @@
     popup.addEventListener('click', (event) => {
       const item = event.target.closest('.menu-item');
       if (!item || item.disabled) return;
+      if (item.dataset.recentIndex != null) {
+        closeMenus();
+        runAction(() => openRecent(Number(item.dataset.recentIndex)));
+        return;
+      }
       const action = menuActions[item.dataset.action];
       closeMenus();
       if (action) runAction(action);
@@ -2148,50 +2985,99 @@
   document.addEventListener('pointerdown', (event) => { if (activeMenu && !activeMenu.contains(event.target)) closeMenus(); }, true);
   window.addEventListener('blur', () => closeMenus());
 
+  const menuSelectHandlers = {
+    size: async (value) => {
+      closeMenus();
+      if (value === 'custom') { promptCustomSize(); return; }
+      await changeBoardSize(Number(value), Number(value));
+      syncMenuSelects();
+    },
+    coords: (value) => {
+      closeMenus();
+      if (value === 'none') {
+        if (!settings.coords) return;
+        settings.coords = false;
+        saveSettings();
+        updateToolbar();
+        syncMenuState();
+        scheduleBoardDraw();
+        log('Coordinates hidden.');
+      } else {
+        setCoordinatesStyle(value);
+      }
+    },
+    numbers: (value) => {
+      closeMenus();
+      if (value === 'none') setMoveNumberLimit(-1);
+      else if (value === 'all') setMoveNumberLimit(0);
+      else if (value === 'custom') promptMoveNumberLimit();
+      else setMoveNumberLimit(Number(value));
+    },
+    numbering: (value) => { closeMenus(); setMoveNumbersMode(value); },
+    language: (value) => { closeMenus(); setLanguage(value); },
+    theme: (value) => { closeMenus(); setTheme(value); },
+    delay: (value) => { closeMenus(); setAutoplayDelay(Number(value)); },
+  };
+
+  for (const select of $$('[data-menu-select]')) {
+    select.addEventListener('keydown', (event) => {
+      event.stopPropagation();
+      if (event.key === 'Escape') closeMenus();
+    });
+    select.addEventListener('change', () => {
+      const handler = menuSelectHandlers[select.dataset.menuSelect];
+      if (!handler) return;
+      try {
+        const result = handler(select.value);
+        if (result && typeof result.catch === 'function') {
+          result.catch((error) => log(`Menu option failed: ${error.message}`, 'error'));
+        }
+      } catch (error) {
+        log(`Menu option failed: ${error.message}`, 'error');
+      }
+      syncMenuSelects();
+    });
+  }
+
   const menuActions = {
     'new-game': newGame, 'open-sgf': openSgf,
     'save-sgf': () => saveSgf(false), 'save-sgf-as': () => saveSgf(true),
-    quit: quitApp, undo, redo, 'toggle-edit': toggleEditMode,
+    quit: quitApp, undo, redo, 'toggle-edit': toggleEditMode, 'toggle-readonly': toggleReadOnly,
     'delete-node': deleteNode, 'make-main': makeMainVariation,
     'cut-variation': cutVariation, 'copy-variation': copyVariation, 'paste-variation': pasteVariation,
     'duplicate-node': duplicateNode, 'insert-node': insertEmptyNode,
     'flatten-variation': flattenVariation, 'focus-comment': focusComment,
     'shift-left': () => shiftVariation('left'), 'shift-right': () => shiftVariation('right'),
     'remove-siblings': removeOtherVariations, 'clear-markup': clearNodeMarkup,
-    'focus-info': () => { setTab('info'); infoFields.black.focus(); },
+    'focus-info': focusGameInfo,
     pass: passTurn, 'toggle-autoplay': toggleAutoPlay,
     first: goToBeginning, prev: goToParent, next: goToChild, last: goToEnd,
     'toggle-coords': toggleCoordinates, 'toggle-numbers': toggleMoveNumbers,
-    'coords-a1': () => setCoordinatesStyle('A1'), 'coords-11': () => setCoordinatesStyle('1-1'),
-    'numbers-start': () => setMoveNumbersMode('start'), 'numbers-variation': () => setMoveNumbersMode('variation'),
-    'numbers-none': () => setMoveNumberLimit(-1), 'numbers-all': () => setMoveNumberLimit(0),
-    'numbers-10': () => setMoveNumberLimit(10), 'numbers-25': () => setMoveNumberLimit(25),
-    'numbers-50': () => setMoveNumberLimit(50), 'numbers-custom': promptMoveNumberLimit,
-    'toggle-colorize': () => toggleSettingFlag('colorizeMoves', (on) => `Move colorization ${on ? 'enabled' : 'disabled'}.`),
     'toggle-next-moves': () => toggleSettingFlag('showNextMoves', (on) => `Next moves ${on ? 'shown' : 'hidden'}.`),
     'toggle-siblings': () => toggleSettingFlag('showSiblings', (on) => `Sibling variations ${on ? 'shown' : 'hidden'}.`),
+    'toggle-auto-layout': toggleAutoLayout,
+    'copy-position-link': copyPositionLink,
     'zoom-in': () => setZoom(settings.zoom * 1.15),
     'zoom-out': () => setZoom(settings.zoom / 1.15),
     'zoom-reset': () => setZoom(1),
     'toggle-fullscreen': toggleFullScreen,
     'toggle-tree': toggleTree,
-    'language-en': () => setLanguage('en'), 'language-zh': () => setLanguage('zh'),
     'toggle-remember-size': toggleRememberBoardSize,
-    'delay-500': () => setAutoplayDelay(500), 'delay-1000': () => setAutoplayDelay(1000),
-    'delay-2000': () => setAutoplayDelay(2000), 'delay-3000': () => setAutoplayDelay(3000),
     'reset-settings': resetAllSettings,
     'reset-layout': resetLayout, 'copy-sgf': copySgf, 'paste-sgf': pasteSgf,
+    'clear-recents': clearRecentFiles,
     'clear-messages': clearMessages, 'toggle-turn': toggleTurn,
-    preferences: showPreferences, shortcuts: showShortcuts, about: showAbout,
-    'size-9': () => changeBoardSize(9, 9), 'size-13': () => changeBoardSize(13, 13),
-    'size-19': () => changeBoardSize(19, 19), 'size-custom': promptCustomSize,
+    preferences: openSetup, shortcuts: showShortcuts, about: showAbout,
   };
 
   // Game info / preferences / help --------------------------------------
   const INFO_BINDINGS = {
-    black: 'PB', blackRank: 'BR', white: 'PW', whiteRank: 'WR',
+    black: 'PB', blackRank: 'BR', blackTeam: 'BT',
+    white: 'PW', whiteRank: 'WR', whiteTeam: 'WT',
     result: 'RE', komi: 'KM', handicap: 'HA', rules: 'RU',
-    date: 'DT', event: 'EV', place: 'PC', gameName: 'GN', comment: 'GC',
+    date: 'DT', time: 'TM', event: 'EV', place: 'PC', round: 'RO',
+    gameName: 'GN', user: 'US', source: 'SO', copyright: 'CP',
+    comment: 'GC', annotation: 'AN',
   };
 
   function setRootProperty(prop, value) {
@@ -2222,6 +3108,7 @@
   });
   tabInfo.addEventListener('click', () => setTab('info'));
   tabComment.addEventListener('click', () => setTab('comment'));
+  infoDone.addEventListener('click', restoreInfoPanel);
 
   function toggleCoordinates() {
     settings.coords = !settings.coords;
@@ -2390,6 +3277,75 @@
     }
   }
 
+  function setTheme(theme, { persist = true, silent = false } = {}) {
+    const next = THEMES.includes(theme) ? theme : 'classic';
+    settings.theme = next;
+    for (const name of THEMES) document.documentElement.classList.toggle(`theme-${name}`, name === next);
+    document.documentElement.dataset.boardTheme = next;
+    refreshPalette();
+    scheduleBoardDraw();
+    if (tree) syncMenuState();
+    if (persist) saveSettings();
+    if (!silent) log(`Board theme: ${next}.`);
+  }
+
+  function applyBoardAppearance() {
+    boardCanvas.style.filter = Math.abs(settings.boardBrightness - 1) < 0.001
+      ? ''
+      : `brightness(${settings.boardBrightness})`;
+  }
+
+  function toggleAutoLayout() {
+    settings.autoLayout = settings.autoLayout === false;
+    saveSettings();
+    updateResponsiveLayout();
+    syncMenuState();
+    log(settings.autoLayout ? 'Responsive layout enabled.' : 'Responsive layout disabled.');
+  }
+
+  function sizePortraitBoard() {
+    const height = clamp(
+      Math.round(workspace.clientHeight * 0.58),
+      220,
+      Math.max(220, workspace.clientHeight - 280),
+    );
+    document.documentElement.style.setProperty('--portrait-board-height', `${height}px`);
+    paneBoard.style.height = `${height}px`;
+  }
+
+  function updateResponsiveLayout() {
+    if (!tree) return;
+    const shouldPortrait = settings.autoLayout !== false && workspace.clientWidth > 0 && workspace.clientWidth < 1120;
+    if (shouldPortrait === portraitLayout) {
+      if (shouldPortrait) {
+        sizePortraitBoard();
+        scheduleBoardDraw();
+      }
+      return;
+    }
+    portraitLayout = shouldPortrait;
+    workspace.classList.toggle('is-portrait', shouldPortrait);
+    if (shouldPortrait) {
+      verticalSplitter.hidden = true;
+      paneBoard.style.flex = '0 0 auto';
+      sizePortraitBoard();
+    } else {
+      verticalSplitter.hidden = false;
+      paneBoard.style.height = '';
+      document.documentElement.style.removeProperty('--portrait-board-height');
+      applyLayout(layout, { persist: false });
+    }
+    requestAnimationFrame(resizeBoard);
+  }
+
+  function scheduleResponsiveLayout() {
+    if (responsiveFrame) return;
+    responsiveFrame = requestAnimationFrame(() => {
+      responsiveFrame = 0;
+      updateResponsiveLayout();
+    });
+  }
+
   function applyViewState() {
     if (!tree) return;
     paneMoves.hidden = !settings.showTree;
@@ -2414,35 +3370,128 @@
   clearMessageButton.addEventListener('click', clearMessages);
 
   function resetLayout() {
+    infoFocusSnapshot = null;
+    if (infoDone) infoDone.hidden = true;
     applyLayout({ ...DEFAULT_LAYOUT });
     applyViewState();
     log('Panel layout reset.');
   }
 
-  function showPreferences() {
-    prefSize.value = String(settings.defaultSize);
-    prefDelay.value = String(settings.autoPlayDelay);
-    prefCoords.checked = settings.coords;
-    prefNumbers.checked = settings.moveNumberLimit >= 0;
-    if (!preferencesDialog.open) preferencesDialog.showModal();
+  function setSetupTab(tab) {
+    for (const button of setupTabs) button.classList.toggle('is-active', button.dataset.setupTab === tab);
+    for (const panel of setupPanels) panel.hidden = panel.dataset.setupPanel !== tab;
   }
 
-  $('#pref-save').addEventListener('click', () => {
-    settings.defaultSize = Number(prefSize.value) || 13;
-    settings.boardWidth = settings.defaultSize;
-    settings.boardHeight = settings.defaultSize;
-    settings.autoPlayDelay = clamp(Number(prefDelay.value) || 1000, 200, 5000);
-    settings.coords = prefCoords.checked;
-    settings.moveNumberLimit = prefNumbers.checked ? 0 : -1;
+  function syncSetupBrightness() {
+    setupBrightnessValue.textContent = `${setupBrightness.value}%`;
+  }
+
+  function openSetup() {
+    setupTheme.value = settings.theme;
+    setupBrightness.value = String(Math.round(settings.boardBrightness * 100));
+    syncSetupBrightness();
+    setupCoords.checked = settings.coords;
+    setupCoordStyle.value = settings.coordinatesStyle;
+    setupDefaultSize.value = String(settings.defaultSize);
+    setupStoneTexture.checked = settings.stoneTexture !== false;
+    setupFocusMarker.value = settings.focusMarker;
+    setupFocusColor.value = settings.focusColor;
+    setupHideMarkers.checked = settings.hideMarkers;
+    setupNextMoves.checked = settings.showNextMoves;
+    setupSiblings.checked = settings.showSiblings;
+    const limit = settings.moveNumberLimit;
+    setupNumbers.value = limit < 0 ? 'none' : limit === 0 ? 'all' : [10, 25, 50].includes(limit) ? String(limit) : 'all';
+    setupNumbering.value = settings.moveNumbersMode;
+    setupLabelChar.value = settings.labelStartChar;
+    setupResultTitle.checked = settings.showResultInTitle;
+    setupSound.checked = settings.soundEnabled;
+    setupDelay.value = String(settings.autoPlayDelay);
+    setupPreferVariation.checked = settings.preferVariationChild;
+    setupKomi.value = String(settings.defaultKomi);
+    setupWhiteFirst.checked = settings.whiteFirst;
+    setupRightClickUndo.checked = settings.rightClickUndo;
+    setupOpenReadOnly.checked = settings.openReadOnly;
+    setSetupTab('board');
+    if (!setupDialog.open) setupDialog.showModal();
+  }
+
+  function applySetup() {
+    const theme = setupTheme.value;
+    const brightness = clamp(Number(setupBrightness.value) / 100 || 1, 0.5, 1.5);
+    const limitValue = setupNumbers.value;
+    const limit = limitValue === 'none' ? -1 : limitValue === 'all' ? 0 : Number(limitValue);
+    const komi = Number(setupKomi.value);
+    const defaultSize = [9, 13, 19].includes(Number(setupDefaultSize.value)) ? Number(setupDefaultSize.value) : 13;
+    const previousDefaultSize = settings.defaultSize;
+    Object.assign(settings, {
+      coords: setupCoords.checked,
+      coordinatesStyle: setupCoordStyle.value,
+      theme,
+      boardBrightness: brightness,
+      stoneTexture: setupStoneTexture.checked,
+      focusMarker: setupFocusMarker.value,
+      focusColor: setupFocusColor.value,
+      hideMarkers: setupHideMarkers.checked,
+      showNextMoves: setupNextMoves.checked,
+      showSiblings: setupSiblings.checked,
+      moveNumberLimit: Number.isFinite(limit) ? limit : -1,
+      moveNumbersMode: setupNumbering.value,
+      labelStartChar: (setupLabelChar.value || 'A').slice(0, 1).toUpperCase() || 'A',
+      showResultInTitle: setupResultTitle.checked,
+      soundEnabled: setupSound.checked,
+      autoPlayDelay: clamp(Number(setupDelay.value) || 1000, 200, 5000),
+      preferVariationChild: setupPreferVariation.checked,
+      defaultKomi: Number.isFinite(komi) ? komi : 6.5,
+      whiteFirst: setupWhiteFirst.checked,
+      rightClickUndo: setupRightClickUndo.checked,
+      openReadOnly: setupOpenReadOnly.checked,
+    });
+    settings.defaultSize = defaultSize;
+    if (defaultSize !== previousDefaultSize) {
+      settings.boardWidth = defaultSize;
+      settings.boardHeight = defaultSize;
+    }
     saveSettings();
-    preferencesDialog.close();
-    updateToolbar();
-    syncMenuState();
+    setTheme(theme, { persist: false, silent: true });
+    applyBoardAppearance();
+    setupDialog.close();
+    renderAll();
+    syncMenuSelects();
+    updateTitle();
     scheduleBoardDraw();
-    paneBoard.classList.toggle('is-zoomed', settings.zoom > 1.001);
-    if (autoPlayTimer) { stopAutoPlay(); toggleAutoPlay(); }
-    log('Preferences saved.', 'success');
-  });
+    log('Set Up options applied.');
+  }
+
+  function resetSetupDefaults() {
+    setupTheme.value = DEFAULT_SETTINGS.theme;
+    setupBrightness.value = String(DEFAULT_SETTINGS.boardBrightness * 100);
+    syncSetupBrightness();
+    setupCoords.checked = DEFAULT_SETTINGS.coords;
+    setupCoordStyle.value = DEFAULT_SETTINGS.coordinatesStyle;
+    setupDefaultSize.value = String(DEFAULT_SETTINGS.defaultSize);
+    setupStoneTexture.checked = DEFAULT_SETTINGS.stoneTexture;
+    setupFocusMarker.value = DEFAULT_SETTINGS.focusMarker;
+    setupFocusColor.value = DEFAULT_SETTINGS.focusColor;
+    setupHideMarkers.checked = DEFAULT_SETTINGS.hideMarkers;
+    setupNextMoves.checked = DEFAULT_SETTINGS.showNextMoves;
+    setupSiblings.checked = DEFAULT_SETTINGS.showSiblings;
+    setupNumbers.value = 'none';
+    setupNumbering.value = DEFAULT_SETTINGS.moveNumbersMode;
+    setupLabelChar.value = DEFAULT_SETTINGS.labelStartChar;
+    setupResultTitle.checked = DEFAULT_SETTINGS.showResultInTitle;
+    setupSound.checked = DEFAULT_SETTINGS.soundEnabled;
+    setupDelay.value = String(DEFAULT_SETTINGS.autoPlayDelay);
+    setupPreferVariation.checked = DEFAULT_SETTINGS.preferVariationChild;
+    setupKomi.value = String(DEFAULT_SETTINGS.defaultKomi);
+    setupWhiteFirst.checked = DEFAULT_SETTINGS.whiteFirst;
+    setupRightClickUndo.checked = DEFAULT_SETTINGS.rightClickUndo;
+    setupOpenReadOnly.checked = DEFAULT_SETTINGS.openReadOnly;
+  }
+
+  for (const button of setupTabs) button.addEventListener('click', () => setSetupTab(button.dataset.setupTab));
+  setupBrightness.addEventListener('input', syncSetupBrightness);
+  $('#setup-ok').addEventListener('click', applySetup);
+  $('#setup-reset').addEventListener('click', resetSetupDefaults);
 
   function runtimeSummary() {
     if (isElectron) return `Electron ${desktop.versions?.electron ?? '?'} · Chromium ${desktop.versions?.chrome ?? '?'} · ${desktop.platform}`;
@@ -2484,9 +3533,16 @@
 
   boardCanvas.addEventListener('pointerdown', (event) => {
     if (event.button === 2) {
-      if (mode !== 'edit') return;
-      const point = pointFromEvent(event);
-      if (point) { event.preventDefault(); eraseAt(point.x, point.y); }
+      if (mode === 'edit') {
+        const point = pointFromEvent(event);
+        if (point) { event.preventDefault(); eraseAt(point.x, point.y); }
+      } else if (settings.rightClickUndo && !readOnly) {
+        const node = currentNode();
+        if (node && node.parentId != null) {
+          event.preventDefault();
+          deleteNode();
+        }
+      }
       return;
     }
     if (event.button !== 0) return;
@@ -2533,6 +3589,7 @@
   }
 
   function changeBoardSize(width, height) {
+    if (readOnly) { log('Read Only: board size cannot be changed.', 'warn'); syncSizeSelect(); return; }
     const w = Math.round(Number(width));
     const h = Math.round(Number(height));
     if (!Number.isFinite(w) || !Number.isFinite(h) || w < 2 || h < 2 || w > 52 || h > 52) {
@@ -2543,7 +3600,7 @@
     if (w === gameSize().width && h === gameSize().height) { syncSizeSelect(); return; }
     askConfirm(`Start a new ${w}×${h} game? The current game will be closed.`, 'Change board').then((confirmed) => {
       if (!confirmed) { syncSizeSelect(); return; }
-      startGame({ width: w, height: h }, { info: S.getGameInfo(tree) });
+      startGame({ width: w, height: h }, { info: gameInfoForNewGame() });
       log(`New ${w}×${h} game.`);
     });
   }
@@ -2660,7 +3717,7 @@
 
   function applyLayout(next, { persist = true } = {}) {
     layout = { leftPct: next.leftPct, topPct: next.topPct, messagePct: next.messagePct };
-    paneBoard.style.flex = `0 0 ${layout.leftPct}%`;
+    paneBoard.style.flex = portraitLayout ? '0 0 auto' : `0 0 ${layout.leftPct}%`;
     paneInfo.style.flex = `0 0 ${layout.topPct}%`;
     paneMessage.style.flex = `0 0 ${layout.messagePct}%`;
     verticalSplitter.setAttribute('aria-valuenow', layout.leftPct.toFixed(1));
@@ -2752,6 +3809,8 @@
   // Boot -----------------------------------------------------------------
   function boot() {
     updateAcceleratorLabels();
+    setTheme(settings.theme, { persist: false, silent: true });
+    applyBoardAppearance();
     const stored = readLayout();
     layoutRestored = stored.restored;
     applyLayout(stored.layout);
@@ -2777,12 +3836,25 @@
       maxSize: () => rightColumn.clientHeight - paneInfo.getBoundingClientRect().height - splitterStackHeight() - treeMinimum(),
     });
     new ResizeObserver(() => resizeBoard()).observe(paneBoard);
+    new ResizeObserver(() => scheduleResponsiveLayout()).observe(workspace);
+    window.addEventListener('resize', scheduleResponsiveLayout);
     const initialSize = settings.rememberBoardSize !== false && settings.boardWidth && settings.boardHeight
       ? { width: settings.boardWidth, height: settings.boardHeight }
       : settings.defaultSize;
     startGame(initialSize, { persistSize: false });
     applyViewState();
     applyLanguage();
+    renderRecentFiles();
+    if (startupSgf) {
+      applySgfText(startupSgf, 'the link');
+      filePath = null;
+      dirty = false;
+      updateTitle();
+    }
+    if (startupPath && !startupPathApplied) {
+      if (!maybeApplyStartupPath()) log('The position link will apply once a game is loaded.', 'warn');
+    }
+    updateResponsiveLayout();
     log('MultiGo Neo ready — play moves, or press Ctrl+E to edit.');
     log(`${gameSize().width}×${gameSize().height} board · ${runtimeSummary()} · ${layoutRestored ? 'layout restored' : 'default layout'}.`);
     if (stored.invalid) log('The saved panel layout could not be read.', 'warn');
@@ -2796,8 +3868,27 @@
       get nodeId() { return nodeId; },
       get mode() { return mode; },
       get dirty() { return dirty; },
+      readOnly: () => readOnly,
       settings: () => ({ ...settings }),
+      recent: () => recentFiles.map(({ name, path, content }) => ({ name, path, hasContent: Boolean(content) })),
+      addRecent: (name, text) => rememberRecent(name, text),
+      openRecent: (index) => openRecent(index),
+      clearRecent: () => clearRecentFiles(),
       lineWidths: () => ({ arrow: GAME_MARK_ARROW_WIDTH, line: GAME_MARK_LINE_WIDTH }),
+      overlay: () => {
+        const info = collectVariationHints();
+        return {
+          active: info.overlayActive,
+          last: info.lastPoint,
+          hints: info.hints.map(({ x, y, letter, alpha, dim, sign }) => ({ x, y, letter, alpha, dim, sign })),
+        };
+      },
+      hover: () => (hover ? { ...hover } : null),
+      positionLink: () => {
+        const spec = window.MultiGoPath ? window.MultiGoPath.build(tree, nodeId) : '';
+        const sgf = S.sgf.stringify([tree.root], { linebreak: '', indent: '' });
+        return `${window.location.href.split(/[?#]/)[0]}?sgf=${encodeURIComponent(sgf)}&path=${encodeURIComponent(spec)}`;
+      },
       gameSize,
       boardView,
       pointFor: (x, y) => {

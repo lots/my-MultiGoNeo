@@ -10,14 +10,16 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "test": "node scripts/test-tree.js",
+    "test": "node scripts/test-tree.js && node scripts/test-path.js",
+    "test:path": "node scripts/test-path.js",
     "test:legacy": "node scripts/test-engine.js",
     "bundle": "node scripts/build-sabaki-bundle.mjs",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "dist:win": "electron-builder --win",
-    "dist:mac": "electron-builder --mac",
-    "dist:linux": "electron-builder --linux"
+    "icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icon.ps1",
+    "pack": "electron-builder --dir --config electron-builder.config.js",
+    "dist": "electron-builder --config electron-builder.config.js",
+    "dist:win": "electron-builder --win --config electron-builder.config.js",
+    "dist:mac": "electron-builder --mac --config electron-builder.config.js",
+    "dist:linux": "electron-builder --linux --config electron-builder.config.js"
   },
   "devDependencies": {
     "@sabaki/go-board": "^1.4.3",
@@ -31,15 +33,20 @@
     "appId": "com.illegear.multigoneo",
     "productName": "MultiGo Neo",
     "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "publish": null,
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "electron/**/*",
       "src/**/*",
-      "package.json"
+      "package.json",
+      "LICENSE"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -57,8 +64,19 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MultiGo Neo",
+      "uninstallDisplayName": "MultiGo Neo ${version}",
+      "artifactName": "MultiGo-Neo-${version}-setup.${ext}",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "MultiGo-Neo-${version}-portable.${ext}"
     },
     "mac": {
       "target": [

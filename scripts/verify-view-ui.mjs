@@ -61,6 +61,14 @@ async function clickAction(action) {
   await evaluate(`document.querySelector('.menu-item[data-action="${action}"]').click()`)
   await sleep(100)
 }
+async function menuSelect(id, value) {
+  await evaluate(`(() => {
+    const select = document.getElementById('${id}');
+    select.value = '${value}';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  await sleep(180)
+}
 
 await send('Page.enable')
 await send('Runtime.enable')
@@ -114,7 +122,8 @@ const custom5x9 = await evaluate(`(() => {
     snapshot: __figdesk.snapshot(),
     boardView: { cols: __figdesk.boardView.cols, rows: __figdesk.boardView.rows },
     select: document.getElementById('board-size').value,
-    customChecked: document.querySelector('.menu-item[data-action="size-custom"]').getAttribute('aria-checked'),
+    customChecked: document.getElementById('view-board-size').value === 'custom',
+    customLabel: document.querySelector('#view-board-size option[value="custom"]').textContent,
     canvas: { width: Math.round(r.width), height: Math.round(r.height) },
     status: document.getElementById('status-move').textContent,
   };
@@ -122,11 +131,9 @@ const custom5x9 = await evaluate(`(() => {
 
 // Add a couple of stones and enable the new View features.
 await evaluate(`__figdesk.playAt(2, 4); __figdesk.playAt(1, 6)`)
-await clickAction('coords-11')
-await clickAction('numbers-variation')
-await clickAction('toggle-colorize')
+await menuSelect('view-coords', '1-1')
+await menuSelect('view-numbering', 'variation')
 await clickAction('toggle-next-moves')
-await clickAction('toggle-siblings')
 const viewSettings = await evaluate(`(() => ({
   settings: __figdesk.settings(),
   info: {

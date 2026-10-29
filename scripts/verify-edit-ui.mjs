@@ -98,6 +98,46 @@ const initial = await evaluate(`({
 })`)
 await shot('preview-last-move.png')
 
+// Edit Game Info should maximize the right info panel and focus the first field.
+await clickAction('focus-info')
+await sleep(350)
+const infoFocus = await evaluate(`(() => {
+  const info = document.getElementById('pane-info').getBoundingClientRect();
+  const board = document.getElementById('pane-board').getBoundingClientRect();
+  const tree = document.getElementById('pane-moves').getBoundingClientRect();
+  const message = document.getElementById('pane-message').getBoundingClientRect();
+  const right = document.getElementById('right-column').getBoundingClientRect();
+  return {
+    infoWidth: Math.round(info.width),
+    boardWidth: Math.round(board.width),
+    rightWidth: Math.round(right.width),
+    infoHeight: Math.round(info.height),
+    treeHeight: Math.round(tree.height),
+    messageHeight: Math.round(message.height),
+    infoTab: document.getElementById('tab-info').getAttribute('aria-selected'),
+    activeElement: document.activeElement?.id,
+    doneVisible: !document.getElementById('info-done').hidden,
+  };
+})()`)
+await shot('preview-info-focus.png')
+await evaluate(`document.getElementById('info-done').click()`)
+await sleep(350)
+const infoRestored = await evaluate(`(() => {
+  const info = document.getElementById('pane-info').getBoundingClientRect();
+  const board = document.getElementById('pane-board').getBoundingClientRect();
+  const tree = document.getElementById('pane-moves').getBoundingClientRect();
+  const message = document.getElementById('pane-message').getBoundingClientRect();
+  return {
+    infoWidth: Math.round(info.width),
+    boardWidth: Math.round(board.width),
+    infoHeight: Math.round(info.height),
+    treeHeight: Math.round(tree.height),
+    messageHeight: Math.round(message.height),
+    doneHidden: document.getElementById('info-done').hidden,
+  };
+})()`)
+await shot('preview-info-restored.png')
+
 // R5: number counts.
 await evaluate(`document.getElementById('menu-view').click()`)
 await sleep(120)
@@ -113,13 +153,21 @@ const viewMenu = await evaluate(`(() => {
 })()`)
 await shot('preview-view-menu.png')
 await evaluate(`document.getElementById('menu-view').click()`)
-await clickAction('numbers-all')
-const allNumbers = await evaluate(`({ limit: __figdesk.settings().moveNumberLimit, checked: document.querySelector('.menu-item[data-action="numbers-all"]').getAttribute('aria-checked') })`)
-await clickAction('numbers-10')
-const tenNumbers = await evaluate(`({ limit: __figdesk.settings().moveNumberLimit, checked: document.querySelector('.menu-item[data-action="numbers-10"]').getAttribute('aria-checked') })`)
-await clickAction('numbers-none')
-const noNumbers = await evaluate(`({ limit: __figdesk.settings().moveNumberLimit, checked: document.querySelector('.menu-item[data-action="numbers-none"]').getAttribute('aria-checked') })`)
-await clickAction('numbers-10')
+async function setNumberSelect(value) {
+  await evaluate(`(() => {
+    const select = document.getElementById('view-numbers');
+    select.value = '${value}';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  await sleep(160)
+}
+await setNumberSelect('all')
+const allNumbers = await evaluate(`({ limit: __figdesk.settings().moveNumberLimit, select: document.getElementById('view-numbers').value })`)
+await setNumberSelect('10')
+const tenNumbers = await evaluate(`({ limit: __figdesk.settings().moveNumberLimit, select: document.getElementById('view-numbers').value })`)
+await setNumberSelect('none')
+const noNumbers = await evaluate(`({ limit: __figdesk.settings().moveNumberLimit, select: document.getElementById('view-numbers').value })`)
+await setNumberSelect('10')
 await shot('preview-move-numbers.png')
 
 // R2: each right-hand pane can be squeezed.
@@ -215,6 +263,8 @@ await sleep(120)
 
 console.log(JSON.stringify({
   initial,
+  infoFocus,
+  infoRestored,
   viewMenu,
   allNumbers,
   tenNumbers,

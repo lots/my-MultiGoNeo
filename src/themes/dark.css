@@ -1,0 +1,32 @@
+﻿/* Dark board: low-glare slate surface with light grid and labels. */
+.theme-dark {
+  --board-surface: #303537;
+  --board-surface-image:
+    radial-gradient(ellipse at 30% 18%, rgba(255, 255, 255, 0.08), transparent 62%),
+    repeating-linear-gradient(93deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 15px),
+    linear-gradient(135deg, #3a4143, #2f3537 55%, #272c2e);
+  --board-edge: rgba(0, 0, 0, 0.55);
+  --board-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --board-line: rgba(232, 238, 240, 0.72);
+  --board-line-width: 1;
+  --board-star: rgba(232, 238, 240, 0.8);
+  --board-label: rgba(224, 232, 235, 0.72);
+  --stone-black-hi: #7f8486;
+  --stone-black-mid: #2a2d2f;
+  --stone-black-low: #050606;
+  --stone-white-hi: #fff;
+  --stone-white-mid: #e9ecec;
+  --stone-white-low: #b7bec0;
+  --stone-white-edge: rgba(0, 0, 0, 0.4);
+  --overlay-variant: #ff6b70;
+  --overlay-last: #63a4ff;
+  --overlay-both: #c58cff;
+  --overlay-backer: rgba(24, 28, 30, 0.78);
+  --overlay-halo: rgba(18, 22, 24, 0.82);
+}
+
+
+
+
+
+
