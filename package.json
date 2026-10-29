@@ -1,7 +1,7 @@
 {
   "name": "multigo-neo",
   "productName": "MultiGo Neo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A tree-based Go SGF editor and player modelled on the MultiGo workspace.",
   "main": "electron/main.js",
   "author": "ILLEGEAR",

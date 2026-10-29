@@ -543,7 +543,7 @@ Run `npm start` from a normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.0.0-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.0-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -551,7 +551,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.0.0-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.0-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Requirements:** Windows 10 or Windows 11, 64-bit (x64). Windows 11 on ARM runs the x64
@@ -606,8 +606,8 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.0.0-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.0.0-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.0-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.0-portable.exe` — single-file portable build.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
