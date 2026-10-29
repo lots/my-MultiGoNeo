@@ -2,8 +2,8 @@
 
 MultiGo Neo is a **tree-based Go SGF editor/player** for the desktop. Its functional
 reference is [`lots/my-Sabaki`](https://github.com/lots/my-Sabaki) — a study fork of
-Sabaki 0.60.2 — and its visual shell began life as **FigDesk**. Both study inputs are kept
-in [`study/`](study/README.md).
+Sabaki 0.60.2 — and the design and reference material it was built from is kept in
+[`study/`](study/README.md).
 
 This is the **core SGF editor milestone** of the migration: game tree and variations,
 lossless SGF, comments, the full markup toolset, and the fork's coloured-line/dim extensions
@@ -17,6 +17,11 @@ additions cover **FF[4] move and non-move logging** in the Message panel, a **se
 **pass** nodes in the game tree and the **四4** coordinate system. The View and Options menus
 now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and bold when
 active, dimmed when off.
+
+MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
+(coloured `AR`/`LN` lines and `SBKDD` dim colours — see
+[Modified FF[4]](#modified-ff4)). The board ships in **four themes**, previewed on 13×13
+boards [below](#board-themes-and-responsive-layout).
 
 ![MultiGo Neo with a variation tree and the five-stone setup](preview.png)
 
@@ -285,16 +290,35 @@ line/arrow/dim preview.
 
 ### Board themes and responsive layout
 
-Board colours, the CSS-only wood grain, grid, labels and stone gradients live in
-`src/themes/classic.css`, `flat.css`, `dark.css` and `paper.css`. The renderer reads the
-custom properties once per theme switch, so the canvas stays transparent over the CSS
-surface. Themes are selected in **Options** and remembered across launches.
+Four CSS-only board themes ship with the app: **Classic**, **Flat**, **Dark** and **Paper**.
+Pick one in **Options → Theme**; the choice is remembered across launches. A theme only
+changes the board surface, grid, labels and stones — the shell stays the same. All four
+images below show the same **13×13** position at 1440×1024.
+
+| Classic | Flat |
+| --- | --- |
+| ![Classic kaya board on a 13x13 position](preview-theme-classic.png) | ![Flat board on a 13x13 position](preview-theme-flat.png) |
+
+| Dark | Paper |
+| --- | --- |
+| ![Dark rosewood board on a 13x13 position](preview-theme-dark.png) | ![Paper diagram board on a 13x13 position](preview-theme-paper.png) |
+
+- **Classic** — warm kaya wood with CSS-only grain; the default.
+- **Flat** — a solid board colour with no grain.
+- **Dark** — old rosewood with a golden-brown grid and warm stone highlights, based on the
+  old-board photographs in `study/design/old-board/`; the stones get a glassy top-left
+  specular cap and a warm lower rim so black stones separate from the dark wood.
+- **Paper** — light diagram paper, thin ink lines and flat printed stones (no gradient,
+  drop shadow or highlight), for print-like review diagrams.
+
+Palettes live in `src/themes/classic.css`, `flat.css`, `dark.css` and `paper.css`; the
+renderer reads their custom properties on each switch, so the canvas stays transparent over
+the CSS surface. `node scripts/verify-themes-ui.mjs <port> .` regenerates the four
+screenshots against a DevTools-enabled Chromium.
 
 Below **1120 px** the workspace switches to a portrait column: the board sits on top at 58%
 of the available height, the panel column fills the rest, and the vertical splitter hides.
 The layout returns to the remembered landscape proportions when the window grows again.
-
-![Dark board theme](preview-theme-dark.png)
 
 ![Portrait workspace at 980×900](preview-portrait.png)
 
@@ -373,7 +397,7 @@ the dialog controls until OK is pressed. Values persist in `localStorage`.
 
 MultiGo bitmap-board/stone image paths, random stone images, window-side/tree-position choices,
 custom panel background colours, BIG5 auto-detection, new-file templates, branch merging and
-resume-last-position are not applicable or are not implemented in the FigDesk/canvas
+resume-last-position are not applicable or are not implemented in the canvas-only
 architecture; the dialog notes these limitations.
 
 ## Verification
@@ -455,8 +479,10 @@ layout and a 1100×1700 pass for the embed page:
 - navigated to a node containing `CR`, `AR`, `LN`, `DD` and `SBKDD`, and confirmed all five
   property codes appear; also confirmed setup, markup, line, dim and `PL` edits log the
   updated property immediately;
-- switched to the **Dark** theme through the Options dropdown and confirmed the CSS
-  surface/line variables;
+- switched to the **Dark** theme through the Options dropdown and confirmed the old-board
+  colours, golden grid, glassy black-stone specular highlight and warm rim;
+- switched to the **Paper** theme and confirmed flat printed stones: solid black center
+  `rgb(29,29,27)`, solid warm-white center `rgb(251,247,237)`, and thin ink outlines;
 - switched **Language** and **Autoplay Delay** through their dropdowns and confirmed the
   values were applied;
 - emulated **980×900** and confirmed the portrait workspace, hidden vertical splitter and
@@ -499,8 +525,13 @@ Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png)
 [triangle hover ghost](preview-hover-tool.png),
 [pass nodes](preview-pass-tree.png), [recent files](preview-recent.png),
 [orthogonal game tree](preview-tree-expanded.png), [collapsed branch](preview-tree-collapsed.png),
-[四4 coordinates](preview-cjk.png), [dark theme](preview-theme-dark.png),
+[四4 coordinates](preview-cjk.png),
+[classic theme](preview-theme-classic.png), [flat theme](preview-theme-flat.png),
+[dark theme](preview-theme-dark.png), [paper theme](preview-theme-paper.png),
 [portrait layout](preview-portrait.png) and [embeds](preview-embed.png).
+
+The four theme images are the same 13×13 position captured at 1440×1024 by
+`scripts/verify-themes-ui.mjs`.
 
 **Electron caveat:** the dependencies are installed (Electron 37.10.3), but the Electron
 runtime cannot reach `app.ready` in this headless agent session (Chromium crashpad:
@@ -634,6 +665,23 @@ downloaded again. Code signing is skipped unless a certificate is configured
 
 ## SGF support and limits
 
+### Modified FF[4]
+
+Game files are SGF **FF[4]**, and standard FF[4] from other editors opens unchanged. On top
+of the format, MultiGo Neo writes a small, documented extension set — the **modified FF[4]**
+dialect inherited from the my-Sabaki fork — so colours survive a save/load round trip:
+
+| Extension | Written as | Notes |
+| --- | --- | --- |
+| Coloured lines and arrows | `LN[aa:ae:red]`, `AR[ha:he:blue]` | The optional third component names the colour: `black`, `white`, `red`, `yellow`, `blue`, `green`. |
+| Coloured dim rectangles | `DD[kk:mm]` plus `SBKDD[blue:kk:mm]` | The standard `DD` still dims the region in other viewers; the private `SBKDD` companion stores the colour. |
+| Producer tag | `AP[MultiGo Neo:1.0]` | Identifies the app in newly created files. |
+
+Everything else stays untouched FF[4]: unknown properties, variations, setup stones, comments
+and markup are preserved losslessly, which the round-trip tests cover. Other readers ignore
+`SBKDD` and keep dimming the correct area from `DD`; a reader that does not implement the
+fork's colour extension may ignore or mis-read the third `AR`/`LN` value.
+
 Supported root properties: `GM`, `FF`, `CA`, `AP`, `SZ`, `PB`, `BR`, `PW`, `WR`, `RE`,
 `KM`, `HA`, `RU`, `DT`, `EV`, `PC`, `GN`, `GC`, `C`.
 
@@ -690,6 +738,8 @@ scripts/verify-edit-ui.mjs CDP test for Edit operations, panel limits and move m
 scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info and comment editor
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
+scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
+scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
 scripts/make-icon.ps1     regenerates build/icon.ico and build/icon.png (GDI+, no tools needed)
@@ -717,8 +767,10 @@ canvas renderer, tabs and game graph presentation are this project's own work.
 - [`study/design/my-Fig-test2.png`](study/design/my-Fig-test2.png) — the MultiGo screenshot
   that started this evolution
 - [`study/design/my-Fig-test.figcraft`](study/design/my-Fig-test.figcraft) /
-  [`study/design/my-Fig-test.png`](study/design/my-Fig-test.png) — original FigDesk design
-  files (unchanged)
+  [`study/design/my-Fig-test.png`](study/design/my-Fig-test.png) — original design files
+  (unchanged)
+- [`study/design/old-board/`](study/design/old-board) — old-board photographs used as the
+  colour reference for the **Dark** theme
 
 ## Next phases
 

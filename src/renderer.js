@@ -1487,11 +1487,58 @@
     context.restore();
   }
 
+  function drawStoneGloss(px, py, radius, sign) {
+    const context = boardContext;
+    context.save();
+    // Broad top-left specular: a small, bright glassy cap fading into the stone.
+    const gloss = context.createRadialGradient(
+      px - radius * 0.38, py - radius * 0.46, radius * 0.025,
+      px - radius * 0.16, py - radius * 0.22, radius * 0.88,
+    );
+    gloss.addColorStop(0, sign > 0 ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.78)');
+    gloss.addColorStop(0.12, 'rgba(255,248,235,0.46)');
+    gloss.addColorStop(0.34, 'rgba(255,255,255,0.10)');
+    gloss.addColorStop(0.62, 'rgba(255,255,255,0)');
+    context.fillStyle = gloss;
+    context.beginPath();
+    context.arc(px, py, radius * 0.96, 0, Math.PI * 2);
+    context.fill();
+
+    // A warm bounce/rim separates a black stone from the rosewood surface.
+    context.strokeStyle = sign > 0 ? 'rgba(255,226,190,0.42)' : 'rgba(255,255,255,0.52)';
+    context.lineWidth = Math.max(1, radius * 0.055);
+    context.beginPath();
+    // Bottom bounce plus another 90° up the right side: the rim reaches into
+    // the top-right corner while leaving the specular top-left open.
+    context.arc(px, py, radius * 0.94, Math.PI * -0.42, Math.PI * 0.92);
+    context.stroke();
+    context.restore();
+  }
+
+  function drawPaperStone(px, py, radius, sign, alpha) {
+    const context = boardContext;
+    context.save();
+    context.globalAlpha = alpha;
+    context.beginPath();
+    context.arc(px, py, radius, 0, Math.PI * 2);
+    // Flat printed-board discs: no gradient, shadow, gloss or stone texture.
+    context.fillStyle = sign > 0 ? '#1d1d1b' : '#fbf7ed';
+    context.fill();
+    context.lineWidth = Math.max(0.8, radius * 0.04);
+    context.strokeStyle = sign > 0 ? 'rgba(20,18,16,0.95)' : 'rgba(74,63,48,0.72)';
+    context.stroke();
+    context.restore();
+  }
+
   function drawStone(x, y, sign, radius, alpha = 1, detail = true) {
     const context = boardContext;
     const { x: px, y: py } = pointPosition(x, y);
     const seed = hashPoint(x, y);
     const ghost = alpha < 0.8;
+    if (settings.theme === 'paper') {
+      drawPaperStone(px, py, radius, sign, alpha);
+      return;
+    }
     context.save();
     context.globalAlpha = alpha;
     context.shadowColor = ghost ? 'rgba(0,0,0,.12)' : 'rgba(0,0,0,.34)';
@@ -1527,6 +1574,9 @@
       context.lineWidth = Math.max(0.7, radius * 0.055);
       context.strokeStyle = palette.whiteEdge;
       context.stroke();
+    }
+    if (settings.theme === 'dark' && detail && alpha > 0.95 && radius > 8) {
+      drawStoneGloss(px, py, radius, sign);
     }
     context.restore();
   }

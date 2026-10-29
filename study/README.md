@@ -10,8 +10,9 @@ The visual target and the original design document, unchanged:
 | File | What it is |
 | --- | --- |
 | `my-Fig-test2.png` | The MultiGo screenshot that started this evolution — the UI to reproduce. |
-| `my-Fig-test.figcraft` | Original FigDesk design document. `.figcraft` is a ZIP archive holding `document.json` and a `thumbnail.png`. |
+| `my-Fig-test.figcraft` | Original design document. `.figcraft` is a ZIP archive holding `document.json` and a `thumbnail.png`. |
 | `my-Fig-test.png` | Flat render of that design. |
+| `old-board/` | Three photographs of old go boards, used as the colour reference for the **Dark** theme. |
 
 ## `my-Sabaki/`
 
@@ -36,5 +37,5 @@ the same MIT terms.
   copyright © 2015-2020 Yichuan Shen and the Sabaki contributors.
 - The app itself is MIT licensed — see [`../LICENSE`](../LICENSE).
 
-The original FigDesk design files are the copyright of their author and are included here
+The original design files are the copyright of their author and are included here
 only as design provenance for this project.
