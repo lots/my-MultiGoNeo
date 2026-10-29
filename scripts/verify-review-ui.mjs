@@ -169,7 +169,7 @@ await sleep(150)
 const infoUpdate = await evaluate(`__figdesk.tree.root.data.SO?.[0]`)
 await shot('preview-game-info.png')
 
-// Normal comment editor should show only the editor, not a duplicate preview.
+// Normal comment editing shows the editor and the rendered Markdown preview below it.
 await evaluate(`document.getElementById('tab-comment').click()`)
 await sleep(120)
 const normalComment = await evaluate(`({

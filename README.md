@@ -25,8 +25,14 @@ active, dimmed when off.
 ### Game tree and SGF
 
 - Immutable `@sabaki/immutable-gametree` model with real variations.
-- Sabaki-style **game graph** in the lower-right panel (columns for branches, connector
-  lines, current path, comment badges, click to select).
+- Sabaki-style **game graph** in the lower-right panel (columns for branches, current path,
+  comment badges, click to select).
+- Connectors are **orthogonal tree bones** rather than long diagonal parent-child lines:
+  vertical runs through a sequence plus a single clean elbow at branches.
+- Every branch node has a grey **`+` / `−` collapse toggle** (MultiGo-style). Collapsing hides the
+  subtree, compacts the remaining layout, keeps the selected node visible, and shows the
+  visible/total node count in the panel header.
+- Expanding restores the subtree; collapse state is kept while editing the same game.
 - Play a move, create a variation by playing a different move from an earlier node, pass,
   and switch the player to move.
 - Delete a node, make a variation main, shift it left/right, and remove sibling variations.
@@ -38,15 +44,22 @@ active, dimmed when off.
   **`p`** in the game tree; the tooltip and accessibility label spell out **pass**.
 - New games get `GM[1] FF[4] CA[UTF-8] AP[MultiGo Neo:1.0] SZ[…]`.
 
+![Orthogonal Sabaki-style game tree with branch collapse toggles](preview-tree-expanded.png)
+
+![Collapsed branch showing the plus toggle and compact 2/6 node count](preview-tree-collapsed.png)
+
 ### Editing
 
 - Tabbed **Info / Comment** panel; comments support a safe Markdown subset (bold, italic,
   inline code, links, headings, lists, blockquotes, line breaks).
-- The editable Comment tab shows **only the editor**: the duplicate rendered preview below it
-  has been removed. The textarea is **seven lines tall and vertically resizable**. In Read
-  Only mode the editor is hidden and the rendered comment is shown instead.
+- The Comment textarea starts at **three lines**, remains vertically resizable, and its
+  height is remembered across launches. The same comment is rendered below the editor using
+  the Markdown subset, so formatted text can be checked while editing. In Read Only mode the
+  editor is hidden and only the rendered comment is shown.
 - Edit tool strip: black/white stones, eraser, cross, triangle, square, circle, line, arrow,
   dim, label, and number.
+- **Delete Move** is available from the toolbar in both Play and Edit modes (and from the
+  Play/Edit menus or `Ctrl+Delete`); the button is disabled at the root.
 - my-Sabaki palette for lines/arrows and dim rectangles: black, white, red, yellow, blue,
   green, plus the theme default.
 - Coloured line/arrow values use the fork's optional third field:
@@ -112,7 +125,14 @@ The Info tab now covers every field in the MultiGo Game Information dialog:
 Values are read from and written back to the root SGF node. They are preserved when the board
 size is changed and disabled while Read Only is active.
 
-![All Game Information fields populated from SGF](preview-game-info.png)
+The player fields are grouped into two columns: **Black / Black rank / Black team** on the
+left and **White / White rank / White team** on the right. The default Info panel is compact:
+about six rows tall, showing **Game Name** through **Rules**, while the Message panel is limited
+to roughly three log lines. Both panes remain resizable with their splitters.
+
+![SGF fields populated with Black/White columns](preview-game-info.png)
+
+![Compact initial Info panel through Rules and compact Message panel](preview-r17-layout.png)
 
 ### Game Info editing focus
 
@@ -139,17 +159,55 @@ Move-number display is controlled by the **View → Move Numbers** dropdown:
 
 ![Only the last ten moves carry numbers](preview-move-numbers.png)
 
+### Fast navigation
+
+The toolbar now has **←←** / **→→** fast-rewind and fast-forward buttons, plus Play-menu
+entries. Fast navigation advances by **moves**, not raw tree nodes, and stops at the root or
+the end of the current branch. The number of moves is configurable in
+**Options → Preferences → View → Board → Fast forward/rewind steps** and defaults to **20**.
+
 ### Recent files
 
 The File menu keeps the **last seven opened or saved SGF files** under **Recent Files**:
 
 - The list is numbered and deduplicated (reopening a file moves it to the top).
-- In the desktop build the full path is remembered and re-read through the main process.
+- In the desktop/portable build the **complete path** (folder + filename) is remembered,
+  re-read through the main process, and used as the Save As default location.
 - In the browser preview up to 400 KB of SGF text per entry is cached in `localStorage`, so
   recent games reopen without the original file.
-- Missing or oversized files fail with a message; **Clear Recent Files** empties the list.
+- Chromium also stores the File System Access **file handle** in IndexedDB. This lets a recent
+  file reopen and later save back to the same location, even though browsers intentionally hide
+  the literal filesystem path.
+- Missing or oversized files fail with a message; **Clear Recent Files** empties the list and
+  removes the stored browser handles.
 
 ![File menu with seven recent files](preview-recent.png)
+
+### Save/open location messages
+
+File operations now report the actual location used in the Message panel.
+
+**Web version:** in Chromium browsers that support the File System Access API, the first
+**Save** (or any **Save As**) opens a folder/file picker, so the destination is chosen
+explicitly instead of always landing in Downloads. **Save As** is prefilled with the current
+file name (not a newly generated game name); accepting it overwrites the same file. Later
+**Save** actions write to the same chosen file without reopening the picker. For **Save As**
+the current file handle is passed as the picker's `startIn` value, so Chromium opens the
+current file's folder; a fixed picker `id` makes it reopen the last selected save folder when
+no handle exists. The browser deliberately does not expose the full folder path, so the
+Message says “folder selected in the browser”. Firefox/Safari or browsers without the API
+fall back to the normal Downloads behavior, with a message saying so.
+
+**Portable version:** the Electron portable build does **not** use the browser download path.
+It calls the native `dialog.showSaveDialog` and can write to any folder the user picks; the
+dialog starts at the current file's folder (or the last chosen folder/Documents when there is
+no current file), prefills the current name for **Save As**, and logs the full filesystem path.
+A normal **Save** writes directly back to the current file. Installed and portable Electron
+builds share this behavior.
+
+- Browser open logs the picked filename and states that the browser does not expose its folder.
+- Browser recent-cache loads identify the cached filename, and errors include the path/name
+  that failed.
 
 ### Workspace
 
@@ -185,7 +243,8 @@ The View menu now covers the practical MultiGo-style display controls:
 - **Numbering** dropdown: **Game Start** or **Variation Start**
 - **Show Next Moves**: the first continuation from the current node as a blue **A** badge
 - **Show Sibling Variations**: **all child variations of the current node**, labelled
-  **A, B, C…** in child order — this is the corrected MultiGo-compatible behaviour
+  **A, B, C…** in child order, but **only when there is more than one child**. A single
+  continuation is the main branch and gets no sibling marker.
 - the last move keeps the **red triangle** marker in every mode
 - **Responsive Layout**
 - **Zoom In / Out / Reset**
@@ -204,8 +263,9 @@ The variation overlay now matches the MultiGo reference:
 
 - **Show Next Moves** places a blue **A** at the first continuation.
 - **Show Sibling Variations** places **all children of the current node** at their move
-  points, labelled **A, B, C…** in child order. These are the sibling alternatives at the
-  current position; it no longer reads the current node's parent's other branches.
+  points, labelled **A, B, C…** in child order, only when at least two children exist. A
+  single main branch produces no marker. It does not read the current node's parent's other
+  branches.
 - No translucent ghost stones are drawn for these variation hints: the board shows only the
   blue letters, so the position is not visually polluted.
 - This was verified against `ff4_ex_new.sgf`: the 19×19 node with six continuations shows
@@ -295,7 +355,8 @@ and `data-label`. Widgets support click/wheel/keyboard navigation and a hover st
 The former **Set Up…** entry has been merged into **Options → Preferences…**. The single
 Preferences dialog follows the MultiGo Options categories:
 
-- **Board** — theme, brightness, show coordinates and coordinate style.
+- **Board** — theme, brightness, show coordinates, coordinate style, default board size and
+  **Fast forward/rewind steps** (default 20).
 - **Stones** — enable/disable the procedural stone texture.
 - **Markers & Numbers** — focus marker (triangle / dot / none), focus colour,
   hide markup, show next moves, show sibling variations, move-number range, numbering mode,
@@ -312,8 +373,8 @@ the dialog controls until OK is pressed. Values persist in `localStorage`.
 
 MultiGo bitmap-board/stone image paths, random stone images, window-side/tree-position choices,
 custom panel background colours, BIG5 auto-detection, new-file templates, branch merging and
-fast-forward/resume-position options are not applicable or are not implemented in the
-FigDesk/canvas architecture; the dialog notes these limitations.
+resume-last-position are not applicable or are not implemented in the FigDesk/canvas
+architecture; the dialog notes these limitations.
 
 ## Verification
 
@@ -351,6 +412,10 @@ layout and a 1100×1700 pass for the embed page:
 - changed **Move Numbers** and **Numbering** through their View dropdowns;
 - confirmed the autoplay icon is distinct from First Child, the status bar has only the lower
   rule, and the menu bar contains no Video item;
+- loaded a six-node two-branch SGF and confirmed every tree connector path is orthogonal
+  (`M/V/H`, no diagonal `L`); used the branch toggles to collapse 6 nodes to 2 (label `2/6
+  nodes`), saw the `+` state and current node move to the collapsed branch, then expanded back
+  to 6 with the `−` state;
 - loaded `ff4_ex_new.sgf` and confirmed **Show Sibling Variations** labels all six children
   of the `Style & text type` node **A–F** (D16, D4, Q4, C17, C3, R3), and all four children
   after `W d16` **A–D**; no parent-sibling badges or ghost stones leaked onto the board;
@@ -362,17 +427,26 @@ layout and a 1100×1700 pass for the embed page:
   were disabled, Info/comment/board-size controls were disabled, and tree navigation still
   worked; the red **READ ONLY** status cell appeared and disappeared correctly;
 - populated every Game Information field from SGF and edited Source `SO` successfully;
-- confirmed the editable Comment tab shows only the editor, while Read Only shows the rendered
-  preview instead;
+- confirmed the Comment tab starts with a three-line editor and shows the rendered Markdown
+  comment below it; a 120 px resize survived reload, while Read Only still shows only the
+  rendered preview;
 - chose **Edit → Edit Game Info** and confirmed the info panel grew to 1180×802 px at
   1440×1024, the Game Tree and Message panes stayed at 48 px, the Info tab was active and the
   Black field received focus;
 - pressed the new **Done** button and confirmed the panel returned to its earlier
-  394×369 px / 1045 px board layout and the button hid itself;
+  394×324 px / 1045 px board layout and the button hid itself;
+- confirmed Black/Black rank/Black team share the left column and White/White rank/White team
+  the right column; the initial Info panel was 324 px tall, showed Game Name through Rules, and
+  the Message panel was 81 px (two visible log lines);
+- confirmed **Show Sibling Variations** produced no hint for a single main continuation and
+  two hints at a real two-child branch;
+- used the **←←/→→** toolbar buttons and Play-menu commands: fast forward moved 20 moves,
+  fast rewind returned to the root; the Preferences step count accepted 5 and reset to 20;
+- deleted a move from both Play and Edit modes using the new toolbar Delete Move button;
 - opened **Options → Preferences**, verified six categories, applied theme/brightness/coordinates,
   stone-texture, focus-marker/colour, hidden markup, next/sibling hints, move-number range,
-  numbering, label character, result title, sound, autoplay interval, variation preference,
-  Komi, White-first, right-click undo and open-as-Read-Only settings;
+  numbering, label character, result title, sound, autoplay interval, fast-step count,
+  variation preference, Komi, White-first, right-click undo and open-as-Read-Only settings;
 - confirmed Cancel left settings unchanged and Reset Defaults only reset the dialog until OK;
 - created a new game and confirmed the selected Komi and White-first defaults reached the SGF
   root; opening a file with open-as-Read-Only enabled locked it automatically;
@@ -394,6 +468,16 @@ layout and a 1100×1700 pass for the embed page:
 - confirmed the message log prints the FF[4] move property (`1. B[cc]`, `2. W[dd]`);
 - added ten recent files, confirmed the **seven-entry cap**, menu fit and the numbered labels,
   reopened the newest entry, then cleared the list;
+- confirmed browser loads report the filename and “browser file picker (original folder
+  unavailable)”; a stubbed File System Access picker used for **Save As** suggested the current
+  filename `existing.sgf`, used the remembered `multigo-sgf-save` picker ID, wrote the SGF, and
+  the following **Save** reused the same handle without reopening the picker; a further
+  **Save As** passed the file handle as the picker's `startIn` folder and used the new current
+  name;
+- Electron sends the current full `filePath` into the Save As dialog so the native picker opens
+  in the current file's folder (native runtime remains unexercised headlessly);
+- confirmed the no-picker fallback still reports `Downloaded …` and the browser-controlled
+  download location; Electron paths use the full filesystem path returned by the native dialog;
 - loaded a record ending in `B[]`, `W[]` and confirmed both tree nodes show **`p`** with the
   `pass` tooltip;
 - switched coordinates to **四4** and confirmed Arabic column numbers with Chinese row numerals;
@@ -405,6 +489,7 @@ Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png)
 [all four variations A-D after W d16](preview-variation-node24.png),
 [Read Only mode](preview-readonly.png), [Game Information fields](preview-game-info.png),
 [merged Options Preferences dialog](preview-preferences.png),
+[compact initial Info layout](preview-r17-layout.png),
 [focused Game Info panel](preview-info-focus.png),
 [restored layout after Done](preview-info-restored.png),
 [red last-move triangle](preview-last-move.png), [last 10 move numbers](preview-move-numbers.png),
@@ -413,6 +498,7 @@ Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png)
 [edit tools](preview-edit.png), [comment tab](preview-comment.png),
 [triangle hover ghost](preview-hover-tool.png),
 [pass nodes](preview-pass-tree.png), [recent files](preview-recent.png),
+[orthogonal game tree](preview-tree-expanded.png), [collapsed branch](preview-tree-collapsed.png),
 [四4 coordinates](preview-cjk.png), [dark theme](preview-theme-dark.png),
 [portrait layout](preview-portrait.png) and [embeds](preview-embed.png).
 
@@ -510,10 +596,11 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | View modes | View dropdowns: board size, coordinates, numbers, numbering |
 | Next-move hint | View → Show Next Moves (current branch only) |
 | Sibling hints | View → Show Sibling Variations (all child variations, A/B/C…) |
-| Board theme | Options → Theme dropdown or Options → Preferences → Board |
+| Tree branches | Click `−`/`+` beside a branch node to collapse/expand its subtree |
+| Board theme | Options → Theme dropdown or Options → Preferences → View → Board |
 | Preferences | Options → Preferences…; OK applies, Cancel discards |
 | Read Only | Edit → Read Only; navigation only, save disabled |
-| Comment editor | Comment tab; seven-line editor, vertically resizable, no duplicate preview |
+| Comment editor | Comment tab; three-line editor, vertically resizable, height remembered; rendered Markdown below |
 | Edit Game Info | Edit → Edit Game Info; maximizes the Info panel and focuses Black; **Done** restores the previous layout |
 | Responsive layout | View → Responsive Layout (auto below 1120 px) |
 | Copy position link | Tools → Copy Position Link |
@@ -532,7 +619,8 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Root / end of variation | `Home` / `End` |
 | Auto-play / pause | `Space` |
 | Toggle player to move | `Ctrl+Shift+P` |
-| Delete node | `Ctrl+Delete` |
+| Delete move | Toolbar Delete Move, Play/Edit menu, or `Ctrl+Delete`; works in Play and Edit |
+| Fast rewind / forward | Toolbar ←← / →→ or Play menu; step count in Preferences → View → Board |
 | Cut / copy / paste variation | `Ctrl+Alt+X` / `Ctrl+Alt+C` / `Ctrl+Alt+V` |
 | Duplicate / insert node | `Ctrl+Alt+D` / `Ctrl+Alt+N` |
 | Flatten variation | `Ctrl+Alt+F` |
@@ -600,6 +688,8 @@ scripts/verify-view-ui.mjs CDP test for custom boards and View controls
 scripts/verify-options-ui.mjs CDP test for validation, messages, language and persistence
 scripts/verify-edit-ui.mjs CDP test for Edit operations, panel limits and move markers
 scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info and comment editor
+scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
+scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
 scripts/make-icon.ps1     regenerates build/icon.ico and build/icon.png (GDI+, no tools needed)

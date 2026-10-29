@@ -98,6 +98,7 @@ await evaluate(`(() => {
   document.getElementById('setup-result-title').checked = false;
   document.getElementById('setup-sound').checked = true;
   set('setup-delay', '500');
+  set('setup-fast-step', '5');
   document.getElementById('setup-prefer-variation').checked = true;
   set('setup-komi', '7.5');
   document.getElementById('setup-white-first').checked = true;
@@ -129,6 +130,7 @@ const resetPreview = await evaluate(`({
   theme: document.getElementById('setup-theme').value,
   brightness: document.getElementById('setup-brightness').value,
   focus: document.getElementById('setup-focus-marker').value,
+  fastStep: document.getElementById('setup-fast-step').value,
 })`)
 await evaluate(`document.getElementById('setup-ok').click()`)
 await sleep(250)

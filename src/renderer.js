@@ -139,9 +139,12 @@
   const toolUndo = $('#tool-undo');
   const toolRedo = $('#tool-redo');
   const toolFirst = $('#tool-first');
+  const toolRewind = $('#tool-rewind');
   const toolPrev = $('#tool-prev');
   const toolNext = $('#tool-next');
+  const toolForward = $('#tool-forward');
   const toolLast = $('#tool-last');
+  const toolDelete = $('#tool-delete');
   const toolAutoPlay = $('#tool-autoplay');
   const toolPass = $('#tool-pass');
   const toolEdit = $('#tool-edit');
@@ -183,6 +186,7 @@
   const setupCoords = $('#setup-coords');
   const setupCoordStyle = $('#setup-coord-style');
   const setupDefaultSize = $('#setup-default-size');
+  const setupFastStep = $('#setup-fast-step');
   const setupStoneTexture = $('#setup-stone-texture');
   const setupFocusMarker = $('#setup-focus-marker');
   const setupFocusColor = $('#setup-focus-color');
@@ -231,6 +235,8 @@
     boardWidth: null,
     boardHeight: null,
     autoPlayDelay: 1000,
+    fastStep: 20,
+    commentHeight: null,
     defaultSize: 13,
     boardBrightness: 1,
     stoneTexture: true,
@@ -273,6 +279,10 @@
         boardWidth: validBoardSide(parsed.boardWidth),
         boardHeight: validBoardSide(parsed.boardHeight),
         autoPlayDelay: clamp(Number(parsed.autoPlayDelay) || 1000, 200, 5000),
+        fastStep: clamp(Number(parsed.fastStep) || 20, 1, 200),
+        commentHeight: Number.isFinite(Number(parsed.commentHeight)) && Number(parsed.commentHeight) >= 40
+          ? Number(parsed.commentHeight)
+          : null,
         defaultSize: [9, 13, 19].includes(Number(parsed.defaultSize)) ? Number(parsed.defaultSize) : 13,
         boardBrightness: clamp(Number(parsed.boardBrightness) || 1, 0.5, 1.5),
         stoneTexture: parsed.stoneTexture !== false,
@@ -299,8 +309,71 @@
 
   // Recent files ---------------------------------------------------------
   const RECENT_KEY = 'figdesk.recent.v1';
+  const RECENT_HANDLE_DB = 'figdesk.recent-handles.v1';
+  const RECENT_HANDLE_STORE = 'handles';
   const RECENT_LIMIT = 7;
   let recentFiles = loadRecentFiles();
+  let recentHandleDbPromise = null;
+
+  function recentHandleDb() {
+    if (!recentHandleDbPromise) {
+      recentHandleDbPromise = new Promise((resolve, reject) => {
+        const request = indexedDB.open(RECENT_HANDLE_DB, 1);
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains(RECENT_HANDLE_STORE)) {
+            request.result.createObjectStore(RECENT_HANDLE_STORE);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      }).catch(() => null);
+    }
+    return recentHandleDbPromise;
+  }
+
+  async function storeRecentHandle(name, handle) {
+    if (isElectron || !name || !handle || !('indexedDB' in window)) return;
+    try {
+      const db = await recentHandleDb();
+      if (!db) return;
+      await new Promise((resolve, reject) => {
+        const transaction = db.transaction(RECENT_HANDLE_STORE, 'readwrite');
+        transaction.objectStore(RECENT_HANDLE_STORE).put(handle, name);
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+      });
+    } catch { /* file handles are an enhancement, not a hard requirement */ }
+  }
+
+  async function loadRecentHandle(name) {
+    if (isElectron || !name || !('indexedDB' in window)) return null;
+    try {
+      const db = await recentHandleDb();
+      if (!db) return null;
+      return await new Promise((resolve) => {
+        const transaction = db.transaction(RECENT_HANDLE_STORE, 'readonly');
+        const request = transaction.objectStore(RECENT_HANDLE_STORE).get(name);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => resolve(null);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async function clearRecentHandles() {
+    if (isElectron || !('indexedDB' in window)) return;
+    try {
+      const db = await recentHandleDb();
+      if (!db) return;
+      await new Promise((resolve) => {
+        const transaction = db.transaction(RECENT_HANDLE_STORE, 'readwrite');
+        transaction.objectStore(RECENT_HANDLE_STORE).clear();
+        transaction.oncomplete = resolve;
+        transaction.onerror = resolve;
+      });
+    } catch { /* ignore */ }
+  }
 
   function loadRecentFiles() {
     try {
@@ -342,10 +415,10 @@
   }
 
   function clearRecentFiles() {
-    if (!recentFiles.length) { log('There are no recent files to clear.', 'warn'); return; }
     recentFiles = [];
     persistRecentFiles();
     renderRecentFiles();
+    void clearRecentHandles();
     log('Recent files cleared.');
   }
 
@@ -404,7 +477,9 @@
     'Flatten Current Variation': '展平当前变化', 'Copy SGF': '复制 SGF', 'Paste SGF': '粘贴 SGF',
     'Copy SGF to Clipboard': '复制 SGF 到剪贴板', 'Load SGF from Clipboard': '从剪贴板载入 SGF',
     'Clear Messages': '清除消息', Pass: '停一手', 'Auto Play': '自动播放', 'Pause Auto Play': '暂停自动播放',
-    'First Move': '第一手', 'Parent Node': '父节点', 'First Child': '第一个子节点', 'Last Move': '最后一手',
+    'First Move': '第一手', 'Fast Rewind': '快退', 'Parent Node': '父节点', 'First Child': '第一个子节点',
+    'Fast Forward': '快进', 'Last Move': '最后一手', 'Delete Move': '删除着法',
+    'Fast forward/rewind steps': '快进/快退步数',
     '9 × 9 Board': '9×9 棋盘', '13 × 13 Board': '13×13 棋盘', '19 × 19 Board': '19×19 棋盘',
     'Board Size': '棋盘尺寸', Coordinates: '坐标', 'Move Numbers': '手数', Numbering: '编号起始',
     None: '无', All: '全部', 'Last 10': '最近 10 手', 'Last 25': '最近 25 手', 'Last 50': '最近 50 手',
@@ -525,6 +600,8 @@
   let nextNodeId = 1;
   const getId = () => nextNodeId++;
   let tree = null;
+  let collapsedTreeRootId = null;
+  const collapsedNodeIds = new Set();
   let nodeId = null;
   let mode = 'play';
   let selectedTool = 'stone_1';
@@ -541,6 +618,7 @@
   let redoStack = [];
   let autoPlayTimer = null;
   let filePath = null;
+  let browserSaveHandle = null;
   let infoFocusSnapshot = null;
   let dirty = false;
   let cursor = null;
@@ -783,6 +861,32 @@
     const index = parent.children.findIndex((child) => child.id === node.id);
     const next = parent.children[index + direction];
     if (next) selectNode(next.id);
+  }
+
+  function fastNavigate(direction) {
+    let node = currentNode();
+    if (!node) return;
+    const steps = clamp(Number(settings.fastStep) || 20, 1, 200);
+    const isMove = (entry) => Boolean(entry?.data?.B?.[0] || entry?.data?.W?.[0]);
+    let moved = 0;
+    let changed = false;
+    while (moved < steps) {
+      if (direction < 0) {
+        if (node.parentId == null) break;
+        node = tree.get(node.parentId);
+      } else {
+        const child = preferredChild(node);
+        if (!child) break;
+        node = child;
+      }
+      changed = true;
+      if (isMove(node)) moved += 1;
+    }
+    if (!changed) {
+      log(direction < 0 ? 'Already at the root.' : 'No continuation from this node.', 'warn');
+      return;
+    }
+    selectNode(node.id);
   }
 
   function goToBeginning() { selectNode(tree.root.id); }
@@ -1723,9 +1827,9 @@
     if (settings.showNextMoves && node?.children.length) {
       add(preferredChild(node), 0.55);
     }
-    if (settings.showSiblings && node?.children.length) {
-      // Variations at the current position are the children of this node:
-      // they are sibling alternatives to one another, labelled A, B, C...
+    if (settings.showSiblings && node?.children.length > 1) {
+      // Only show sibling alternatives when there is an actual choice. A single
+      // continuation is the main branch and should not get a hint marker.
       for (const child of node.children) add(child, 0.9);
     }
     hints.forEach((hint, index) => { hint.letter = String.fromCharCode(65 + (index % 26)); });
@@ -1955,12 +2059,90 @@
     return 'setup';
   }
 
+  function ensureCollapseState() {
+    if (collapsedTreeRootId !== tree.root.id) {
+      collapsedTreeRootId = tree.root.id;
+      collapsedNodeIds.clear();
+    }
+    for (const id of [...collapsedNodeIds]) {
+      if (!tree.get(id)) collapsedNodeIds.delete(id);
+    }
+  }
+
+  function visibleTreeLayout() {
+    // The matrix layout is a local, collapse-aware copy of the Sabaki
+    // getMatrixDict layout. Hiding a node's children compacts the remaining
+    // branches instead of leaving the old gaps behind.
+    const matrix = [...Array(tree.getHeight() + 1)].map(() => []);
+    const positions = {};
+    const inner = (node, xshift, yshift) => {
+      const sequence = [];
+      let cursor = node;
+      while (cursor) {
+        sequence.push(cursor);
+        if (collapsedNodeIds.has(cursor.id)) break;
+        if (cursor.children.length === 1) cursor = cursor.children[0];
+        else break;
+      }
+
+      let hasCollisions = true;
+      while (hasCollisions) {
+        hasCollisions = false;
+        for (let y = 0; y <= sequence.length; y += 1) {
+          if (xshift >= matrix[yshift + y].length - (y === sequence.length)) continue;
+          hasCollisions = true;
+          xshift += 1;
+          break;
+        }
+      }
+
+      for (let y = 0; y < sequence.length; y += 1) {
+        matrix[yshift + y][xshift] = sequence[y].id;
+        positions[sequence[y].id] = [xshift, yshift + y];
+      }
+
+      const last = sequence[sequence.length - 1];
+      if (collapsedNodeIds.has(last.id)) return;
+      for (let k = 0; k < last.children.length; k += 1) {
+        inner(last.children[k], xshift + k, yshift + sequence.length);
+      }
+    };
+    inner(tree.root, 0, 0);
+    return { matrix, positions };
+  }
+
+  function toggleTreeNode(id) {
+    if (!tree?.get(id)) return;
+    if (collapsedNodeIds.has(id)) {
+      collapsedNodeIds.delete(id);
+    } else {
+      collapsedNodeIds.add(id);
+      if (nodeId !== id && S.getPath(tree, nodeId).some((node) => node.id === id)) {
+        selectNode(id);
+        return;
+      }
+    }
+    renderTree();
+  }
+
   function renderTree() {
     gameTree.replaceChildren();
     if (!tree) return;
+    ensureCollapseState();
     const dims = gameSize();
-    const [, positions] = S.getMatrixDict(tree);
-    const nodes = [...tree.listNodes()];
+    let visibleLayout = visibleTreeLayout();
+    if (!visibleLayout.positions[nodeId]) {
+      // Navigation can enter a collapsed subtree; reveal the current path rather
+      // than leaving the selection invisible.
+      let changed = false;
+      for (const node of S.getPath(tree, nodeId)) {
+        if (node.id !== nodeId && collapsedNodeIds.delete(node.id)) changed = true;
+      }
+      if (changed) visibleLayout = visibleTreeLayout();
+    }
+    const { positions } = visibleLayout;
+    const allNodes = [...tree.listNodes()];
+    const nodes = allNodes.filter((node) => positions[node.id]);
     const pathIds = new Set(S.getPath(tree, nodeId).map((node) => node.id));
     const cell = 24;
     const padding = 12;
@@ -1984,25 +2166,35 @@
       const from = positions[node.id];
       const to = positions[node.parentId];
       if (!from || !to) continue;
-      const line = document.createElementNS(svgNs, 'line');
-      line.setAttribute('x1', String(padding + from[0] * cell + 10));
-      line.setAttribute('y1', String(padding + from[1] * cell + 10));
-      line.setAttribute('x2', String(padding + to[0] * cell + 10));
-      line.setAttribute('y2', String(padding + to[1] * cell + 10));
-      line.setAttribute('class', pathIds.has(node.id) && pathIds.has(node.parentId) ? 'tree-link is-path' : 'tree-link');
-      svg.append(line);
+      const x1 = padding + to[0] * cell + 10;
+      const y1 = padding + to[1] * cell + 10;
+      const x2 = padding + from[0] * cell + 10;
+      const y2 = padding + from[1] * cell + 10;
+      // Orthogonal Sabaki-style bones: vertical through a sequence and one
+      // clean elbow at a branch, instead of long diagonal parent-child lines.
+      const d = Math.abs(x1 - x2) < 0.5
+        ? `M${x1} ${y1}V${y2}`
+        : `M${x1} ${y1}V${y1 + (y2 - y1) / 2}H${x2}V${y2}`;
+      const path = document.createElementNS(svgNs, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      path.setAttribute('class', pathIds.has(node.id) && pathIds.has(node.parentId) ? 'tree-link is-path' : 'tree-link');
+      svg.append(path);
     }
     canvas.append(svg);
 
     let branches = 0;
-    for (const node of nodes) {
+    for (const node of allNodes) {
       if (node.children.length > 1) branches += 1;
-      const position = positions[node.id];
-      if (!position) continue;
-      const [x, y] = position;
+    }
+    for (const node of nodes) {
+      const [x, y] = positions[node.id];
       const isMove = Boolean(node.data.B || node.data.W);
       const moveNumber = node.data.B || node.data.W ? S.getMoveNumber(tree, node.id) : null;
       const isPass = isMove && moveIsPass(node, dims);
+      const collapsed = collapsedNodeIds.has(node.id);
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'tree-node';
@@ -2019,22 +2211,45 @@
       }
       if (node.data.C?.[0]) button.classList.add('has-comment');
       if (isPass) button.classList.add('is-pass');
+      if (collapsed) button.classList.add('is-collapsed');
       button.textContent = node.parentId == null ? 'S' : isMove ? (isPass ? 'p' : String(moveNumber)) : '·';
-      button.title = `${nodeLabel(node, dims)}${node.data.C?.[0] ? ` — ${node.data.C[0]}` : ''}`;
+      button.title = `${nodeLabel(node, dims)}${node.data.C?.[0] ? ` — ${node.data.C[0]}` : ''}${collapsed ? ' — collapsed' : ''}`;
       button.setAttribute('role', 'treeitem');
-      button.setAttribute('aria-label', `Node ${S.getMoveNumber(tree, node.id)}: ${nodeLabel(node, dims)}`);
+      button.setAttribute('aria-label', `Node ${S.getMoveNumber(tree, node.id)}: ${nodeLabel(node, dims)}${collapsed ? ', collapsed' : ''}`);
       canvas.append(button);
+
+      if (node.children.length > 1 || collapsed) {
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = `tree-toggle${collapsed ? ' is-collapsed' : ''}`;
+        toggle.dataset.toggleNodeId = String(node.id);
+        toggle.style.left = `${padding + x * cell - 8}px`;
+        toggle.style.top = `${padding + y * cell + 4}px`;
+        toggle.textContent = collapsed ? '+' : '−';
+        toggle.title = collapsed ? 'Expand this branch' : 'Collapse this branch';
+        toggle.setAttribute('aria-label', collapsed ? 'Expand branch' : 'Collapse branch');
+        toggle.setAttribute('aria-expanded', String(!collapsed));
+        canvas.append(toggle);
+      }
     }
 
     gameTree.append(canvas);
+    const hiddenCount = allNodes.length - nodes.length;
     treeMeta.textContent = settings.language === 'zh'
-      ? `${nodes.length} 个节点 · ${branches} 个变化`
-      : `${nodes.length} nodes · ${branches} variation${branches === 1 ? '' : 's'}`;
+      ? `${nodes.length}${hiddenCount ? `/${allNodes.length}` : ''} 个节点 · ${branches} 个变化`
+      : `${nodes.length}${hiddenCount ? `/${allNodes.length}` : ''} nodes · ${branches} variation${branches === 1 ? '' : 's'}`;
     const current = gameTree.querySelector('.tree-node.is-current');
     if (current) current.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
 
   gameTree.addEventListener('click', (event) => {
+    const toggle = event.target.closest('.tree-toggle');
+    if (toggle) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleTreeNode(Number(toggle.dataset.toggleNodeId));
+      return;
+    }
     const node = event.target.closest('.tree-node');
     if (node) selectNode(Number(node.dataset.nodeId));
   });
@@ -2117,6 +2332,14 @@
     infoFields.rules.value = rules;
   }
 
+  function applyCommentHeight() {
+    if (Number.isFinite(settings.commentHeight) && settings.commentHeight >= 40) {
+      commentInput.style.height = `${Math.round(settings.commentHeight)}px`;
+    } else {
+      commentInput.style.height = '';
+    }
+  }
+
   function renderCommentPreview(text) {
     commentPreview.replaceChildren();
     if (!text.trim()) {
@@ -2136,7 +2359,7 @@
     commentTitle.textContent = node.parentId == null ? t('Root node') : `${t('Node')} ${nodeMoveNumber()}: ${nodeLabel(node, gameSize())}`;
     commentInput.hidden = readOnly;
     commentInput.disabled = readOnly;
-    commentPreview.hidden = !readOnly;
+    commentPreview.hidden = false;
     if (commentNodeId !== node.id || document.activeElement !== commentInput) {
       commentInput.value = text;
       commentNodeId = node.id;
@@ -2167,9 +2390,12 @@
     toolUndo.disabled = readOnly || undoStack.length === 0;
     toolRedo.disabled = readOnly || redoStack.length === 0;
     toolFirst.disabled = !hasParent;
+    toolRewind.disabled = !hasParent;
     toolPrev.disabled = !hasParent;
     toolNext.disabled = !hasChild;
+    toolForward.disabled = !hasChild;
     toolLast.disabled = !hasChild;
+    toolDelete.disabled = readOnly || !hasParent;
     toolAutoPlay.disabled = !hasChild;
     toolAutoPlay.setAttribute('aria-pressed', String(autoPlaying));
     const autoIcon = toolAutoPlay.querySelector('use');
@@ -2266,8 +2492,10 @@
     setMenuItemDisabled('undo', undoStack.length === 0);
     setMenuItemDisabled('redo', redoStack.length === 0);
     setMenuItemDisabled('first', !hasParent);
+    setMenuItemDisabled('fast-prev', !hasParent);
     setMenuItemDisabled('prev', !hasParent);
     setMenuItemDisabled('next', !hasChild);
+    setMenuItemDisabled('fast-next', !hasChild);
     setMenuItemDisabled('last', !hasChild);
     setMenuItemDisabled('toggle-autoplay', !hasChild);
     setMenuItemDisabled('delete-node', !hasParent);
@@ -2478,11 +2706,16 @@
     return `${name.replace(/[\\/:*?"<>|]/g, '_').slice(0, 80)}.sgf`;
   }
 
+  function saveSuggestion() {
+    return filePath ? basename(filePath) : defaultSgfName();
+  }
+
   async function newGame() {
     if (readOnly) { log('Read Only: new games are disabled.', 'warn'); return; }
     if (dirty) {
       if (!(await askConfirm('Start a new game? Unsaved changes will be lost.', 'New game'))) return;
     }
+    browserSaveHandle = null;
     startGame(gameSize());
     log(`New ${gameSize().width}×${gameSize().height} game.`);
   }
@@ -2494,6 +2727,31 @@
       if (!result || result.canceled) { log('Open canceled.', 'warn'); return; }
       if (applySgfText(result.content, result.filePath)) {
         rememberRecent(result.filePath, result.content);
+      }
+    } else if (typeof window.showOpenFilePicker === 'function') {
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          excludeAcceptAllOption: false,
+          types: [{ description: 'SGF files', accept: { 'application/x-go-sgf': ['.sgf'] } }],
+        });
+        const file = await handle.getFile();
+        const text = await file.text();
+        if (applySgfText(text, handle.name, { browser: true, handle: true })) {
+          browserSaveHandle = handle;
+          void storeRecentHandle(handle.name, handle);
+          filePath = handle.name;
+          updateTitle();
+          rememberRecent(handle.name, text);
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError') { log('Open canceled.', 'warn'); return; }
+        if (['SecurityError', 'NotSupportedError'].includes(error?.name)) {
+          sgfFileInput.value = '';
+          sgfFileInput.click();
+          return;
+        }
+        log(`Could not open file: ${error.message}`, 'error');
       }
     } else {
       sgfFileInput.value = '';
@@ -2517,13 +2775,38 @@
         if (applySgfText(result.content, result.filePath)) {
           rememberRecent(result.filePath, result.content);
         }
-      } else if (entry.content) {
-        if (applySgfText(entry.content, entry.name)) rememberRecent(entry.name, entry.content);
       } else {
-        log('That recent file was too large to cache; use Open SGF.', 'warn');
+        const handle = await loadRecentHandle(entry.name);
+        if (handle) {
+          try {
+            if (typeof handle.queryPermission === 'function') {
+              let permission = await handle.queryPermission({ mode: 'read' });
+              if (permission !== 'granted' && typeof handle.requestPermission === 'function') {
+                permission = await handle.requestPermission({ mode: 'read' });
+              }
+              if (permission !== 'granted') throw new Error('permission was denied');
+            }
+            const file = await handle.getFile();
+            const text = await file.text();
+            if (applySgfText(text, entry.name, { browser: true, handle: true })) {
+              browserSaveHandle = handle;
+              filePath = entry.name;
+              updateTitle();
+              rememberRecent(entry.name, text);
+              return;
+            }
+          } catch (error) {
+            log(`Could not reopen ${entry.name} through its file handle: ${error.message}`, 'warn');
+          }
+        }
+        if (entry.content) {
+          if (applySgfText(entry.content, entry.name, { browser: true, cached: true })) rememberRecent(entry.name, entry.content);
+        } else {
+          log('That recent file was too large to cache; use Open SGF.', 'warn');
+        }
       }
     } catch (error) {
-      log(`Could not open the recent file: ${error.message}`, 'error');
+      log(`Could not open recent file ${entry.path || entry.name}: ${error.message}`, 'error');
     }
   }
 
@@ -2532,9 +2815,80 @@
     if (!file) return;
     try {
       const text = await file.text();
-      if (applySgfText(text, file.name)) rememberRecent(file.name, text);
-    } catch (error) { log(`Could not read the file: ${error.message}`, 'error'); }
+      if (applySgfText(text, file.name, { browser: true })) rememberRecent(file.name, text);
+    } catch (error) { log(`Could not read ${file.name}: ${error.message}`, 'error'); }
   });
+
+  async function saveBrowserSgf(content, saveAs) {
+    const name = saveSuggestion();
+    if (typeof window.showSaveFilePicker === 'function') {
+      try {
+        const startInHandle = browserSaveHandle;
+        let handle = !saveAs ? browserSaveHandle : null;
+        if (handle && typeof handle.queryPermission === 'function') {
+          let permission = await handle.queryPermission({ mode: 'readwrite' });
+          if (permission !== 'granted' && typeof handle.requestPermission === 'function') {
+            permission = await handle.requestPermission({ mode: 'readwrite' });
+          }
+          if (permission !== 'granted') handle = null;
+        }
+        if (!handle) {
+          const pickerOptions = {
+            id: 'multigo-sgf-save',
+            suggestedName: name,
+            excludeAcceptAllOption: false,
+            types: [{ description: 'SGF files', accept: { 'application/x-go-sgf': ['.sgf'] } }],
+          };
+          if (startInHandle) pickerOptions.startIn = startInHandle;
+          try {
+            handle = await window.showSaveFilePicker(pickerOptions);
+          } catch (error) {
+            // Some implementations accept only directory handles for startIn.
+            if (startInHandle && error?.name === 'TypeError') {
+              delete pickerOptions.startIn;
+              handle = await window.showSaveFilePicker(pickerOptions);
+            } else {
+              throw error;
+            }
+          }
+        }
+        if (!handle) { log('Save canceled.', 'warn'); return; }
+        const writable = await handle.createWritable();
+        await writable.write(content);
+        await writable.close();
+        browserSaveHandle = handle;
+        void storeRecentHandle(handle.name || name, handle);
+        filePath = handle.name || name;
+        dirty = false;
+        markClean();
+        updateTitle();
+        log(`Saved ${filePath} to the folder selected in the browser (the browser does not reveal the folder path).`, 'success');
+        rememberRecent(filePath, content);
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') { log('Save canceled.', 'warn'); return; }
+        if (['SecurityError', 'NotSupportedError'].includes(error?.name)) {
+          downloadText(content, name);
+          filePath = name;
+          dirty = false;
+          markClean();
+          updateTitle();
+          log(`Saved ${name} via browser download; this browser cannot expose or choose the folder.`, 'warn');
+          rememberRecent(name, content);
+          return;
+        }
+        log(`Could not save ${name}: ${error.message}`, 'error');
+        return;
+      }
+    }
+    downloadText(content, name);
+    filePath = name;
+    dirty = false;
+    markClean();
+    updateTitle();
+    log(`Downloaded ${name} to the browser download location (the exact folder is browser-controlled).`, 'success');
+    rememberRecent(name, content);
+  }
 
   async function saveSgf(saveAs = false) {
     if (readOnly) { log('Read Only: saving is disabled.', 'warn'); return; }
@@ -2543,34 +2897,28 @@
     catch (error) { log(`Could not build the SGF: ${error.message}`, 'error'); return; }
     if (isElectron) {
       const result = await desktop.saveGame({
-        content, filePath: saveAs ? null : filePath, saveAs, suggestedName: defaultSgfName(),
+        content, filePath, saveAs, suggestedName: saveSuggestion(),
       });
       if (!result || result.canceled) { log('Save canceled.', 'warn'); return; }
       filePath = result.filePath;
       dirty = false;
       markClean();
       updateTitle();
-      log(`Saved ${basename(filePath)}.`, 'success');
+      log(`Saved to ${filePath}.`, 'success');
       rememberRecent(filePath, content);
     } else {
-      const name = defaultSgfName();
-      downloadText(content, name);
-      filePath = name;
-      dirty = false;
-      markClean();
-      updateTitle();
-      log(`Downloaded ${name}.`, 'success');
-      rememberRecent(name, content);
+      await saveBrowserSgf(content, saveAs);
     }
   }
 
-  function applySgfText(text, source) {
+  function applySgfText(text, source, { browser = false, cached = false, handle = false } = {}) {
     let roots;
     try { roots = S.sgf.parse(text, { getId }); }
     catch (error) { log(`Could not parse ${source}: ${error.message}`, 'error'); return false; }
     if (!roots.length) { log('The SGF contains no games.', 'error'); return false; }
     if (roots.length > 1) log('Only the first game in the SGF collection was loaded.', 'warn');
     stopAutoPlay();
+    browserSaveHandle = null;
     try { tree = new S.GameTree({ root: roots[0], getId, merger: S.nodeMerger }); }
     catch (error) { log(`Could not build the game tree: ${error.message}`, 'error'); return false; }
     nodeId = tree.root.id;
@@ -2584,7 +2932,7 @@
     hover = null;
     mode = 'play';
     selectedTool = 'stone_1';
-    filePath = source === 'the clipboard' ? null : source;
+    filePath = (source === 'the clipboard' || source === 'the link') ? null : source;
     dirty = source === 'the clipboard';
     commentNodeId = null;
     markClean();
@@ -2601,7 +2949,14 @@
       applyReadOnlyUI();
     }
     if (rootProperty('GM', '1') !== '1') log('This SGF is not marked as a Go game (GM != 1).', 'warn');
-    log(`Loaded ${basename(source)} — ${tree.getHeight()} nodes.`, 'success');
+    let location;
+    if (source === 'the clipboard') location = 'SGF from the clipboard';
+    else if (source === 'the link') location = 'SGF from the startup position link';
+    else if (handle) location = `${source} from the browser recent-file handle (original folder unavailable)`;
+    else if (cached) location = `${source} from the browser recent-file cache (original folder unavailable)`;
+    else if (browser) location = `${source} from the browser file picker (original folder unavailable)`;
+    else location = source;
+    log(`Loaded ${location} — ${tree.getHeight()} nodes.`, 'success');
     maybeApplyStartupPath();
     return true;
   }
@@ -3051,7 +3406,8 @@
     'remove-siblings': removeOtherVariations, 'clear-markup': clearNodeMarkup,
     'focus-info': focusGameInfo,
     pass: passTurn, 'toggle-autoplay': toggleAutoPlay,
-    first: goToBeginning, prev: goToParent, next: goToChild, last: goToEnd,
+    first: goToBeginning, 'fast-prev': () => fastNavigate(-1), prev: goToParent,
+    next: goToChild, 'fast-next': () => fastNavigate(1), last: goToEnd,
     'toggle-coords': toggleCoordinates, 'toggle-numbers': toggleMoveNumbers,
     'toggle-next-moves': () => toggleSettingFlag('showNextMoves', (on) => `Next moves ${on ? 'shown' : 'hidden'}.`),
     'toggle-siblings': () => toggleSettingFlag('showSiblings', (on) => `Sibling variations ${on ? 'shown' : 'hidden'}.`),
@@ -3092,6 +3448,24 @@
     element.addEventListener('change', () => setRootProperty(INFO_BINDINGS[key], element.value));
   }
   $('#game-info').addEventListener('submit', (event) => event.preventDefault());
+
+  applyCommentHeight();
+  if (window.ResizeObserver) {
+    let commentResizeFrame = 0;
+    const commentResizeObserver = new ResizeObserver(() => {
+      if (commentResizeFrame) cancelAnimationFrame(commentResizeFrame);
+      commentResizeFrame = requestAnimationFrame(() => {
+        commentResizeFrame = 0;
+        if (commentInput.hidden) return;
+        const height = Math.round(commentInput.getBoundingClientRect().height);
+        if (height < 40) return;
+        if (Math.abs((settings.commentHeight || 0) - height) <= 1) return;
+        settings.commentHeight = height;
+        saveSettings();
+      });
+    });
+    commentResizeObserver.observe(commentInput);
+  }
 
   commentInput.addEventListener('input', () => renderCommentPreview(commentInput.value));
   commentInput.addEventListener('change', () => {
@@ -3393,6 +3767,7 @@
     setupCoords.checked = settings.coords;
     setupCoordStyle.value = settings.coordinatesStyle;
     setupDefaultSize.value = String(settings.defaultSize);
+    setupFastStep.value = String(settings.fastStep);
     setupStoneTexture.checked = settings.stoneTexture !== false;
     setupFocusMarker.value = settings.focusMarker;
     setupFocusColor.value = settings.focusColor;
@@ -3440,6 +3815,7 @@
       showResultInTitle: setupResultTitle.checked,
       soundEnabled: setupSound.checked,
       autoPlayDelay: clamp(Number(setupDelay.value) || 1000, 200, 5000),
+      fastStep: clamp(Number(setupFastStep.value) || 20, 1, 200),
       preferVariationChild: setupPreferVariation.checked,
       defaultKomi: Number.isFinite(komi) ? komi : 6.5,
       whiteFirst: setupWhiteFirst.checked,
@@ -3469,6 +3845,7 @@
     setupCoords.checked = DEFAULT_SETTINGS.coords;
     setupCoordStyle.value = DEFAULT_SETTINGS.coordinatesStyle;
     setupDefaultSize.value = String(DEFAULT_SETTINGS.defaultSize);
+    setupFastStep.value = String(DEFAULT_SETTINGS.fastStep);
     setupStoneTexture.checked = DEFAULT_SETTINGS.stoneTexture;
     setupFocusMarker.value = DEFAULT_SETTINGS.focusMarker;
     setupFocusColor.value = DEFAULT_SETTINGS.focusColor;
@@ -3679,7 +4056,7 @@
 
   // Layout ---------------------------------------------------------------
   const LAYOUT_KEY = 'figdesk.layout.v3';
-  const DEFAULT_LAYOUT = Object.freeze({ leftPct: 72.5694, topPct: 41, messagePct: 20 });
+  const DEFAULT_LAYOUT = Object.freeze({ leftPct: 72.5694, topPct: 36, messagePct: 9 });
   const LAYOUT_LIMITS = Object.freeze({ leftPct: [18, 82], topPct: [3, 92], messagePct: [3, 92] });
   const PIXEL_MINIMUMS = Object.freeze({ left: [320, 260], top: [48, 48], message: [48, 48] });
   let layout = { ...DEFAULT_LAYOUT };
@@ -3705,6 +4082,13 @@
       if (!raw) return { layout: { ...DEFAULT_LAYOUT }, restored: false, invalid: false };
       const stored = normalizeLayout(JSON.parse(raw));
       if (!stored) return { layout: { ...DEFAULT_LAYOUT }, restored: false, invalid: true };
+      // Migrate the previous default proportions (41/20) to the compact six-row
+      // Game Info / three-line Message layout without touching custom layouts.
+      if (Math.abs(stored.leftPct - 72.5694) < 0.01
+          && Math.abs(stored.topPct - 41) < 0.01
+          && Math.abs(stored.messagePct - 20) < 0.01) {
+        return { layout: { ...DEFAULT_LAYOUT }, restored: false, invalid: false };
+      }
       return { layout: stored, restored: true, invalid: false };
     } catch {
       return { layout: { ...DEFAULT_LAYOUT }, restored: false, invalid: true };

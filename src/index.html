@@ -37,6 +37,15 @@
       <path d="M6 5v14" fill="none" stroke="currentColor" stroke-width="1.8"/>
       <path d="M18 6l-9 6 9 6z" fill="currentColor"/>
     </symbol>
+    <symbol id="i-rewind" viewBox="0 0 24 24">
+      <path d="M11 6L5 12l6 6zM20 6l-6 6 6 6z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24">
+      <path d="M13 6l6 6-6 6zM4 6l6 6-6 6z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-delete" viewBox="0 0 24 24">
+      <path d="M5 7h14M9 7V4h6v3M8 7l1 13h6l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="i-prev" viewBox="0 0 24 24">
       <path d="M16 5l-10 7 10 7z" fill="currentColor"/>
     </symbol>
@@ -209,14 +218,24 @@
           <button type="button" class="menu-item" role="menuitem" data-action="first">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">First Move</span><kbd>Home</kbd>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="fast-prev">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Fast Rewind</span>
+          </button>
           <button type="button" class="menu-item" role="menuitem" data-action="prev">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Parent Node</span><kbd>↑</kbd>
           </button>
           <button type="button" class="menu-item" role="menuitem" data-action="next">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">First Child</span><kbd>↓</kbd>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="fast-next">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Fast Forward</span>
+          </button>
           <button type="button" class="menu-item" role="menuitem" data-action="last">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Last Move</span><kbd>End</kbd>
+          </button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitem" data-action="delete-node">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Delete Move</span><kbd data-accel="Ctrl+Delete">Ctrl+Delete</kbd>
           </button>
         </div>
       </div>
@@ -399,11 +418,17 @@
         <button type="button" class="tool" id="tool-first" data-action="first" title="Root node (Home)" aria-label="Root node">
           <svg class="icon"><use href="#i-first"></use></svg>
         </button>
+        <button type="button" class="tool" id="tool-rewind" data-action="fast-prev" title="Fast rewind" aria-label="Fast rewind">
+          <svg class="icon"><use href="#i-rewind"></use></svg>
+        </button>
         <button type="button" class="tool" id="tool-prev" data-action="prev" title="Parent node (Up)" aria-label="Parent node">
           <svg class="icon"><use href="#i-prev"></use></svg>
         </button>
         <button type="button" class="tool" id="tool-next" data-action="next" title="First child (Down)" aria-label="First child">
           <svg class="icon"><use href="#i-next"></use></svg>
+        </button>
+        <button type="button" class="tool" id="tool-forward" data-action="fast-next" title="Fast forward" aria-label="Fast forward">
+          <svg class="icon"><use href="#i-forward"></use></svg>
         </button>
         <button type="button" class="tool" id="tool-last" data-action="last" title="End of variation (End)" aria-label="End of variation">
           <svg class="icon"><use href="#i-last"></use></svg>
@@ -415,6 +440,9 @@
       <div class="tool-separator"></div>
       <div class="tool-group">
         <button type="button" class="tool tool-text" id="tool-pass" data-action="pass" title="Pass (P)">Pass</button>
+        <button type="button" class="tool" id="tool-delete" data-action="delete-node" title="Delete move (Ctrl+Delete)" aria-label="Delete move">
+          <svg class="icon"><use href="#i-delete"></use></svg>
+        </button>
         <button type="button" class="tool" id="tool-edit" data-action="toggle-edit" title="Edit mode (Ctrl+E)" aria-label="Edit mode" aria-pressed="false">
           <svg class="icon"><use href="#i-setup"></use></svg>
         </button>
@@ -496,12 +524,18 @@
           <div class="tab-panel" id="panel-info" role="tabpanel" aria-labelledby="tab-info">
             <form class="game-info" id="game-info" autocomplete="off" spellcheck="false">
               <label class="info-field full"><span>Game name</span><input id="info-game-name" placeholder="Game name"></label>
-              <label class="info-field"><span>Black</span><input id="info-black" placeholder="Black player"></label>
-              <label class="info-field"><span>Black rank</span><input id="info-black-rank" placeholder="e.g. 3d"></label>
-              <label class="info-field"><span>Black team</span><input id="info-black-team" placeholder="Black team"></label>
-              <label class="info-field"><span>White</span><input id="info-white" placeholder="White player"></label>
-              <label class="info-field"><span>White rank</span><input id="info-white-rank" placeholder="e.g. 2k"></label>
-              <label class="info-field"><span>White team</span><input id="info-white-team" placeholder="White team"></label>
+              <div class="info-player-grid full">
+                <div class="info-player-column">
+                  <label class="info-field"><span>Black</span><input id="info-black" placeholder="Black player"></label>
+                  <label class="info-field"><span>Black rank</span><input id="info-black-rank" placeholder="e.g. 3d"></label>
+                  <label class="info-field"><span>Black team</span><input id="info-black-team" placeholder="Black team"></label>
+                </div>
+                <div class="info-player-column">
+                  <label class="info-field"><span>White</span><input id="info-white" placeholder="White player"></label>
+                  <label class="info-field"><span>White rank</span><input id="info-white-rank" placeholder="e.g. 2k"></label>
+                  <label class="info-field"><span>White team</span><input id="info-white-team" placeholder="White team"></label>
+                </div>
+              </div>
               <label class="info-field"><span>Komi</span><input id="info-komi" placeholder="6.5" inputmode="decimal"></label>
               <label class="info-field"><span>Handicap</span><input id="info-handicap" placeholder="0" inputmode="numeric"></label>
               <label class="info-field"><span>Result</span><input id="info-result" placeholder="e.g. B+2.5"></label>
@@ -530,7 +564,7 @@
 
           <div class="tab-panel" id="panel-comment" role="tabpanel" aria-labelledby="tab-comment" hidden>
             <div class="comment-head" id="comment-title">Node comment</div>
-            <textarea class="comment-input" id="comment-input" rows="7" placeholder="Write a comment for this node. Markdown is supported."></textarea>
+            <textarea class="comment-input" id="comment-input" rows="3" placeholder="Write a comment for this node. Markdown is supported."></textarea>
             <div class="comment-preview" id="comment-preview"></div>
           </div>
         </section>
@@ -638,10 +672,12 @@
     </div>
     <div class="setup-layout">
       <nav class="setup-nav" aria-label="Set Up categories">
+        <div class="setup-nav-heading">View</div>
         <button type="button" class="setup-tab is-active" data-setup-tab="board">Board</button>
         <button type="button" class="setup-tab" data-setup-tab="stones">Stones</button>
         <button type="button" class="setup-tab" data-setup-tab="markers">Markers &amp; Numbers</button>
         <button type="button" class="setup-tab" data-setup-tab="other">Other</button>
+        <div class="setup-nav-heading">General</div>
         <button type="button" class="setup-tab" data-setup-tab="traverse">Traverse</button>
         <button type="button" class="setup-tab" data-setup-tab="edit">Edit</button>
       </nav>
@@ -675,6 +711,9 @@
               <option value="13">13 × 13</option>
               <option value="19">19 × 19</option>
             </select>
+          </div>
+          <div class="setup-row"><label for="setup-fast-step">Fast forward/rewind steps</label>
+            <input id="setup-fast-step" type="number" min="1" max="200" step="1">
           </div>
           <p class="setup-note">The canvas renderer uses CSS themes instead of a bitmap board path. Brightness is applied to the board surface.</p>
         </section>
@@ -754,7 +793,7 @@
           <div class="setup-row"><label for="setup-prefer-variation">Variations</label>
             <label class="check"><input id="setup-prefer-variation" type="checkbox"> Visit variation branch first when traversing next</label>
           </div>
-          <p class="setup-note">Sound is generated with Web Audio (best effort). Fast-forward step counts and “resume last position” are not implemented yet.</p>
+          <p class="setup-note">Sound is generated with Web Audio (best effort). The fast rewind/forward step count is set on the Board page; “resume last position” is not implemented yet.</p>
         </section>
 
         <section class="setup-panel" data-setup-panel="edit" hidden>
