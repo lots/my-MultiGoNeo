@@ -26,20 +26,28 @@ function New-MasterBitmap {
   $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
   $g.Clear([System.Drawing.Color]::Transparent)
 
-  # Rounded dark slate tile.
+  # Rounded tile using the Classic kaya goban palette: warm wood gradient
+  # (#e3bd7d -> #d7a760 -> #c6934c) with a faint dark brown grid.
   $shape = New-RoundedPath 4 4 248 248 52
   $rect = New-Object System.Drawing.RectangleF 4, 4, 248, 248
   $bg = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
     $rect,
-    [System.Drawing.Color]::FromArgb(255, 46, 55, 71),
-    [System.Drawing.Color]::FromArgb(255, 15, 19, 26),
-    90.0)
+    [System.Drawing.Color]::FromArgb(255, 227, 189, 125),
+    [System.Drawing.Color]::FromArgb(255, 198, 147, 76),
+    135.0)
+  $blend = New-Object System.Drawing.Drawing2D.ColorBlend 3
+  $blend.Colors = [System.Drawing.Color[]]@(
+    [System.Drawing.Color]::FromArgb(255, 227, 189, 125),
+    [System.Drawing.Color]::FromArgb(255, 215, 167, 96),
+    [System.Drawing.Color]::FromArgb(255, 198, 147, 76))
+  $blend.Positions = [single[]]@(0.0, 0.48, 1.0)
+  $bg.InterpolationColors = $blend
   $g.FillPath($bg, $shape)
-  $edge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(255, 74, 85, 104)), 2.5
+  $edge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(220, 132, 89, 42)), 2.5
   $g.DrawPath($edge, $shape)
 
-  # Faint 5x5 board grid.
-  $grid = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(58, 150, 165, 190)), 1.6
+  # Faint 5x5 board grid in the Classic theme's dark brown line colour.
+  $grid = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(84, 38, 22, 5)), 1.6
   foreach ($i in 0..4) {
     $c = 60 + ($i * 34)
     $g.DrawLine($grid, 60, $c, 196, $c)
@@ -47,19 +55,19 @@ function New-MasterBitmap {
   }
 
   # White stone.
-  $whiteFill = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 246, 246, 238))
-  $whiteEdge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(255, 16, 20, 27)), 5
+  $whiteFill = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 242, 242, 242))
+  $whiteEdge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(180, 0, 0, 0)), 5
   $g.FillEllipse($whiteFill, 52, 52, 78, 78)
   $g.DrawEllipse($whiteEdge, 52, 52, 78, 78)
-  $gloss = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(190, 255, 255, 255))
+  $gloss = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(200, 255, 255, 255))
   $g.FillEllipse($gloss, 68, 66, 30, 22)
 
-  # Black stone.
-  $blackFill = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 20, 24, 32))
-  $blackEdge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(255, 82, 94, 116)), 3.5
+  # Black stone, using the Classic theme's neutral grey highlight rim.
+  $blackFill = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 41, 41, 41))
+  $blackEdge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(255, 111, 111, 111)), 3.5
   $g.FillEllipse($blackFill, 126, 126, 78, 78)
   $g.DrawEllipse($blackEdge, 126, 126, 78, 78)
-  $sheen = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(60, 190, 210, 240))
+  $sheen = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(70, 111, 111, 111))
   $g.FillEllipse($sheen, 142, 140, 26, 18)
 
   foreach ($o in @($bg, $edge, $grid, $whiteFill, $whiteEdge, $gloss, $blackFill, $blackEdge, $sheen, $shape)) { $o.Dispose() }

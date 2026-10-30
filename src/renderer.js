@@ -472,6 +472,7 @@
     'Make Main Variation': '设为主变化', 'Shift Variation Left': '左移变化', 'Shift Variation Right': '右移变化',
     'Remove Other Variations': '删除其他变化', 'Clear Node Markup': '清除节点标记', 'Edit Game Info': '编辑对局信息',
     'Edit Node Comment': '编辑节点注释', 'Cut Current Node': '剪切当前节点',
+    'Cut All After Current': '剪切当前之后全部',
     'Copy Current Variation': '复制当前变化', 'Paste Variation as Child': '粘贴为子变化',
     'Duplicate Current Node': '复制当前节点', 'Insert Empty Node': '插入空节点',
     'Flatten Current Variation': '展平当前变化', 'Copy SGF': '复制 SGF', 'Paste SGF': '粘贴 SGF',
@@ -2550,6 +2551,7 @@
     setMenuItemDisabled('toggle-autoplay', !hasChild);
     setMenuItemDisabled('delete-node', !hasParent);
     setMenuItemDisabled('cut-variation', !hasParent);
+    setMenuItemDisabled('cut-after', !hasChild);
     setMenuItemDisabled('make-main', !hasParent);
     setMenuItemDisabled('shift-left', !hasParent);
     setMenuItemDisabled('shift-right', !hasParent);
@@ -2557,7 +2559,7 @@
     setMenuItemDisabled('pass', mode === 'edit');
     const readOnlyOnly = [
       'new-game', 'save-sgf', 'save-sgf-as', 'toggle-edit',
-      'paste-variation', 'duplicate-node', 'insert-node', 'flatten-variation',
+      'paste-variation', 'duplicate-node', 'insert-node', 'flatten-variation', 'cut-after',
       'clear-markup', 'paste-sgf', 'toggle-turn',
       'size-9', 'size-13', 'size-19', 'size-custom',
     ];
@@ -3117,6 +3119,28 @@
     mutateTree((draft) => draft.removeNode(node.id), { select: parentId, message: 'Node cut to the variation clipboard.' });
   }
 
+  async function cutAfterCurrent() {
+    if (readOnly) { log('Read Only: cutting is disabled.', 'warn'); return; }
+    const node = currentNode();
+    if (!node || node.children.length === 0) {
+      log('There are no nodes after the current node.', 'warn');
+      return;
+    }
+    const childIds = node.children.map((child) => child.id);
+    // A collection preserves every branch after the current node.
+    const text = S.sgf.stringify(node.children, { linebreak: '\n', indent: '  ' });
+    variationClipboard = text;
+    try {
+      await navigator.clipboard.writeText(text);
+      log('All nodes after the current node cut to the system clipboard.', 'success');
+    } catch {
+      log('All nodes after the current node cut to the internal clipboard.', 'warn');
+    }
+    mutateTree((draft) => {
+      for (const id of childIds) draft.removeNode(id);
+    }, { message: 'All nodes after the current node cut.' });
+  }
+
   async function pasteVariation() {
     if (readOnly) { log('Read Only: pasting is disabled.', 'warn'); return; }
     let text = variationClipboard;
@@ -3136,8 +3160,8 @@
         for (const child of source.children) append(created, child);
         return created;
       };
-      append(nodeId, roots[0]);
-    }, { select: () => newRootId, message: 'Variation pasted as a child.' });
+      for (const root of roots) append(nodeId, root);
+    }, { select: () => newRootId, message: roots.length > 1 ? 'Variations pasted as children.' : 'Variation pasted as a child.' });
   }
 
   function duplicateNode() {
@@ -3449,7 +3473,8 @@
     'save-sgf': () => saveSgf(false), 'save-sgf-as': () => saveSgf(true),
     quit: quitApp, undo, redo, 'toggle-edit': toggleEditMode, 'toggle-readonly': toggleReadOnly,
     'delete-node': deleteNode, 'make-main': makeMainVariation,
-    'cut-variation': cutVariation, 'copy-variation': copyVariation, 'paste-variation': pasteVariation,
+    'cut-variation': cutVariation, 'cut-after': cutAfterCurrent,
+    'copy-variation': copyVariation, 'paste-variation': pasteVariation,
     'duplicate-node': duplicateNode, 'insert-node': insertEmptyNode,
     'flatten-variation': flattenVariation, 'focus-comment': focusComment,
     'shift-left': () => shiftVariation('left'), 'shift-right': () => shiftVariation('right'),

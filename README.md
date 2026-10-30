@@ -40,7 +40,8 @@ boards [below](#board-themes-and-responsive-layout).
 - Expanding restores the subtree; collapse state is kept while editing the same game.
 - Play a move, create a variation by playing a different move from an earlier node, pass,
   and switch the player to move.
-- Delete a node, make a variation main, shift it left/right, and remove sibling variations.
+- Cut the current node (and its subtree), cut everything after the current node, make a
+  variation main, shift it left/right, and remove sibling variations.
 - Undo/redo across tree mutations.
 - **Lossless SGF read/write** through `@sabaki/sgf`: unknown properties, variations, setup
   stones, comments, markup and the fork's coloured `AR`/`LN` and `DD`/`SBKDD` values survive
@@ -93,8 +94,10 @@ boards [below](#board-themes-and-responsive-layout).
 The Edit menu now covers variation editing as well as display edits:
 
 - Undo / redo, edit mode, game info, and node comments.
-- **Cut / copy / paste the current variation** (system clipboard with an internal fallback).
-- **Duplicate the current node**, **insert an empty node**, delete a node.
+- **Cut Current Node** and **Cut All After Current** (the latter keeps the current node and
+  copies all continuations as an SGF collection), plus copy/paste variations.
+- **Duplicate the current node** and **insert an empty node**. The Edit menu no longer exposes
+  **Delete Node**; deletion remains available from the toolbar/Play menu as Delete Move.
 - Make a variation main, shift it left/right, remove sibling variations, and **flatten the
   current variation**.
 - Clear node markup.
@@ -430,8 +433,12 @@ layout and a 1100×1700 pass for the embed page:
 - squeezed the Info, Game Tree and Message panes down to their small state, including a
   48 px Game Tree;
 - verified AR/LN line widths of **3.6 px / 5.4 px**;
-- used **Insert Empty Node**, **Duplicate**, **Copy/Paste Variation**, **Flatten** and
-  **Cut** from the expanded Edit menu, restoring each with Undo;
+- used **Insert Empty Node**, **Duplicate**, **Copy/Paste Variation**, **Flatten**,
+  **Cut Current Node** and **Cut All After Current** from the expanded Edit menu, restoring
+  each with Undo;
+- confirmed the Edit menu has **no Delete Node** entry but still has **Cut Current Node**;
+- cut all continuations after a two-child branch (15 → 13 nodes, current branch retained),
+  pasted them back (15 nodes with both children restored);
 - confirmed the last move is marked with a **red triangle**;
 - changed **Move Numbers** and **Numbering** through their View dropdowns;
 - confirmed the autoplay icon is distinct from First Child, the status bar has only the lower
@@ -650,7 +657,8 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Root / end of variation | `Home` / `End` |
 | Auto-play / pause | `Space` |
 | Toggle player to move | `Ctrl+Shift+P` |
-| Delete move | Toolbar Delete Move, Play/Edit menu, or `Ctrl+Delete`; works in Play and Edit |
+| Delete move | Toolbar Delete Move, Play menu, or `Ctrl+Delete`; the Edit menu uses Cut Current Node instead |
+| Cut current / after | Edit → Cut Current Node, or Edit → Cut All After Current |
 | Fast rewind / forward | Toolbar ←← / →→ or Play menu; step count in Preferences → View → Board |
 | Cut / copy / paste variation | `Ctrl+Alt+X` / `Ctrl+Alt+C` / `Ctrl+Alt+V` |
 | Duplicate / insert node | `Ctrl+Alt+D` / `Ctrl+Alt+N` |
@@ -742,8 +750,9 @@ scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper 
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
-scripts/make-icon.ps1     regenerates build/icon.ico and build/icon.png (GDI+, no tools needed)
+scripts/make-icon.ps1     regenerates the Classic kaya goban icon (GDI+, no tools needed)
 build/icon.ico            Windows application icon, 16-256 px
+build/icon-512.png        512 px icon export for store/desktop use
 ```
 
 `window.SabakiLibs` exposes `GameTree`, `Board`, `sgf`, `getBoard`, `getGameInfo`,

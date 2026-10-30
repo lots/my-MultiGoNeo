@@ -217,6 +217,9 @@ const editMenu = await evaluate(`(() => {
     items: popup.querySelectorAll('.menu-item').length,
     actions: [...popup.querySelectorAll('.menu-item')].map((x) => x.dataset.action),
     labels: [...popup.querySelectorAll('.menu-label')].map((x) => x.textContent.trim()),
+    deleteCount: popup.querySelectorAll('.menu-item[data-action="delete-node"]').length,
+    cutAfterCount: popup.querySelectorAll('.menu-item[data-action="cut-after"]').length,
+    cutCurrentCount: popup.querySelectorAll('.menu-item[data-action="cut-variation"]').length,
     bottom: Math.round(popup.getBoundingClientRect().bottom),
   };
 })()`)
@@ -261,6 +264,25 @@ const cutAfter = await evaluate(`__figdesk.snapshot()`)
 await evaluate(`document.querySelector('#tool-undo').click()`)
 await sleep(120)
 
+const cutAfterBefore = await evaluate(`(() => {
+  const branch = [...__figdesk.tree.listNodes()].find((item) => item.children.length > 1);
+  __figdesk.selectNode(branch.id);
+  return { branchId: branch.id, snapshot: __figdesk.snapshot(), children: __figdesk.childCount() };
+})()`)
+await clickAction('cut-after')
+await sleep(200)
+const cutAfterResult = await evaluate(`({ snapshot: __figdesk.snapshot(), children: __figdesk.childCount() })`)
+await clickAction('paste-variation')
+await sleep(250)
+const cutAfterPasted = await evaluate(`(() => {
+  const branch = __figdesk.tree.get(${cutAfterBefore.branchId});
+  return { snapshot: __figdesk.snapshot(), branchChildren: branch?.children.length ?? 0 };
+})()`)
+await evaluate(`document.querySelector('#tool-undo').click()`)
+await sleep(100)
+await evaluate(`document.querySelector('#tool-undo').click()`)
+await sleep(100)
+
 console.log(JSON.stringify({
   initial,
   infoFocus,
@@ -284,6 +306,9 @@ console.log(JSON.stringify({
   flattenAfter,
   cutBefore,
   cutAfter,
+  cutAfterBefore,
+  cutAfterResult,
+  cutAfterPasted,
   errors,
 }, null, 2))
 
