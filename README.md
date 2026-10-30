@@ -56,8 +56,7 @@ boards [below](#board-themes-and-responsive-layout).
 
 ### Editing
 
-- Tabbed **Info / Comment** panel; comments support a safe Markdown subset (bold, italic,
-  inline code, links, headings, lists, blockquotes, line breaks).
+- Tabbed **Info / Comment** panel; comments support a [safe Markdown subset](#supported-comment-markdown).
 - The Comment textarea starts at **three lines**, remains vertically resizable, and its
   height is remembered across launches. The same comment is rendered below the editor using
   the Markdown subset, so formatted text can be checked while editing. In Read Only mode the
@@ -88,6 +87,42 @@ boards [below](#board-themes-and-responsive-layout).
 - Board transformations and scoring are not in this milestone.
 
 ![FF[4] move and non-move properties in the Message panel](preview-property-log.png)
+
+### Supported comment Markdown
+
+The comment editor intentionally implements only this safe Markdown subset. HTML is escaped
+and shown as text, never executed.
+
+**Block elements**
+
+| Syntax | Result |
+| --- | --- |
+| `# Heading` | Heading level 1 |
+| `## Heading` | Heading level 2 |
+| `### Heading` | Heading level 3 |
+| `#### Heading` | Also rendered as level 3 |
+| `> quoted text` | Blockquote |
+| `- item` or `* item` | Bullet-list item |
+| `1. item` | List item rendered as a bullet (not an ordered list) |
+| Blank line between blocks | New paragraph |
+
+**Inline elements**
+
+| Syntax | Result |
+| --- | --- |
+| `**bold**` | Bold |
+| `*italic*` | Italic |
+| `` `code` `` | Inline code |
+| `[label](https://example.com)` | HTTP/HTTPS link |
+| `https://example.com` | Automatic HTTP/HTTPS link |
+| Single newline | Line break |
+
+Block elements should start their own paragraph, separated by a blank line from surrounding
+text.
+
+**Not supported:** underscore emphasis (`_italic_`, `__bold__`), strikethrough, images,
+nested lists, task lists, ordered-list numbering, tables, fenced code blocks, horizontal
+rules, raw HTML, nested blockquotes, footnotes, and relative/`mailto:` links.
 
 ### Edit menu
 
@@ -702,7 +737,7 @@ Known limitations of this milestone:
 - **No NGF, GIB or UGF import.** SGF only for now.
 - **No find/hotspot mode, guess mode, scoring/estimator, or dead-stone marking.**
 - **No GTP engine support** yet (planned after the core editor).
-- Markdown is a safe subset, not full Sabaki react-markdown; code blocks and images are not
+- Markdown is a [safe subset](#supported-comment-markdown), not full Sabaki react-markdown; code blocks and images are not
   rendered as code/images.
 - No user theme/texture **directory** (the four built-in CSS themes are fixed), no
   board-transformation UI, and no full localization of runtime log messages (the editor
