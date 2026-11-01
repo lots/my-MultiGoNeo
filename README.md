@@ -13,10 +13,14 @@ Sabaki features are planned for later phases.
 The renderer also ports seven interaction ideas from BesoGo: **variation badges**, **per-tool
 hover ghosts**, **deterministic stone textures**, **CSS-split board themes**, **responsive
 portrait layout**, **position-path links** and **zero-JS data-attribute embeds**. Recent
-additions cover **FF[4] move and non-move logging** in the Message panel, a **seven-file recent list**, compact
-**pass** nodes in the game tree and the **四4** coordinate system. The View and Options menus
-now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and bold when
-active, dimmed when off.
+additions cover **FF[4] move and non-move logging** in the Message panel, a **seven-file recent
+list**, compact **pass** nodes in the game tree and the **四4** coordinate system. The View and
+Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
+bold when active, dimmed when off.
+
+The latest build adds **Reload-in-place**, **multi-file branch import**, **PNG board export**,
+a prominent **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**, and
+one shared lighter icon for the app, installer and portable build.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
@@ -26,6 +30,26 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview.png)
 
 ## What is implemented
+
+### Latest additions
+
+- **File → Reload** restores the exact selected branch and node after re-reading the file;
+  if the branch disappeared after an external edit, it warns and returns to the root.
+- **File → Import Files as Branch…** imports multiple SGFs under the current node, skipping
+  empty root nodes.
+- **File → Save Board as Picture** exports the displayed board to PNG; `Ctrl+Q` now triggers
+  this command, while Quit is `Ctrl+Shift+Q`.
+- **Unsaved guard**: orange `UNSAVED` status, red file dot, title bullet and confirmations
+  before New/Open/Recent/Reload/Quit/Reset operations.
+- **View → Rotate Clockwise / Flip Horizontally / Flip Vertically / Reset Board (`G`)**:
+  display-only orientation changes with transformed hit testing and coordinates.
+- **View → Toggle Full Screen (`F11`)**: native Electron fullscreen via IPC, Fullscreen API in
+  browsers.
+- **Synchronized lighter icon** across the application, installer, uninstaller and portable
+  executable.
+
+See [Reload, imports and picture export](#reload-imports-and-picture-export),
+[Board orientation](#board-orientation) and [Unsaved changes](#unsaved-changes).
 
 ### Game tree and SGF
 
