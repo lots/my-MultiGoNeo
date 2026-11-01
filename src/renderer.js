@@ -122,6 +122,7 @@
   const statusCursor = $('#status-cursor');
   const statusMove = $('#status-move');
   const statusReadonly = $('#status-readonly');
+  const statusDirty = $('#status-dirty');
   const fileLabel = $('#file-label');
   const infoDone = $('#info-done');
   const treeMeta = $('#tree-meta');
@@ -238,6 +239,9 @@
     fastStep: 20,
     commentHeight: null,
     defaultSize: 13,
+    boardRotation: 0,
+    boardFlipH: false,
+    boardFlipV: false,
     boardBrightness: 1,
     stoneTexture: true,
     focusMarker: 'triangle',
@@ -284,6 +288,9 @@
           ? Number(parsed.commentHeight)
           : null,
         defaultSize: [9, 13, 19].includes(Number(parsed.defaultSize)) ? Number(parsed.defaultSize) : 13,
+        boardRotation: [0, 90, 180, 270].includes(Number(parsed.boardRotation)) ? Number(parsed.boardRotation) : 0,
+        boardFlipH: parsed.boardFlipH === true,
+        boardFlipV: parsed.boardFlipV === true,
         boardBrightness: clamp(Number(parsed.boardBrightness) || 1, 0.5, 1.5),
         stoneTexture: parsed.stoneTexture !== false,
         focusMarker: ['triangle', 'dot', 'none'].includes(parsed.focusMarker) ? parsed.focusMarker : 'triangle',
@@ -481,6 +488,9 @@
     'First Move': '第一手', 'Fast Rewind': '快退', 'Parent Node': '父节点', 'First Child': '第一个子节点',
     'Fast Forward': '快进', 'Last Move': '最后一手', 'Delete Move': '删除着法',
     'Fast forward/rewind steps': '快进/快退步数',
+    'Rotate Clockwise': '顺时针旋转', 'Flip Horizontally': '水平翻转',
+    'Flip Vertically': '垂直翻转', 'Reset Board': '重置棋盘',
+    'UNSAVED': '未保存',
     '9 × 9 Board': '9×9 棋盘', '13 × 13 Board': '13×13 棋盘', '19 × 19 Board': '19×19 棋盘',
     'Board Size': '棋盘尺寸', Coordinates: '坐标', 'Move Numbers': '手数', Numbering: '编号起始',
     None: '无', All: '全部', 'Last 10': '最近 10 手', 'Last 25': '最近 25 手', 'Last 50': '最近 50 手',
@@ -622,6 +632,7 @@
   let browserSaveHandle = null;
   let infoFocusSnapshot = null;
   let dirty = false;
+  let allowDirtyUnload = false;
   let cursor = null;
   let hover = null;
   let currentBoard = null;
@@ -1313,7 +1324,10 @@
   }
 
   // Board drawing --------------------------------------------------------
-  const boardView = { cssWidth: 0, cssHeight: 0, margin: 0, spacing: 0, dpr: 1, cols: 13, rows: 13, originX: 0, originY: 0 };
+  const boardView = {
+    cssWidth: 0, cssHeight: 0, margin: 0, spacing: 0, dpr: 1,
+    sourceCols: 13, sourceRows: 13, cols: 13, rows: 13, originX: 0, originY: 0,
+  };
   const BOARD_FONT = 'Inter, "Segoe UI", system-ui, sans-serif';
   let boardFrame = 0;
 
@@ -1350,11 +1364,61 @@
     return [...points.values()];
   }
 
+  function transformedBoardSize(sourceCols, sourceRows) {
+    const turns = Math.round((settings.boardRotation || 0) / 90) % 4;
+    return turns % 2 === 0
+      ? { cols: sourceCols, rows: sourceRows }
+      : { cols: sourceRows, rows: sourceCols };
+  }
+
+  function transformBoardPoint(x, y, sourceCols = boardView.sourceCols, sourceRows = boardView.sourceRows) {
+    let px = x;
+    let py = y;
+    let width = sourceCols;
+    let height = sourceRows;
+    const turns = Math.round((settings.boardRotation || 0) / 90) % 4;
+    for (let turn = 0; turn < turns; turn += 1) {
+      const oldWidth = width;
+      const oldHeight = height;
+      const nextX = oldHeight - 1 - py;
+      const nextY = px;
+      px = nextX;
+      py = nextY;
+      width = oldHeight;
+      height = oldWidth;
+    }
+    if (settings.boardFlipH) px = width - 1 - px;
+    if (settings.boardFlipV) py = height - 1 - py;
+    return { x: px, y: py, cols: width, rows: height };
+  }
+
+  function inverseBoardPoint(x, y, viewCols = boardView.cols, viewRows = boardView.rows) {
+    let px = x;
+    let py = y;
+    let width = viewCols;
+    let height = viewRows;
+    if (settings.boardFlipH) px = width - 1 - px;
+    if (settings.boardFlipV) py = height - 1 - py;
+    const turns = Math.round((settings.boardRotation || 0) / 90) % 4;
+    for (let turn = 0; turn < turns; turn += 1) {
+      const oldWidth = height;
+      const oldHeight = width;
+      const nextX = py;
+      const nextY = oldHeight - 1 - px;
+      px = nextX;
+      py = nextY;
+      width = oldWidth;
+      height = oldHeight;
+    }
+    return { x: px, y: py, cols: width, rows: height };
+  }
+
   function resizeBoard() {
     const rect = paneBoard.getBoundingClientRect();
     if (rect.width < 60 || rect.height < 60) return;
-    const cols = currentBoard?.width || gameSize().width;
-    const rows = currentBoard?.height || gameSize().height;
+    const sourceCols = currentBoard?.width || gameSize().width;
+    const sourceRows = currentBoard?.height || gameSize().height;
+    const { cols, rows } = transformedBoardSize(sourceCols, sourceRows);
     const fitWidth = Math.max(60, rect.width - 28);
     const fitHeight = Math.max(60, rect.height - 28);
     const zoom = settings.zoom || 1;
@@ -1373,6 +1437,8 @@
     boardView.cssWidth = cssWidth;
     boardView.cssHeight = cssHeight;
     boardView.dpr = dpr;
+    boardView.sourceCols = sourceCols;
+    boardView.sourceRows = sourceRows;
     boardView.cols = cols;
     boardView.rows = rows;
     boardView.margin = margin;
@@ -1396,10 +1462,13 @@
     boardFrame = requestAnimationFrame(() => { boardFrame = 0; drawBoard(); });
   }
 
-  const pointPosition = (x, y) => ({
-    x: boardView.originX + x * boardView.spacing,
-    y: boardView.originY + y * boardView.spacing,
-  });
+  const pointPosition = (x, y) => {
+    const point = transformBoardPoint(x, y);
+    return {
+      x: boardView.originX + point.x * boardView.spacing,
+      y: boardView.originY + point.y * boardView.spacing,
+    };
+  };
 
   function pointFromEvent(event) {
     if (!boardView.cssWidth || !boardView.cssHeight) return null;
@@ -1411,7 +1480,9 @@
     if (gx < 0 || gy < 0 || gx >= boardView.cols || gy >= boardView.rows) return null;
     if (Math.abs(px - (boardView.originX + gx * boardView.spacing)) > boardView.spacing * 0.52) return null;
     if (Math.abs(py - (boardView.originY + gy * boardView.spacing)) > boardView.spacing * 0.52) return null;
-    return { x: gx, y: gy };
+    const point = inverseBoardPoint(gx, gy);
+    if (point.x < 0 || point.y < 0 || point.x >= boardView.sourceCols || point.y >= boardView.sourceRows) return null;
+    return { x: point.x, y: point.y };
   }
 
   function markerColor(x, y) {
@@ -1902,8 +1973,10 @@
     const { cssWidth, cssHeight, spacing } = boardView;
     if (!cssWidth || !cssHeight || !currentBoard) return;
     const context = boardContext;
-    const cols = currentBoard.width;
-    const rows = currentBoard.height;
+    const sourceCols = currentBoard.width;
+    const sourceRows = currentBoard.height;
+    const cols = boardView.cols;
+    const rows = boardView.rows;
     context.clearRect(0, 0, cssWidth, cssHeight);
     context.save();
     context.strokeStyle = palette.edge;
@@ -1914,25 +1987,25 @@
 
     context.strokeStyle = palette.line;
     context.lineWidth = palette.lineWidth;
-    const gridWidth = (cols - 1) * spacing;
-    const gridHeight = (rows - 1) * spacing;
-    for (let i = 0; i < cols; i += 1) {
-      const x = boardView.originX + i * spacing;
+    for (let i = 0; i < sourceCols; i += 1) {
+      const start = pointPosition(i, 0);
+      const end = pointPosition(i, sourceRows - 1);
       context.beginPath();
-      context.moveTo(x, boardView.originY);
-      context.lineTo(x, boardView.originY + gridHeight);
+      context.moveTo(start.x, start.y);
+      context.lineTo(end.x, end.y);
       context.stroke();
     }
-    for (let i = 0; i < rows; i += 1) {
-      const y = boardView.originY + i * spacing;
+    for (let i = 0; i < sourceRows; i += 1) {
+      const start = pointPosition(0, i);
+      const end = pointPosition(sourceCols - 1, i);
       context.beginPath();
-      context.moveTo(boardView.originX, y);
-      context.lineTo(boardView.originX + gridWidth, y);
+      context.moveTo(start.x, start.y);
+      context.lineTo(end.x, end.y);
       context.stroke();
     }
 
     context.fillStyle = palette.star;
-    for (const star of boardStarPoints(cols, rows)) {
+    for (const star of boardStarPoints(sourceCols, sourceRows)) {
       const { x: px, y: py } = pointPosition(star.x, star.y);
       context.beginPath();
       context.arc(px, py, Math.max(1.6, spacing * 0.075), 0, Math.PI * 2);
@@ -1949,41 +2022,39 @@
       const bottomY = boardView.originY + (rows - 1) * spacing + boardView.margin * 0.5;
       const leftX = boardView.originX - boardView.margin * 0.5;
       const rightX = boardView.originX + (cols - 1) * spacing + boardView.margin * 0.5;
-      if (settings.coordinatesStyle === '1-1') {
-        for (let x = 0; x < cols; x += 1) {
-          context.fillText(String(x + 1), boardView.originX + x * spacing, topY);
-          context.fillText(String(x + 1), boardView.originX + x * spacing, bottomY);
+      const originLogical = inverseBoardPoint(0, 0);
+      const horizontalNext = inverseBoardPoint(Math.min(1, cols - 1), 0);
+      const verticalNext = inverseBoardPoint(0, Math.min(1, rows - 1));
+      const horizontalAxis = horizontalNext.x !== originLogical.x ? 'x' : 'y';
+      const verticalAxis = verticalNext.x !== originLogical.x ? 'x' : 'y';
+      const labelFor = (point, axis) => {
+        if (axis === 'x') {
+          if (settings.coordinatesStyle === 'A1') return columnLabel(point.x);
+          return String(point.x + 1);
         }
-        for (let y = 0; y < rows; y += 1) {
-          context.fillText(String(y + 1), leftX, boardView.originY + y * spacing);
-          context.fillText(String(y + 1), rightX, boardView.originY + y * spacing);
-        }
-      } else if (settings.coordinatesStyle === 'CJK') {
-        for (let x = 0; x < cols; x += 1) {
-          context.fillText(String(x + 1), boardView.originX + x * spacing, topY);
-          context.fillText(String(x + 1), boardView.originX + x * spacing, bottomY);
-        }
-        for (let y = 0; y < rows; y += 1) {
-          context.fillText(numberToCJK(y + 1), leftX, boardView.originY + y * spacing);
-          context.fillText(numberToCJK(y + 1), rightX, boardView.originY + y * spacing);
-        }
-      } else {
-        for (let x = 0; x < cols; x += 1) {
-          context.fillText(columnLabel(x), boardView.originX + x * spacing, topY);
-          context.fillText(columnLabel(x), boardView.originX + x * spacing, bottomY);
-        }
-        for (let y = 0; y < rows; y += 1) {
-          context.fillText(String(rows - y), leftX, boardView.originY + y * spacing);
-          context.fillText(String(rows - y), rightX, boardView.originY + y * spacing);
-        }
+        if (settings.coordinatesStyle === 'A1') return String(sourceRows - point.y);
+        if (settings.coordinatesStyle === 'CJK') return numberToCJK(point.y + 1);
+        return String(point.y + 1);
+      };
+      for (let vx = 0; vx < cols; vx += 1) {
+        const topPoint = inverseBoardPoint(vx, 0);
+        const bottomPoint = inverseBoardPoint(vx, rows - 1);
+        context.fillText(labelFor(topPoint, horizontalAxis), boardView.originX + vx * spacing, topY);
+        context.fillText(labelFor(bottomPoint, horizontalAxis), boardView.originX + vx * spacing, bottomY);
+      }
+      for (let vy = 0; vy < rows; vy += 1) {
+        const leftPoint = inverseBoardPoint(0, vy);
+        const rightPoint = inverseBoardPoint(cols - 1, vy);
+        context.fillText(labelFor(leftPoint, verticalAxis), leftX, boardView.originY + vy * spacing);
+        context.fillText(labelFor(rightPoint, verticalAxis), rightX, boardView.originY + vy * spacing);
       }
     }
 
     const stoneRadius = spacing * 0.465;
-    const numberMap = buildMoveNumberMap(cols);
+    const numberMap = buildMoveNumberMap(sourceCols);
     const totalMoves = numberMap.total || 0;
-    for (let y = 0; y < rows; y += 1) {
-      for (let x = 0; x < cols; x += 1) {
+    for (let y = 0; y < sourceRows; y += 1) {
+      for (let x = 0; x < sourceCols; x += 1) {
         const sign = currentBoard.signMap[y]?.[x] ?? 0;
         if (!sign) continue;
         drawStone(x, y, sign, stoneRadius);
@@ -2000,10 +2071,18 @@
       const maxX = Math.max(...xs);
       const minY = Math.min(...ys);
       const maxY = Math.max(...ys);
-      const { x: x1, y: y1 } = pointPosition(minX, minY);
-      const { x: x2, y: y2 } = pointPosition(maxX, maxY);
+      const corners = [
+        pointPosition(minX, minY),
+        pointPosition(maxX, minY),
+        pointPosition(minX, maxY),
+        pointPosition(maxX, maxY),
+      ];
+      const left = Math.min(...corners.map((point) => point.x));
+      const top = Math.min(...corners.map((point) => point.y));
+      const right = Math.max(...corners.map((point) => point.x));
+      const bottom = Math.max(...corners.map((point) => point.y));
       context.fillStyle = dimCss((currentBoard.dimmedColors || {})[range]);
-      context.fillRect(x1 - spacing * 0.5, y1 - spacing * 0.5, x2 - x1 + spacing, y2 - y1 + spacing);
+      context.fillRect(left - spacing * 0.5, top - spacing * 0.5, right - left + spacing, bottom - top + spacing);
     }
 
     for (const line of currentBoard.lines || []) {
@@ -2025,8 +2104,8 @@
     }
 
     if (!settings.hideMarkers) {
-      for (let y = 0; y < rows; y += 1) {
-        for (let x = 0; x < cols; x += 1) {
+      for (let y = 0; y < sourceRows; y += 1) {
+        for (let x = 0; x < sourceCols; x += 1) {
           const marker = currentBoard.markers?.[y]?.[x];
           if (marker) drawMarker(x, y, marker);
         }
@@ -2067,10 +2146,10 @@
     drawHover(stoneRadius);
 
     if (settings.moveNumberLimit >= 0) {
-      for (let y = 0; y < rows; y += 1) {
-        for (let x = 0; x < cols; x += 1) {
+      for (let y = 0; y < sourceRows; y += 1) {
+        for (let x = 0; x < sourceCols; x += 1) {
           const sign = currentBoard.signMap[y]?.[x];
-          const number = numberMap.get(y * cols + x);
+          const number = numberMap.get(y * sourceCols + x);
           if (!sign || !number || stoneRadius < 10) continue;
           if (!shouldShowMoveNumber(number, totalMoves)) continue;
           const { x: px, y: py } = pointPosition(x, y);
@@ -2336,6 +2415,8 @@
     const suffix = `${result ? ` — ${result}` : ''}${dirty ? ' •' : ''}${readOnly ? ' — Read Only' : ''}`;
     document.title = `${name}${suffix} — MultiGo Neo`;
     fileLabel.textContent = `${name}${suffix}`;
+    fileLabel.classList.toggle('is-dirty', dirty);
+    statusDirty.hidden = !dirty;
   }
 
   function syncSizeSelect() {
@@ -2574,7 +2655,8 @@
 
   function renderAll() {
     if (!tree) return;
-    if (boardView.cols !== (currentBoard?.width || boardView.cols) || boardView.rows !== (currentBoard?.height || boardView.rows)) {
+    if (boardView.sourceCols !== (currentBoard?.width || boardView.sourceCols)
+        || boardView.sourceRows !== (currentBoard?.height || boardView.sourceRows)) {
       resizeBoard();
     } else {
       scheduleBoardDraw();
@@ -3030,6 +3112,7 @@
   async function quitApp() {
     if (dirty && !(await askConfirm('Quit without saving the current game?', 'Quit'))) return;
     if (!isElectron) { log('Quit is only available in the desktop build.', 'warn'); return; }
+    allowDirtyUnload = true;
     log('Closing MultiGo Neo…');
     await desktop.quit();
   }
@@ -3488,6 +3571,10 @@
     'toggle-siblings': () => toggleSettingFlag('showSiblings', (on) => `Sibling variations ${on ? 'shown' : 'hidden'}.`),
     'toggle-auto-layout': toggleAutoLayout,
     'copy-position-link': copyPositionLink,
+    'rotate-cw': rotateBoardView,
+    'flip-h': () => flipBoardView('h'),
+    'flip-v': () => flipBoardView('v'),
+    'reset-board': resetBoardView,
     'zoom-in': () => setZoom(settings.zoom * 1.15),
     'zoom-out': () => setZoom(settings.zoom / 1.15),
     'zoom-reset': () => setZoom(1),
@@ -3635,6 +3722,30 @@
     log(`Board zoom: ${Math.round(settings.zoom * 100)}%.`);
   }
 
+  function commitBoardTransform(message) {
+    saveSettings();
+    resizeBoard();
+    log(message);
+  }
+
+  function rotateBoardView() {
+    settings.boardRotation = ((settings.boardRotation || 0) + 90) % 360;
+    commitBoardTransform(`Board rotated clockwise (${settings.boardRotation}°).`);
+  }
+
+  function flipBoardView(axis) {
+    if (axis === 'h') settings.boardFlipH = !settings.boardFlipH;
+    else settings.boardFlipV = !settings.boardFlipV;
+    commitBoardTransform(axis === 'h' ? 'Board flipped horizontally.' : 'Board flipped vertically.');
+  }
+
+  function resetBoardView() {
+    settings.boardRotation = 0;
+    settings.boardFlipH = false;
+    settings.boardFlipV = false;
+    commitBoardTransform('Board orientation reset.');
+  }
+
   function setLanguage(language) {
     settings.language = language === 'zh' ? 'zh' : 'en';
     saveSettings();
@@ -3668,7 +3779,11 @@
   }
 
   async function resetAllSettings() {
-    if (!(await askConfirm('Reset all settings and the panel layout?', 'Reset settings'))) return;
+    const message = dirty
+      ? 'Reset all settings? Unsaved game changes will also be lost.'
+      : 'Reset all settings and the panel layout?';
+    if (!(await askConfirm(message, 'Reset settings'))) return;
+    allowDirtyUnload = true;
     localStorage.removeItem(SETTINGS_KEY);
     localStorage.removeItem(LAYOUT_KEY);
     location.reload();
@@ -3676,8 +3791,25 @@
 
   async function toggleFullScreen() {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await document.documentElement.requestFullscreen();
+      if (isElectron && typeof desktop.setFullScreen === 'function') {
+        const current = typeof desktop.isFullScreen === 'function'
+          ? await desktop.isFullScreen()
+          : false;
+        const next = await desktop.setFullScreen(!current);
+        log(next ? 'Full screen on.' : 'Full screen off.');
+        return;
+      }
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        log('Full screen off.');
+        return;
+      }
+      const target = document.documentElement;
+      if (typeof target.requestFullscreen !== 'function') {
+        throw new Error('this browser does not support the Fullscreen API');
+      }
+      await target.requestFullscreen({ navigationUI: 'hide' });
+      log('Full screen on.');
     } catch (error) {
       log(`Full screen unavailable: ${error.message}`, 'warn');
     }
@@ -4120,6 +4252,7 @@
       case 'Home': event.preventDefault(); goToBeginning(); break;
       case 'End': event.preventDefault(); goToEnd(); break;
       case 'p': case 'P': event.preventDefault(); runAction(passTurn); break;
+      case 'g': case 'G': event.preventDefault(); runAction(resetBoardView); break;
       case ' ': event.preventDefault(); runAction(toggleAutoPlay); break;
       case 'Escape':
         if (pending) { pending = null; updateToolbar(); scheduleBoardDraw(); }
@@ -4297,6 +4430,11 @@
     new ResizeObserver(() => resizeBoard()).observe(paneBoard);
     new ResizeObserver(() => scheduleResponsiveLayout()).observe(workspace);
     window.addEventListener('resize', scheduleResponsiveLayout);
+    window.addEventListener('beforeunload', (event) => {
+      if (!dirty || allowDirtyUnload) return;
+      event.preventDefault();
+      event.returnValue = '';
+    });
     const initialSize = settings.rememberBoardSize !== false && settings.boardWidth && settings.boardHeight
       ? { width: settings.boardWidth, height: settings.boardHeight }
       : settings.defaultSize;

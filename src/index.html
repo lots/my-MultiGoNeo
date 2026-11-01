@@ -297,6 +297,20 @@
           <button type="button" class="menu-item" role="menuitem" data-action="zoom-reset">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reset Zoom</span>
           </button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitem" data-action="rotate-cw">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Rotate Clockwise</span>
+          </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="flip-h">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Flip Horizontally</span>
+          </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="flip-v">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Flip Vertically</span>
+          </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="reset-board">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reset Board</span><kbd>G</kbd>
+          </button>
+          <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="toggle-fullscreen">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Toggle Full Screen</span><kbd>F11</kbd>
           </button>
@@ -598,6 +612,7 @@
     <footer class="statusbar" aria-label="Status">
       <div class="statuscells">
         <span class="status-cell readonly-cell" id="status-readonly" hidden>READ ONLY</span>
+        <span class="status-cell dirty-cell" id="status-dirty" hidden>UNSAVED</span>
         <span class="status-cell" id="status-next">Next: Black</span>
         <span class="status-cell" id="status-captures">Captures: B 0 · W 0</span>
         <span class="status-cell" id="status-stones">Stones: B 0 · W 0</span>

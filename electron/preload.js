@@ -13,6 +13,8 @@ const api = {
     node: process.versions.node,
   }),
   quit: () => ipcRenderer.invoke('app:quit'),
+  isFullScreen: () => ipcRenderer.invoke('window:is-fullscreen'),
+  setFullScreen: (value) => ipcRenderer.invoke('window:set-fullscreen', Boolean(value)),
   openGame: () => ipcRenderer.invoke('game:open'),
   openRecent: (filePath) => ipcRenderer.invoke('game:open-path', { filePath }),
   saveGame: (payload) => ipcRenderer.invoke('game:save', payload),

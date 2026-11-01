@@ -1410,6 +1410,19 @@ body.is-resizing-h * {
   letter-spacing: 0.08em;
 }
 
+.dirty-cell {
+  background: #b45309;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+#file-label.is-dirty::before {
+  content: "●";
+  margin-right: 4px;
+  color: #c2410c;
+}
+
 .is-readonly #board {
   cursor: default;
 }

@@ -101,6 +101,18 @@ function registerIpc() {
     createWindow();
   });
 
+  ipcMain.handle('window:is-fullscreen', (event) => {
+    const win = windowFrom(event);
+    return Boolean(win && win.isFullScreen());
+  });
+
+  ipcMain.handle('window:set-fullscreen', (event, value) => {
+    const win = windowFrom(event);
+    if (!win) return false;
+    win.setFullScreen(Boolean(value));
+    return win.isFullScreen();
+  });
+
   ipcMain.handle('game:save', async (event, payload) => {
     const content = payload && payload.content;
     const saveAs = Boolean(payload && payload.saveAs);

@@ -252,6 +252,33 @@ builds share this behavior.
 - Browser recent-cache loads identify the cached filename, and errors include the path/name
   that failed.
 
+### Unsaved changes
+
+- Any tree/info/comment mutation marks the document dirty.
+- A prominent orange **UNSAVED** status cell, a red dot beside the filename, and a `•` in the
+  window title show the state.
+- New Game, Open SGF, Open Recent, Quit, Reset Settings and risky load/replace operations ask
+  for confirmation before discarding unsaved changes.
+- Browser reload/close is guarded by `beforeunload`; intentional quit/reset paths suppress the
+  duplicate native prompt after their own confirmation.
+
+![Unsaved indicator in the file label and status bar](preview-dirty.png)
+
+### Board orientation
+
+The View menu now provides display-only orientation controls:
+
+- **Rotate Clockwise**: rotates the rendered board 90°; rectangular boards swap displayed
+  dimensions.
+- **Flip Horizontally** and **Flip Vertically**.
+- **Reset Board** (shortcut **G**) restores the identity orientation.
+- The transforms also apply to hit testing, stone/marker positions, coordinates, dim rectangles,
+  arrows and move numbers. They do not modify the SGF or mark it dirty.
+
+![A 5×9 board rotated clockwise to 9×5](preview-board-rotate.png)
+
+![The same board flipped horizontally](preview-board-flip.png)
+
 ### Workspace
 
 - 13×13 default, with 9×9/19×19 presets and **custom boards from 2×2 to 52×52**.
@@ -291,7 +318,9 @@ The View menu now covers the practical MultiGo-style display controls:
 - the last move keeps the **red triangle** marker in every mode
 - **Responsive Layout**
 - **Zoom In / Out / Reset**
-- **Toggle Full Screen** (`F11`)
+- **Rotate Clockwise**, **Flip Horizontally**, **Flip Vertically**, **Reset Board** (`G`)
+- **Toggle Full Screen** (`F11`): Electron uses the native window fullscreen state through IPC;
+  browsers use the Fullscreen API
 - **Show Game Tree** and **Reset Panel Layout**
 
 There is deliberately no Video menu; it is not part of the Go editor.
@@ -478,6 +507,14 @@ layout and a 1100×1700 pass for the embed page:
 - changed **Move Numbers** and **Numbering** through their View dropdowns;
 - confirmed the autoplay icon is distinct from First Child, the status bar has only the lower
   rule, and the menu bar contains no Video item;
+- marked a document dirty and confirmed the orange **UNSAVED** status, red file-label dot and
+  title bullet; New Game and Open SGF both showed the unsaved-loss confirmation, and Cancel
+  preserved the 2-node dirty document;
+- verified board transforms on a 5×9 board: identity, 90° (9×5), 180°, horizontal and vertical
+  flips; fixed physical clicks mapped to `aa`, `ai`, `ei`, `ea` and `ai`; **G** reset the
+  orientation; transforms did not dirty the SGF;
+- verified the fullscreen menu command and **F11** both issued a browser fullscreen request;
+  Electron uses the native window IPC;
 - loaded a six-node two-branch SGF and confirmed every tree connector path is orthogonal
   (`M/V/H`, no diagonal `L`); used the branch toggles to collapse 6 nodes to 2 (label `2/6
   nodes`), saw the `+` state and current node move to the collapsed branch, then expanded back
@@ -558,6 +595,8 @@ Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png)
 [Read Only mode](preview-readonly.png), [Game Information fields](preview-game-info.png),
 [merged Options Preferences dialog](preview-preferences.png),
 [compact initial Info layout](preview-r17-layout.png),
+[unsaved indicator](preview-dirty.png),
+[rotated board](preview-board-rotate.png), [flipped board](preview-board-flip.png),
 [focused Game Info panel](preview-info-focus.png),
 [restored layout after Done](preview-info-restored.png),
 [red last-move triangle](preview-last-move.png), [last 10 move numbers](preview-move-numbers.png),
@@ -695,6 +734,9 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Delete move | Toolbar Delete Move, Play menu, or `Ctrl+Delete`; the Edit menu uses Cut Current Node instead |
 | Cut current / after | Edit → Cut Current Node, or Edit → Cut All After Current |
 | Fast rewind / forward | Toolbar ←← / →→ or Play menu; step count in Preferences → View → Board |
+| Rotate / flip board | View → Rotate Clockwise, Flip Horizontally, Flip Vertically |
+| Reset board orientation | View → Reset Board or `G` |
+| Full screen | View → Toggle Full Screen or `F11` |
 | Cut / copy / paste variation | `Ctrl+Alt+X` / `Ctrl+Alt+C` / `Ctrl+Alt+V` |
 | Duplicate / insert node | `Ctrl+Alt+D` / `Ctrl+Alt+N` |
 | Flatten variation | `Ctrl+Alt+F` |
@@ -782,6 +824,7 @@ scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info a
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
+scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
