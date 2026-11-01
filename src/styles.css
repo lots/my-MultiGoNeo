@@ -554,6 +554,14 @@ button {
   border-radius: 3px;
 }
 
+#board.is-picture-selecting {
+  cursor: grab;
+}
+
+#board.is-picture-dragging {
+  cursor: grabbing;
+}
+
 .pane-board.is-zoomed {
   align-items: flex-start;
   justify-content: flex-start;

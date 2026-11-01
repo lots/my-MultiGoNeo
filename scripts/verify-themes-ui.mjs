@@ -7,7 +7,7 @@ import path from 'node:path'
 //   node scripts/verify-themes-ui.mjs 9346 . "file:///.../src/index.html?test=1"
 
 const port = process.argv[2] ?? '9346'
-const outDir = process.argv[3] ?? '.'
+const outDir = process.argv[3] ?? 'preview'
 const url = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html?test=1`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

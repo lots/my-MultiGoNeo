@@ -27,7 +27,7 @@ MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** 
 [Modified FF[4]](#modified-ff4)). The board ships in **four themes**, previewed on 13×13
 boards [below](#board-themes-and-responsive-layout).
 
-![MultiGo Neo with a variation tree and the five-stone setup](preview.png)
+![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
 
@@ -38,8 +38,10 @@ boards [below](#board-themes-and-responsive-layout).
 - **File → Import Files as Branch…** imports multiple SGFs under the current node, skipping
   empty root nodes.
 - **File → Save Board as Picture** opens a MultiGo-style export dialog with partial-board
-  drag selection, PNG/JPEG, size/space and coordinate/grayscale options; `Ctrl+Q` triggers the
-  command, while Quit is `Ctrl+Shift+Q`.
+  drag selection, PNG/JPEG, size/space and coordinate/grayscale options; the first opening
+  selects the full board, later openings restore the last selection, the cursor becomes a hand
+  and save dialogs start beside the SGF (or in Pictures/Images). `Ctrl+Q` triggers the command,
+  while Quit is `Ctrl+Shift+Q`.
 - **Unsaved guard**: orange `UNSAVED` status, red file dot, title bullet and confirmations
   before New/Open/Recent/Reload/Quit/Reset operations.
 - **View → Rotate Clockwise / Flip Horizontally / Flip Vertically / Reset Board (`G`)**:
@@ -75,9 +77,9 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   **`p`** in the game tree; the tooltip and accessibility label spell out **pass**.
 - New games get `GM[1] FF[4] CA[UTF-8] AP[MultiGo Neo:1.0] SZ[…]`.
 
-![Orthogonal Sabaki-style game tree with branch collapse toggles](preview-tree-expanded.png)
+![Orthogonal Sabaki-style game tree with branch collapse toggles](preview/preview-tree-expanded.png)
 
-![Collapsed branch showing the plus toggle and compact 2/6 node count](preview-tree-collapsed.png)
+![Collapsed branch showing the plus toggle and compact 2/6 node count](preview/preview-tree-collapsed.png)
 
 ### Editing
 
@@ -111,7 +113,7 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   opposite colour replaces it.
 - Board transformations and scoring are not in this milestone.
 
-![FF[4] move and non-move properties in the Message panel](preview-property-log.png)
+![FF[4] move and non-move properties in the Message panel](preview/preview-property-log.png)
 
 ### Supported comment Markdown
 
@@ -178,7 +180,7 @@ The Edit menu now covers variation editing as well as display edits:
 - A red **READ ONLY** status cell and a `— Read Only` title suffix make the mode obvious.
 - The comment editor is replaced by the rendered comment preview.
 
-![Read Only mode with locked controls and status badge](preview-readonly.png)
+![Read Only mode with locked controls and status badge](preview/preview-readonly.png)
 
 ### Game Information
 
@@ -198,9 +200,9 @@ left and **White / White rank / White team** on the right. The default Info pane
 about six rows tall, showing **Game Name** through **Rules**, while the Message panel is limited
 to roughly three log lines. Both panes remain resizable with their splitters.
 
-![SGF fields populated with Black/White columns](preview-game-info.png)
+![SGF fields populated with Black/White columns](preview/preview-game-info.png)
 
-![Compact initial Info panel through Rules and compact Message panel](preview-r17-layout.png)
+![Compact initial Info panel through Rules and compact Message panel](preview/preview-r17-layout.png)
 
 ### Game Info editing focus
 
@@ -211,7 +213,7 @@ remain recoverable. A **Done** button appears in the Info header; pressing it re
 exact layout that was in use before focus. The focus layout is session-only;
 **View → Reset Panel Layout** also restores the default workspace proportions.
 
-![Game Info panel expanded for focused editing](preview-info-focus.png)
+![Game Info panel expanded for focused editing](preview/preview-info-focus.png)
 
 ### Move numbers
 
@@ -221,11 +223,11 @@ Move-number display is controlled by the **View → Move Numbers** dropdown:
 - A second **Numbering** dropdown chooses **Game Start** or **Variation Start**.
 - The toolbar **Nums** button still toggles between none and all.
 
-![Expanded Edit menu with variation, node and SGF operations](preview-edit-menu.png)
+![Expanded Edit menu with variation, node and SGF operations](preview/preview-edit-menu.png)
 
-![Red triangle marking the most recent move](preview-last-move.png)
+![Red triangle marking the most recent move](preview/preview-last-move.png)
 
-![Only the last ten moves carry numbers](preview-move-numbers.png)
+![Only the last ten moves carry numbers](preview/preview-move-numbers.png)
 
 ### Fast navigation
 
@@ -249,7 +251,7 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
 - Missing or oversized files fail with a message; **Clear Recent Files** empties the list and
   removes the stored browser handles.
 
-![File menu with seven recent files](preview-recent.png)
+![File menu with seven recent files](preview/preview-recent.png)
 
 ### Reload, imports and picture export
 
@@ -265,12 +267,19 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
   File Name + browse button, **png / jpg** format, **Image size**, **Add space**, **Show dead
   stones**, **Show coordinate**, **Black and white board and stones**, **Automatically select
   best area**, **Snap to close border** and **Show saved picture**.
-- Uncheck **Automatically select best area** and drag directly on the board to choose a
-  partial rectangle. The blue translucent overlay marks the selected region; coordinate labels
-  are then drawn around all four sides of that region in the exported image.
+- The first opening selects the **whole board**. Later openings restore the **last selected
+  area**; **Automatically select best area** remains available as an explicit one-shot action.
+- Uncheck **Automatically select best area** (or start dragging) to choose a partial
+  rectangle. The blue translucent overlay marks the selected region; coordinate labels are
+  drawn in a dedicated gutter around all four sides, outside the goban lines.
+- While the picture dialog is open the board cursor becomes a **grab hand** (and a grabbing
+  hand while dragging); the round stone hover ghost is suppressed.
 - **Add space** adds a grid-unit margin around the selection; **Image size** is the longest
   exported side in pixels (100–4000). **Snap to close border** expands a manual selection that
   is close to a board edge.
+- The native save dialog starts in the **SGF file’s folder** when available, otherwise in the
+  system **Pictures** or **Images** folder. Browser pickers start from the retained SGF file
+  handle when possible.
 - The picture command uses the native save dialog in Electron and the File System Access picker
   (or download fallback) in browsers. **Show saved picture** opens an in-app preview after a
   successful save.
@@ -278,11 +287,11 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
   represented in this SGF editor, so there are no dead-stone overlays to add to the export.
 - `Ctrl+Q` is now **Save Board as Picture**; Quit moved to `Ctrl+Shift+Q`.
 
-![Imported SGF files as sibling branches](preview-import-branch.png)
+![Imported SGF files as sibling branches](preview/preview-import-branch.png)
 
-![Save As Picture dialog with partial board selection](preview-picture-dialog.png)
+![Save As Picture dialog with partial board selection](preview/preview-picture-dialog.png)
 
-![Partial board exported to PNG with coordinates](preview-board-picture.png)
+![Partial board exported to PNG with coordinates](preview/preview-board-picture.png)
 
 ### Save/open location messages
 
@@ -320,7 +329,7 @@ builds share this behavior.
 - Browser reload/close is guarded by `beforeunload`; intentional quit/reset paths suppress the
   duplicate native prompt after their own confirmation.
 
-![Unsaved indicator in the file label and status bar](preview-dirty.png)
+![Unsaved indicator in the file label and status bar](preview/preview-dirty.png)
 
 ### Board orientation
 
@@ -333,9 +342,9 @@ The View menu now provides display-only orientation controls:
 - The transforms also apply to hit testing, stone/marker positions, coordinates, dim rectangles,
   arrows and move numbers. They do not modify the SGF or mark it dirty.
 
-![A 5×9 board rotated clockwise to 9×5](preview-board-rotate.png)
+![A 5×9 board rotated clockwise to 9×5](preview/preview-board-rotate.png)
 
-![The same board flipped horizontally](preview-board-flip.png)
+![The same board flipped horizontally](preview/preview-board-flip.png)
 
 ### Workspace
 
@@ -383,9 +392,9 @@ The View menu now covers the practical MultiGo-style display controls:
 
 There is deliberately no Video menu; it is not part of the Go editor.
 
-![Custom 5×9 board with 1–1 coordinates](preview-custom.png)
+![Custom 5×9 board with 1–1 coordinates](preview/preview-custom.png)
 
-![Compact View menu with dropdowns and display controls](preview-view-menu.png)
+![Compact View menu with dropdowns and display controls](preview/preview-view-menu.png)
 
 ### Variation badges
 
@@ -401,17 +410,17 @@ The variation overlay now matches the MultiGo reference:
 - This was verified against `ff4_ex_new.sgf`: the 19×19 node with six continuations shows
   **A–F**, and the following `W d16` node shows **A–D**, matching the good MultiGo captures.
 
-![All six child variations A-F at the current position](preview-variation-node23.png)
+![All six child variations A-F at the current position](preview/preview-variation-node23.png)
 
-![Four child variations A-D after W d16](preview-variation-node24.png)
+![Four child variations A-D after W d16](preview/preview-variation-node24.png)
 
 Hover ghosts are still used for the active edit tool: a ghost stone in play mode; setup
 stone/cross/replacement plus; markup shapes; the next number or existing label; and a dashed
 line/arrow/dim preview.
 
-![Triangle ghost in edit mode](preview-hover-tool.png)
+![Triangle ghost in edit mode](preview/preview-hover-tool.png)
 
-![Pass nodes use the compact p label](preview-pass-tree.png)
+![Pass nodes use the compact p label](preview/preview-pass-tree.png)
 
 ### Board themes and responsive layout
 
@@ -422,11 +431,11 @@ images below show the same **13×13** position at 1440×1024.
 
 | Classic | Flat |
 | --- | --- |
-| ![Classic kaya board on a 13x13 position](preview-theme-classic.png) | ![Flat board on a 13x13 position](preview-theme-flat.png) |
+| ![Classic kaya board on a 13x13 position](preview/preview-theme-classic.png) | ![Flat board on a 13x13 position](preview/preview-theme-flat.png) |
 
 | Dark | Paper |
 | --- | --- |
-| ![Dark rosewood board on a 13x13 position](preview-theme-dark.png) | ![Paper diagram board on a 13x13 position](preview-theme-paper.png) |
+| ![Dark rosewood board on a 13x13 position](preview/preview-theme-dark.png) | ![Paper diagram board on a 13x13 position](preview/preview-theme-paper.png) |
 
 - **Classic** — warm kaya wood with CSS-only grain; the default.
 - **Flat** — a solid board colour with no grain.
@@ -438,16 +447,16 @@ images below show the same **13×13** position at 1440×1024.
 
 Palettes live in `src/themes/classic.css`, `flat.css`, `dark.css` and `paper.css`; the
 renderer reads their custom properties on each switch, so the canvas stays transparent over
-the CSS surface. `node scripts/verify-themes-ui.mjs <port> .` regenerates the four
+the CSS surface. `node scripts/verify-themes-ui.mjs <port> preview` regenerates the four
 screenshots against a DevTools-enabled Chromium.
 
 Below **1120 px** the workspace switches to a portrait column: the board sits on top at 58%
 of the available height, the panel column fills the rest, and the vertical splitter hides.
 The layout returns to the remembered landscape proportions when the window grows again.
 
-![Portrait workspace at 980×900](preview-portrait.png)
+![Portrait workspace at 980×900](preview/preview-portrait.png)
 
-![四4 coordinates with Chinese row numerals](preview-cjk.png)
+![四4 coordinates with Chinese row numerals](preview/preview-cjk.png)
 
 ### Position links
 
@@ -481,7 +490,7 @@ Supported attributes: `data-sgf`, `data-path`, `data-size` (empty board), `data-
 `data-coords` (optionally `1-1`), `data-variations`, `data-controls="false"`, `data-width`
 and `data-label`. Widgets support click/wheel/keyboard navigation and a hover stone.
 
-![Three data-attribute embeds](preview-embed.png)
+![Three data-attribute embeds](preview/preview-embed.png)
 
 ### Language and Options
 
@@ -490,14 +499,14 @@ and `data-label`. Widgets support click/wheel/keyboard navigation and a hover st
   status cells, dialogs and option labels; the choice is persisted across reloads.
 - The Chinese shell is demonstrated below:
 
-![Bilingual Chinese interface](preview-chinese.png)
+![Bilingual Chinese interface](preview/preview-chinese.png)
 
 - Additional Options: **Remember Last Board Size**, a **Theme** dropdown (Classic / Flat /
   Dark / Paper), an **Autoplay Delay** dropdown (0.5/1/2/3 s), Preferences, and **Reset All
   Settings**.
 - Runtime log entries and SGF/game content stay in their original language.
 
-![Options menu with language, theme, size memory and autoplay dropdowns](preview-options-menu.png)
+![Options menu with language, theme, size memory and autoplay dropdowns](preview/preview-options-menu.png)
 
 ### Options → Preferences
 
@@ -518,7 +527,7 @@ Preferences dialog follows the MultiGo Options categories:
 Options take effect on **OK**; **Cancel** discards changes, and **Reset Defaults** only resets
 the dialog controls until OK is pressed. Values persist in `localStorage`.
 
-![Merged Options Preferences dialog](preview-preferences.png)
+![Merged Options Preferences dialog](preview/preview-preferences.png)
 
 MultiGo bitmap-board/stone image paths, random stone images, window-side/tree-position choices,
 custom panel background colours, BIG5 auto-detection, new-file templates, branch merging and
@@ -569,10 +578,12 @@ layout and a 1100×1700 pass for the embed page:
   `W[cc]` / move 2, and cleared dirty;
 - imported two SGF files as branches (3 nodes total, two root children) and confirmed the
   imported node was current;
-- opened the **Save As Picture** dialog, unchecked automatic selection and exported a
-  **6×5** region as a **300×264** / 78,769-byte PNG with coordinates on all four sides;
-- dragged a separate **6×7** manual region on the board, then exported a grayscale JPEG
-  through the same dialog and confirmed `image/jpeg`;
+- opened the **Save As Picture** dialog, confirmed it initially selected the full **13×13**
+  board, then exported a **6×5** region as a **300×267** / 71,923-byte PNG with coordinates
+  in a gutter outside all four board edges;
+- reopened the dialog and confirmed the previous **6×5** selection was restored; dragged a
+  separate **6×7** manual region on the board, then exported a grayscale JPEG through the same
+  dialog and confirmed `image/jpeg`;
 - `Ctrl+Q` opened the dialog without invoking a file picker until **OK** was pressed;
 - marked a document dirty and confirmed the orange **UNSAVED** status, red file-label dot and
   title bullet; New Game and Open SGF both showed the unsaved-loss confirmation, and Cancel
@@ -655,29 +666,31 @@ layout and a 1100×1700 pass for the embed page:
 - switched coordinates to **四4** and confirmed Arabic column numbers with Chinese row numerals;
 - no console exceptions.
 
-Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png),
-[View menu](preview-view-menu.png), [Edit menu](preview-edit-menu.png),
-[all six sibling variations A-F](preview-variation-node23.png),
-[all four variations A-D after W d16](preview-variation-node24.png),
-[Read Only mode](preview-readonly.png), [Game Information fields](preview-game-info.png),
-[merged Options Preferences dialog](preview-preferences.png),
-[compact initial Info layout](preview-r17-layout.png),
-[unsaved indicator](preview-dirty.png), [imported branches](preview-import-branch.png),
-[picture dialog](preview-picture-dialog.png), [partial board picture](preview-board-picture.png),
-[rotated board](preview-board-rotate.png), [flipped board](preview-board-flip.png),
-[focused Game Info panel](preview-info-focus.png),
-[restored layout after Done](preview-info-restored.png),
-[red last-move triangle](preview-last-move.png), [last 10 move numbers](preview-move-numbers.png),
-[FF[4] property log](preview-property-log.png),
-[Chinese interface](preview-chinese.png), [Options menu](preview-options-menu.png),
-[edit tools](preview-edit.png), [comment tab](preview-comment.png),
-[triangle hover ghost](preview-hover-tool.png),
-[pass nodes](preview-pass-tree.png), [recent files](preview-recent.png),
-[orthogonal game tree](preview-tree-expanded.png), [collapsed branch](preview-tree-collapsed.png),
-[四4 coordinates](preview-cjk.png),
-[classic theme](preview-theme-classic.png), [flat theme](preview-theme-flat.png),
-[dark theme](preview-theme-dark.png), [paper theme](preview-theme-paper.png),
-[portrait layout](preview-portrait.png) and [embeds](preview-embed.png).
+All screenshots live in the [`preview/`](preview/) subfolder.
+
+Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/preview-custom.png),
+[View menu](preview/preview-view-menu.png), [Edit menu](preview/preview-edit-menu.png),
+[all six sibling variations A-F](preview/preview-variation-node23.png),
+[all four variations A-D after W d16](preview/preview-variation-node24.png),
+[Read Only mode](preview/preview-readonly.png), [Game Information fields](preview/preview-game-info.png),
+[merged Options Preferences dialog](preview/preview-preferences.png),
+[compact initial Info layout](preview/preview-r17-layout.png),
+[unsaved indicator](preview/preview-dirty.png), [imported branches](preview/preview-import-branch.png),
+[picture dialog](preview/preview-picture-dialog.png), [partial board picture](preview/preview-board-picture.png),
+[rotated board](preview/preview-board-rotate.png), [flipped board](preview/preview-board-flip.png),
+[focused Game Info panel](preview/preview-info-focus.png),
+[restored layout after Done](preview/preview-info-restored.png),
+[red last-move triangle](preview/preview-last-move.png), [last 10 move numbers](preview/preview-move-numbers.png),
+[FF[4] property log](preview/preview-property-log.png),
+[Chinese interface](preview/preview-chinese.png), [Options menu](preview/preview-options-menu.png),
+[edit tools](preview/preview-edit.png), [comment tab](preview/preview-comment.png),
+[triangle hover ghost](preview/preview-hover-tool.png),
+[pass nodes](preview/preview-pass-tree.png), [recent files](preview/preview-recent.png),
+[orthogonal game tree](preview/preview-tree-expanded.png), [collapsed branch](preview/preview-tree-collapsed.png),
+[四4 coordinates](preview/preview-cjk.png),
+[classic theme](preview/preview-theme-classic.png), [flat theme](preview/preview-theme-flat.png),
+[dark theme](preview/preview-theme-dark.png), [paper theme](preview/preview-theme-paper.png),
+[portrait layout](preview/preview-portrait.png) and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
 `scripts/verify-themes-ui.mjs`.

@@ -4,7 +4,7 @@ import path from 'node:path'
 // Verifies the compact View/Options menus, branch-local next-move hints,
 // toolbar pressed styling and FF[4] logging while navigating.
 const port = process.argv[2] ?? '9444'
-const outDir = process.argv[3] ?? '.'
+const outDir = process.argv[3] ?? 'preview'
 const appUrl = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

@@ -25,6 +25,21 @@ function dialogDefaultPath(filename = null) {
   return filename ? path.join(directory, filename) : directory;
 }
 
+async function pictureDefaultDirectory(sourcePath) {
+  const candidates = [];
+  if (sourcePath && path.isAbsolute(sourcePath)) candidates.push(path.dirname(sourcePath));
+  try { candidates.push(app.getPath('pictures')); } catch {}
+  try { candidates.push(path.join(app.getPath('home'), 'Pictures')); } catch {}
+  try { candidates.push(path.join(app.getPath('home'), 'Images')); } catch {}
+  for (const candidate of candidates) {
+    try {
+      const stats = await fs.stat(candidate);
+      if (stats.isDirectory()) return candidate;
+    } catch {}
+  }
+  return lastDialogDirectory || app.getPath('documents');
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1440,
@@ -205,9 +220,10 @@ function registerIpc() {
       ? path.basename(payload.suggestedName)
       : `board.${format}`;
     const filename = suggested.toLowerCase().endsWith(`.${format}`) ? suggested : `${suggested}.${format}`;
+    const directory = await pictureDefaultDirectory(payload && payload.sourcePath);
     const options = {
       title: 'Save Board as Picture',
-      defaultPath: dialogDefaultPath(filename),
+      defaultPath: path.join(directory, filename),
       filters: format === 'jpg'
         ? [{ name: 'JPEG Images', extensions: ['jpg', 'jpeg'] }]
         : [{ name: 'PNG Images', extensions: ['png'] }],
@@ -233,9 +249,10 @@ function registerIpc() {
       ? payload.filePath
       : null;
     if (!filePath) {
+      const directory = await pictureDefaultDirectory(payload && payload.sourcePath);
       const options = {
         title: 'Save Board as Picture',
-        defaultPath: dialogDefaultPath(filename),
+        defaultPath: path.join(directory, filename),
         filters: format === 'jpg'
           ? [{ name: 'JPEG Images', extensions: ['jpg', 'jpeg'] }]
           : [{ name: 'PNG Images', extensions: ['png'] }],

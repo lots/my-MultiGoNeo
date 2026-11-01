@@ -282,7 +282,8 @@
     pictureCoords: true,
     pictureGray: false,
     pictureShow: true,
-    pictureAuto: true,
+    pictureAuto: false,
+    pictureLastSelection: null,
     defaultKomi: 6.5,
     whiteFirst: false,
     rightClickUndo: false,
@@ -338,7 +339,16 @@
         pictureCoords: parsed.pictureCoords !== false,
         pictureGray: parsed.pictureGray === true,
         pictureShow: parsed.pictureShow !== false,
-        pictureAuto: parsed.pictureAuto !== false,
+        pictureAuto: parsed.pictureAuto === true,
+        pictureLastSelection: parsed.pictureLastSelection
+          && ['x1', 'y1', 'x2', 'y2'].every((key) => Number.isInteger(Number(parsed.pictureLastSelection[key])))
+          ? {
+            x1: Number(parsed.pictureLastSelection.x1),
+            y1: Number(parsed.pictureLastSelection.y1),
+            x2: Number(parsed.pictureLastSelection.x2),
+            y2: Number(parsed.pictureLastSelection.y2),
+          }
+          : null,
         defaultKomi: Number.isFinite(Number(parsed.defaultKomi)) ? Number(parsed.defaultKomi) : 6.5,
         whiteFirst: parsed.whiteFirst === true,
         rightClickUndo: parsed.rightClickUndo === true,
@@ -3514,7 +3524,9 @@
     const minY = Math.min(...points.map((point) => point.y)) * dpr - spacing * 0.5;
     const maxY = Math.max(...points.map((point) => point.y)) * dpr + spacing * 0.5;
     const margin = addSpace * spacing;
-    const coordPad = showCoords ? Math.max(14 * dpr, spacing * 0.72) : 0;
+    // Reserve a real gutter outside the selection for coordinate labels; the
+    // text is centred in this gutter so it cannot touch the goban edge line.
+    const coordPad = showCoords ? Math.max(28 * dpr, spacing * 1.0) : 0;
     const pad = Math.ceil(margin + coordPad);
     const padded = document.createElement('canvas');
     padded.width = base.width + pad * 2;
@@ -3573,10 +3585,39 @@
     pictureError.hidden = !message;
   }
 
+  function fullPictureSelection() {
+    return {
+      x1: 0, y1: 0,
+      x2: (currentBoard?.width || gameSize().width) - 1,
+      y2: (currentBoard?.height || gameSize().height) - 1,
+    };
+  }
+
+  function rememberedPictureSelection() {
+    const full = fullPictureSelection();
+    const saved = settings.pictureLastSelection;
+    if (!saved) return full;
+    const width = full.x2 + 1;
+    const height = full.y2 + 1;
+    const x1 = Math.max(0, Math.min(width - 1, saved.x1));
+    const y1 = Math.max(0, Math.min(height - 1, saved.y1));
+    const x2 = Math.max(0, Math.min(width - 1, saved.x2));
+    const y2 = Math.max(0, Math.min(height - 1, saved.y2));
+    return { x1: Math.min(x1, x2), y1: Math.min(y1, y2), x2: Math.max(x1, x2), y2: Math.max(y1, y2) };
+  }
+
+  function persistPictureSelection() {
+    if (!pictureState.selection) return;
+    settings.pictureLastSelection = { ...pictureState.selection };
+    settings.pictureAuto = pictureAuto.checked;
+    saveSettings();
+  }
+
   function openPictureDialog() {
     if (!boardCanvas.width) { log('The board is not ready.', 'warn'); return; }
     pictureState.targetPath = null;
     pictureState.targetHandle = null;
+    pictureState.sourcePath = isElectron ? filePath : null;
     pictureState.dragging = null;
     pictureFilename.value = pictureBaseName();
     pictureFormat.value = settings.pictureFormat || 'png';
@@ -3585,25 +3626,49 @@
     pictureCoords.checked = settings.pictureCoords !== false;
     pictureGray.checked = settings.pictureGray === true;
     pictureShow.checked = settings.pictureShow !== false;
-    pictureAuto.checked = settings.pictureAuto !== false;
-    pictureSnap.disabled = pictureAuto.checked;
+    // The first opening selects the whole board; later openings restore the
+    // last selected rectangle. Automatic best-area remains an explicit action.
+    pictureAuto.checked = false;
+    pictureSnap.disabled = false;
     pictureSnap.checked = false;
-    pictureState.manualSelection = null;
-    pictureState.selection = pictureAuto.checked ? bestPictureSelection() : bestPictureSelection();
+    pictureState.selection = rememberedPictureSelection();
+    pictureState.manualSelection = { ...pictureState.selection };
+    hover = null;
+    boardCanvas.classList.add('is-picture-selecting');
     pictureErrorMessage('');
     updatePictureStatus();
     if (!pictureDialog.open) pictureDialog.show();
     drawBoardSelection();
+    scheduleBoardDraw();
     pictureFilename.focus();
     pictureFilename.select();
   }
 
   function closePictureDialog() {
+    persistPictureSelection();
     pictureState.dragging = null;
     pictureState.targetPath = null;
     pictureState.targetHandle = null;
+    boardCanvas.classList.remove('is-picture-selecting', 'is-picture-dragging');
     if (pictureDialog.open) pictureDialog.close();
+    hover = null;
     drawBoardSelection();
+  }
+
+  async function pickBoardPicture(name, format) {
+    const options = {
+      id: 'multigo-board-picture',
+      suggestedName: name,
+      types: [{ description: `${format.toUpperCase()} image`, accept: { [pictureMime(format)]: [`.${format}`] } }],
+    };
+    if (browserSaveHandle) {
+      try {
+        return await window.showSaveFilePicker({ ...options, startIn: browserSaveHandle });
+      } catch (error) {
+        if (error?.name !== 'TypeError') throw error;
+      }
+    }
+    return window.showSaveFilePicker(options);
   }
 
   async function choosePictureTarget() {
@@ -3611,7 +3676,9 @@
     const format = pictureFormatValue();
     if (isElectron && typeof desktop.chooseBoardPicture === 'function') {
       try {
-        const result = await desktop.chooseBoardPicture({ suggestedName: name, format });
+        const result = await desktop.chooseBoardPicture({
+          suggestedName: name, format, sourcePath: pictureState.sourcePath || filePath || null,
+        });
         if (!result || result.canceled || !result.filePath) return;
         pictureState.targetPath = result.filePath;
         pictureState.targetHandle = null;
@@ -3624,11 +3691,7 @@
     }
     if (typeof window.showSaveFilePicker === 'function') {
       try {
-        const handle = await window.showSaveFilePicker({
-          id: 'multigo-board-picture',
-          suggestedName: name,
-          types: [{ description: `${format.toUpperCase()} image`, accept: { [pictureMime(format)]: [`.${format}`] } }],
-        });
+        const handle = await pickBoardPicture(name, format);
         pictureState.targetHandle = handle;
         pictureState.targetPath = null;
         pictureFilename.value = handle.name.replace(/\.(png|jpe?g)$/i, '');
@@ -3677,6 +3740,7 @@
         const base64 = picture.toDataURL(pictureMime(format), format === 'jpg' ? 0.92 : undefined).split(',')[1];
         const result = await desktop.saveBoardPicture({
           base64, suggestedName: name, format, filePath: null,
+          sourcePath: pictureState.sourcePath || filePath || null,
         });
         if (!result || result.canceled) { log('Save picture canceled.', 'warn'); return; }
         settings.pictureFormat = format;
@@ -3695,11 +3759,7 @@
 
       let handle = pictureState.targetHandle;
       if (!isElectron && !handle && typeof window.showSaveFilePicker === 'function') {
-        handle = await window.showSaveFilePicker({
-          id: 'multigo-board-picture',
-          suggestedName: name,
-          types: [{ description: `${format.toUpperCase()} image`, accept: { [pictureMime(format)]: [`.${format}`] } }],
-        });
+        handle = await pickBoardPicture(name, format);
         pictureState.targetHandle = handle;
       }
 
@@ -3713,6 +3773,7 @@
         const base64 = picture.toDataURL(mime, format === 'jpg' ? 0.92 : undefined).split(',')[1];
         const result = await desktop.saveBoardPicture({
           base64, suggestedName: name, format, filePath: pictureState.targetPath || null,
+          sourcePath: pictureState.sourcePath || filePath || null,
         });
         if (!result || result.canceled) { log('Save picture canceled.', 'warn'); return; }
         savePath = result.filePath;
@@ -4891,6 +4952,7 @@
       pictureSnap.disabled = false;
     }
     pictureState.dragging = { x: point.x, y: point.y, pointerId: event.pointerId };
+    boardCanvas.classList.add('is-picture-dragging');
     setPictureSelection({ x1: point.x, y1: point.y, x2: point.x, y2: point.y });
     try { boardCanvas.setPointerCapture?.(event.pointerId); } catch { /* synthetic pointer */ }
     return true;
@@ -4905,13 +4967,16 @@
   function finishPictureSelection() {
     if (!pictureState.dragging) return;
     pictureState.dragging = null;
+    boardCanvas.classList.remove('is-picture-dragging');
     const snapped = snapPictureSelection(pictureState.selection);
     setPictureSelection(snapped);
   }
 
   boardCanvas.addEventListener('pointermove', (event) => {
-    if (pictureState.dragging) {
-      updatePictureSelectionDrag(pointFromEvent(event));
+    if (pictureDialog.open) {
+      const point = pointFromEvent(event);
+      if (pictureState.dragging) updatePictureSelectionDrag(point);
+      updateCursor(point);
       return;
     }
     const point = pointFromEvent(event);

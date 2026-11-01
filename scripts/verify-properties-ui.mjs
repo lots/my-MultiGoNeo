@@ -3,7 +3,7 @@ import path from 'node:path'
 
 // Verifies FF[4] logging for non-move properties (setup, markup, lines, dims, PL).
 const port = process.argv[2] ?? '9444'
-const outDir = process.argv[3] ?? '.'
+const outDir = process.argv[3] ?? 'preview'
 const appUrl = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

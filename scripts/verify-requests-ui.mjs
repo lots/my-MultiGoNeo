@@ -3,7 +3,7 @@ import path from 'node:path'
 
 // R1-R4 verification: FF4 move log, recent files, pass labels, 四4 coordinates.
 const port = process.argv[2] ?? '9444'
-const outDir = process.argv[3] ?? '.'
+const outDir = process.argv[3] ?? 'preview'
 const appUrl = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

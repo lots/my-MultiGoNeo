@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 const port = process.argv[2] ?? '9350'
-const outDir = process.argv[3] ?? '.'
+const outDir = process.argv[3] ?? 'preview'
 const url = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html?test=1`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -120,6 +120,13 @@ const imported = await evaluate(`({
 await shot('preview-import-branch.png')
 
 await clickAction('save-board-picture')
+const initialDialog = await evaluate(`({
+  open: document.getElementById('picture-dialog').open,
+  auto: document.getElementById('picture-auto').checked,
+  selection: __figdesk.pictureSelection(),
+  status: document.getElementById('picture-status').textContent,
+  cursorClass: document.getElementById('board').className,
+})`)
 await evaluate(`(() => {
   const auto = document.getElementById('picture-auto');
   auto.checked = false;
@@ -245,6 +252,6 @@ if (pictureData) {
   await fs.writeFile(path.join(outDir, 'preview-board-picture.png'), Buffer.from(pictureData.split(',')[1], 'base64'))
 }
 
-console.log(JSON.stringify({ beforeReload, reloadPrompt, afterReload, imported, dialog, picture, ctrlQ, dragged, jpg, errors }, null, 2))
+console.log(JSON.stringify({ beforeReload, reloadPrompt, afterReload, imported, initialDialog, dialog, picture, ctrlQ, dragged, jpg, errors }, null, 2))
 await send('Browser.close')
 ws.close()
