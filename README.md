@@ -274,6 +274,8 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
 - The picture command uses the native save dialog in Electron and the File System Access picker
   (or download fallback) in browsers. **Show saved picture** opens an in-app preview after a
   successful save.
+- **Show dead stones** is retained for MultiGo dialog parity. Dead-stone marking is not yet
+  represented in this SGF editor, so there are no dead-stone overlays to add to the export.
 - `Ctrl+Q` is now **Save Board as Picture**; Quit moved to `Ctrl+Shift+Q`.
 
 ![Imported SGF files as sibling branches](preview-import-branch.png)
