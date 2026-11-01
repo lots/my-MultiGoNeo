@@ -3435,7 +3435,7 @@
 
   function drawPictureCoordinates(context, layout) {
     const {
-      outWidth, outHeight, coordPad, scale, cropLeft, cropTop, pad, dpr,
+      outWidth, outHeight, coordPad, scale, cropLeft, cropTop, dpr,
       minGX, maxGX, minGY, maxGY,
     } = layout;
     if (!coordPad) return;
@@ -3447,28 +3447,30 @@
     const originX = boardView.originX * dpr;
     const originY = boardView.originY * dpr;
     const spacing = boardView.spacing * dpr;
-    const xFor = (cssX) => (pad + cssX * dpr - cropLeft) * scale;
-    const yFor = (cssY) => (pad + cssY * dpr - cropTop) * scale;
+    const xFor = (cssX) => (cssX * dpr - cropLeft) * scale;
+    const yFor = (cssY) => (cssY * dpr - cropTop) * scale;
     const fontSize = Math.max(9, Math.min(18, Math.round(spacing * scale * 0.3)));
     context.save();
     context.font = `500 ${fontSize}px ${BOARD_FONT}`;
     context.fillStyle = palette.label;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    // Top and left labels are intentionally omitted in exported pictures:
-    // the selection can sit flush against those edges and the text would be
-    // clipped or touch the goban line. Right/bottom labels remain safely in
-    // the reserved outer gutter.
-    const bottomY = outHeight - (coordPad * 0.5) * scale;
-    const rightX = outWidth - (coordPad * 0.5) * scale;
+    const topY = (coordPad * 0.5) * scale;
+    const bottomY = outHeight - topY;
+    const leftX = (coordPad * 0.5) * scale;
+    const rightX = outWidth - leftX;
     for (let gx = minGX; gx <= maxGX; gx += 1) {
-      const bottomPoint = inverseBoardPoint(gx, maxGY);
       const x = xFor(boardView.originX + gx * boardView.spacing);
+      const topPoint = inverseBoardPoint(gx, minGY);
+      const bottomPoint = inverseBoardPoint(gx, maxGY);
+      context.fillText(pictureCoordinateLabel(topPoint, horizontalAxis, boardView.sourceRows), x, topY);
       context.fillText(pictureCoordinateLabel(bottomPoint, horizontalAxis, boardView.sourceRows), x, bottomY);
     }
     for (let gy = minGY; gy <= maxGY; gy += 1) {
-      const rightPoint = inverseBoardPoint(maxGX, gy);
       const yOut = yFor(boardView.originY + gy * boardView.spacing);
+      const leftPoint = inverseBoardPoint(minGX, gy);
+      const rightPoint = inverseBoardPoint(maxGX, gy);
+      context.fillText(pictureCoordinateLabel(leftPoint, verticalAxis, boardView.sourceRows), leftX, yOut);
       context.fillText(pictureCoordinateLabel(rightPoint, verticalAxis, boardView.sourceRows), rightX, yOut);
     }
     context.restore();
@@ -3525,15 +3527,8 @@
     // text is centred in this gutter so it cannot touch the goban edge line.
     const coordPad = showCoords ? Math.max(28 * dpr, spacing * 1.0) : 0;
     const pad = Math.ceil(margin + coordPad);
-    const padded = document.createElement('canvas');
-    padded.width = base.width + pad * 2;
-    padded.height = base.height + pad * 2;
-    const paddedContext = padded.getContext('2d');
-    fillPictureBackground(paddedContext, padded.width, padded.height);
-    paddedContext.drawImage(base, pad, pad);
-
-    const cropLeft = minX;
-    const cropTop = minY;
+    const cropLeft = minX - pad;
+    const cropTop = minY - pad;
     const cropWidth = (maxX - minX) + 2 * pad;
     const cropHeight = (maxY - minY) + 2 * pad;
     const outputScale = imageSize / Math.max(1, Math.max(cropWidth, cropHeight));
@@ -3545,10 +3540,16 @@
     const context = output.getContext('2d');
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
+    fillPictureBackground(context, outWidth, outHeight);
+    // Draw ONLY the selected goban rectangle. Lines from neighbouring
+    // intersections must not leak into the margin or under coordinate labels.
+    const boardDestX = (minX - cropLeft) * outputScale;
+    const boardDestY = (minY - cropTop) * outputScale;
     context.drawImage(
-      padded,
-      cropLeft, cropTop, cropWidth, cropHeight,
-      0, 0, outWidth, outHeight,
+      base,
+      minX, minY, maxX - minX, maxY - minY,
+      boardDestX, boardDestY,
+      (maxX - minX) * outputScale, (maxY - minY) * outputScale,
     );
 
     if (showCoords) {
@@ -3558,7 +3559,7 @@
       const minGY = Math.round((Math.min(...selectedPoints.map((point) => point.y)) - boardView.originY * dpr) / spacing);
       const maxGY = Math.round((Math.max(...selectedPoints.map((point) => point.y)) - boardView.originY * dpr) / spacing);
       drawPictureCoordinates(context, {
-        outWidth, outHeight, coordPad, scale: outputScale, cropLeft, cropTop, pad, dpr,
+        outWidth, outHeight, coordPad, scale: outputScale, cropLeft, cropTop, dpr,
         minGX: Math.max(0, minGX), maxGX: Math.min(boardView.cols - 1, maxGX),
         minGY: Math.max(0, minGY), maxGY: Math.min(boardView.rows - 1, maxGY),
       });
