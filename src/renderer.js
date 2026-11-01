@@ -3455,23 +3455,20 @@
     context.fillStyle = palette.label;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    const topY = (coordPad * 0.5) * scale;
-    const bottomY = outHeight - topY;
-    const leftX = (coordPad * 0.5) * scale;
-    const rightX = outWidth - leftX;
+    // Top and left labels are intentionally omitted in exported pictures:
+    // the selection can sit flush against those edges and the text would be
+    // clipped or touch the goban line. Right/bottom labels remain safely in
+    // the reserved outer gutter.
+    const bottomY = outHeight - (coordPad * 0.5) * scale;
+    const rightX = outWidth - (coordPad * 0.5) * scale;
     for (let gx = minGX; gx <= maxGX; gx += 1) {
-      const point = inverseBoardPoint(gx, minGY);
-      const label = pictureCoordinateLabel(point, horizontalAxis, boardView.sourceRows);
-      const x = xFor(boardView.originX + gx * boardView.spacing);
-      context.fillText(label, x, topY);
       const bottomPoint = inverseBoardPoint(gx, maxGY);
+      const x = xFor(boardView.originX + gx * boardView.spacing);
       context.fillText(pictureCoordinateLabel(bottomPoint, horizontalAxis, boardView.sourceRows), x, bottomY);
     }
     for (let gy = minGY; gy <= maxGY; gy += 1) {
-      const point = inverseBoardPoint(minGX, gy);
-      const yOut = yFor(boardView.originY + gy * boardView.spacing);
-      context.fillText(pictureCoordinateLabel(point, verticalAxis, boardView.sourceRows), leftX, yOut);
       const rightPoint = inverseBoardPoint(maxGX, gy);
+      const yOut = yFor(boardView.originY + gy * boardView.spacing);
       context.fillText(pictureCoordinateLabel(rightPoint, verticalAxis, boardView.sourceRows), rightX, yOut);
     }
     context.restore();

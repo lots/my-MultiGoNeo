@@ -273,8 +273,9 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
 - The first opening selects the **whole board**. Later openings restore the **last selected
   area**; **Automatically select best area** remains available as an explicit one-shot action.
 - Uncheck **Automatically select best area** (or start dragging) to choose a partial
-  rectangle. The blue translucent overlay marks the selected region; coordinate labels are
-  drawn in a dedicated gutter around all four sides, outside the goban lines.
+  rectangle. The blue translucent overlay marks the selected region. In the exported picture,
+  coordinate labels are drawn only on the **right and bottom** edges, safely in the outer
+  gutter; top/left labels are omitted because the selection can sit flush against those edges.
 - While the picture dialog is open the board cursor becomes a **grab hand** (and a grabbing
   hand while dragging); the round stone hover ghost is suppressed.
 - **Add space** adds a grid-unit margin around the selection; **Image size** is the longest
@@ -582,8 +583,8 @@ layout and a 1100×1700 pass for the embed page:
 - imported two SGF files as branches (3 nodes total, two root children) and confirmed the
   imported node was current;
 - opened the **Save As Picture** dialog, confirmed it initially selected the full **13×13**
-  board, then exported a **6×5** region as a **300×267** / 71,923-byte PNG with coordinates
-  in a gutter outside all four board edges;
+  board, then exported a **6×5** region as a **300×267** / 70,554-byte PNG with right/bottom
+  coordinates in an outer gutter (top/left omitted to avoid the goban line);
 - reopened the dialog and confirmed the previous **6×5** selection was restored; dragged a
   separate **6×7** manual region on the board, then exported a grayscale JPEG through the same
   dialog and confirmed `image/jpeg`;
