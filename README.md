@@ -226,6 +226,23 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
 
 ![File menu with seven recent files](preview-recent.png)
 
+### Reload, imports and picture export
+
+- **File → Reload** re-reads the current SGF from disk (Electron) or from the retained browser
+  file handle/cache, with the same unsaved-changes confirmation as Open.
+- **File → Import Files as Branch…** accepts multiple SGF files and appends each game as a
+  branch under the current node. Empty SGF roots are skipped so their first moves become the
+  branch points.
+- **File → Save Board as Picture** exports the current displayed board — including theme,
+  coordinates and stones — as PNG with a `${name}-board.png` suggestion.
+- The picture command uses the native PNG save dialog in Electron and the File System Access
+  picker (or download fallback) in browsers.
+- `Ctrl+Q` is now **Save Board as Picture**; Quit moved to `Ctrl+Shift+Q`.
+
+![Imported SGF files as sibling branches](preview-import-branch.png)
+
+![Board picture exported to PNG](preview-board-picture.png)
+
 ### Save/open location messages
 
 File operations now report the actual location used in the Message panel.
@@ -507,6 +524,12 @@ layout and a 1100×1700 pass for the embed page:
 - changed **Move Numbers** and **Numbering** through their View dropdowns;
 - confirmed the autoplay icon is distinct from First Child, the status bar has only the lower
   rule, and the menu bar contains no Video item;
+- confirmed **Reload** prompted for unsaved changes, restored 2 nodes to 1 and cleared dirty;
+- imported two SGF files as branches (3 nodes total, two root children) and confirmed the
+  imported node was current;
+- exported the board as PNG through a stubbed file picker: suggested
+  `reload-board.png`, produced an 872×872 / 898,963-byte image, and `Ctrl+Q` invoked the same
+  command;
 - marked a document dirty and confirmed the orange **UNSAVED** status, red file-label dot and
   title bullet; New Game and Open SGF both showed the unsaved-loss confirmation, and Cancel
   preserved the 2-node dirty document;
@@ -595,7 +618,8 @@ Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png)
 [Read Only mode](preview-readonly.png), [Game Information fields](preview-game-info.png),
 [merged Options Preferences dialog](preview-preferences.png),
 [compact initial Info layout](preview-r17-layout.png),
-[unsaved indicator](preview-dirty.png),
+[unsaved indicator](preview-dirty.png), [imported branches](preview-import-branch.png),
+[exported board picture](preview-board-picture.png),
 [rotated board](preview-board-rotate.png), [flipped board](preview-board-flip.png),
 [focused Game Info panel](preview-info-focus.png),
 [restored layout after Done](preview-info-restored.png),
@@ -744,6 +768,10 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Undo / redo | `Ctrl+Z` / `Ctrl+Shift+Z` |
 | New / open / save SGF | `Ctrl+N` / `Ctrl+O` / `Ctrl+S` |
 | Save SGF As | `Ctrl+Shift+S` |
+| Reload current file | File → Reload |
+| Import files as branches | File → Import Files as Branch… |
+| Save board as PNG | File → Save Board as Picture or `Ctrl+Q` |
+| Quit | File → Quit or `Ctrl+Shift+Q` |
 | Copy / paste SGF | `Ctrl+Shift+C` / `Ctrl+Shift+V` |
 | Menus | `Alt+F / E / A / P / V / T / O / H` |
 | Help | `F1` |
@@ -825,6 +853,7 @@ scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-bra
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
+scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js

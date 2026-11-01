@@ -99,6 +99,12 @@
           <button type="button" class="menu-item" role="menuitem" data-action="open-sgf">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Open SGF…</span><kbd data-accel="Ctrl+O">Ctrl+O</kbd>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="reload-file">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reload</span>
+          </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="import-branch">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Import Files as Branch…</span>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <div class="menu-heading">Recent Files</div>
           <div class="recent-files" id="recent-files"></div>
@@ -112,9 +118,12 @@
           <button type="button" class="menu-item" role="menuitem" data-action="save-sgf-as">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Save SGF As…</span><kbd data-accel="Ctrl+Shift+S">Ctrl+Shift+S</kbd>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="save-board-picture">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Save Board as Picture</span><kbd data-accel="Ctrl+Q">Ctrl+Q</kbd>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="quit">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Quit</span><kbd data-accel="Ctrl+Q">Ctrl+Q</kbd>
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Quit</span><kbd data-accel="Ctrl+Shift+Q">Ctrl+Shift+Q</kbd>
           </button>
         </div>
       </div>
@@ -653,6 +662,8 @@
         <div><dt><kbd data-accel="Ctrl+O">Ctrl+O</kbd></dt><dd>Open an SGF file</dd></div>
         <div><dt><kbd data-accel="Ctrl+S">Ctrl+S</kbd></dt><dd>Save SGF</dd></div>
         <div><dt><kbd data-accel="Ctrl+Shift+S">Ctrl+Shift+S</kbd></dt><dd>Save SGF as…</dd></div>
+        <div><dt><kbd data-accel="Ctrl+Q">Ctrl+Q</kbd></dt><dd>Save board as picture</dd></div>
+        <div><dt><kbd data-accel="Ctrl+Shift+Q">Ctrl+Shift+Q</kbd></dt><dd>Quit</dd></div>
         <div><dt><kbd data-accel="Ctrl+Z">Ctrl+Z</kbd></dt><dd>Undo</dd></div>
         <div><dt><kbd data-accel="Ctrl+Shift+Z">Ctrl+Shift+Z</kbd></dt><dd>Redo</dd></div>
         <div><dt><kbd data-accel="Ctrl+E">Ctrl+E</kbd></dt><dd>Toggle edit mode</dd></div>
@@ -885,6 +896,7 @@
   </dialog>
 
   <input type="file" id="sgf-file" accept=".sgf,application/x-go-sgf,text/plain" hidden>
+  <input type="file" id="import-sgf-files" accept=".sgf,application/x-go-sgf,text/plain" multiple hidden>
   <script src="sabaki-bundle.js"></script>
   <script src="path-spec.js"></script>
   <script src="renderer.js"></script>

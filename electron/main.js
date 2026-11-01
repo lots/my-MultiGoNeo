@@ -174,6 +174,53 @@ function registerIpc() {
     return { canceled: false, filePath, content };
   });
 
+  ipcMain.handle('game:import', async (event) => {
+    const options = {
+      title: 'Import SGF Files as Branches',
+      defaultPath: dialogDefaultPath(),
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        { name: 'SGF Files', extensions: ['sgf'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+    };
+    const win = windowFrom(event);
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    if (result.canceled || result.filePaths.length === 0) return { canceled: true };
+    const files = [];
+    for (const filePath of result.filePaths) {
+      const stats = await fs.stat(filePath);
+      if (!stats.isFile() || stats.size > 5_000_000) continue;
+      files.push({ filePath, content: await fs.readFile(filePath, 'utf8') });
+    }
+    if (files.length) rememberDialogDirectory(files[files.length - 1].filePath);
+    return { canceled: false, files };
+  });
+
+  ipcMain.handle('board:save-picture', async (event, payload) => {
+    const base64 = payload && typeof payload.base64 === 'string' ? payload.base64 : '';
+    if (!base64 || base64.length > 30_000_000) throw new Error('Invalid board picture payload.');
+    const suggested = payload && typeof payload.suggestedName === 'string' && payload.suggestedName.trim()
+      ? path.basename(payload.suggestedName)
+      : 'board.png';
+    const filename = suggested.toLowerCase().endsWith('.png') ? suggested : `${suggested}.png`;
+    const options = {
+      title: 'Save Board as Picture',
+      defaultPath: dialogDefaultPath(filename),
+      filters: [{ name: 'PNG Images', extensions: ['png'] }],
+    };
+    const win = windowFrom(event);
+    const result = win
+      ? await dialog.showSaveDialog(win, options)
+      : await dialog.showSaveDialog(options);
+    if (result.canceled || !result.filePath) return { canceled: true };
+    await fs.writeFile(result.filePath, Buffer.from(base64, 'base64'));
+    rememberDialogDirectory(result.filePath);
+    return { canceled: false, filePath: result.filePath };
+  });
+
   ipcMain.handle('game:open-path', async (_event, payload) => {
     const filePath = payload && typeof payload.filePath === 'string' ? payload.filePath : '';
     if (!filePath) throw new Error('No file path was provided.');

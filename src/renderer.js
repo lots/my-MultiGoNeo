@@ -166,6 +166,7 @@
   const commentInput = $('#comment-input');
   const commentPreview = $('#comment-preview');
   const sgfFileInput = $('#sgf-file');
+  const importSgfInput = $('#import-sgf-files');
   const confirmDialog = $('#confirm-dialog');
   const confirmMessage = $('#confirm-message');
   const confirmOk = $('#confirm-ok');
@@ -473,7 +474,9 @@
 
   const ZH = {
     File: '文件', Edit: '编辑', Advanced: '高级', Play: '对局', View: '视图', Tools: '工具', Options: '选项', Help: '帮助',
-    'New Game': '新建对局', 'Open SGF…': '打开 SGF…', 'Save SGF': '保存 SGF', 'Save SGF As…': '另存为 SGF…', Quit: '退出',
+    'New Game': '新建对局', 'Open SGF…': '打开 SGF…', Reload: '重新载入',
+    'Import Files as Branch…': '作为分支导入文件…', 'Save Board as Picture': '保存棋盘图片',
+    'Save SGF': '保存 SGF', 'Save SGF As…': '另存为 SGF…', Quit: '退出',
     'Recent Files': '最近文件', 'Clear Recent Files': '清除最近文件', 'No recent files': '暂无最近文件',
     Undo: '撤销', Redo: '重做', 'Edit Mode': '编辑模式', 'Read Only': '只读', 'READ ONLY': '只读', 'Delete Node': '删除节点',
     'Make Main Variation': '设为主变化', 'Shift Variation Left': '左移变化', 'Shift Variation Right': '右移变化',
@@ -2630,6 +2633,7 @@
     setMenuItemDisabled('fast-next', !hasChild);
     setMenuItemDisabled('last', !hasChild);
     setMenuItemDisabled('toggle-autoplay', !hasChild);
+    setMenuItemDisabled('reload-file', !filePath);
     setMenuItemDisabled('delete-node', !hasParent);
     setMenuItemDisabled('cut-variation', !hasParent);
     setMenuItemDisabled('cut-after', !hasChild);
@@ -2641,7 +2645,7 @@
     const readOnlyOnly = [
       'new-game', 'save-sgf', 'save-sgf-as', 'toggle-edit',
       'paste-variation', 'duplicate-node', 'insert-node', 'flatten-variation', 'cut-after',
-      'clear-markup', 'paste-sgf', 'toggle-turn',
+      'import-branch', 'clear-markup', 'paste-sgf', 'toggle-turn',
       'size-9', 'size-13', 'size-19', 'size-custom',
     ];
     for (const action of readOnlyOnly) setMenuItemDisabled(action, readOnly);
@@ -2944,6 +2948,139 @@
     }
   }
 
+  function importedBranchRoots(root) {
+    const clean = variationData(root.data);
+    if (Object.keys(clean).length) return [root];
+    return root.children;
+  }
+
+  function importSgfDocuments(documents) {
+    if (readOnly) { log('Read Only: importing branches is disabled.', 'warn'); return; }
+    const sources = [];
+    for (const document of documents) {
+      try {
+        const roots = S.sgf.parse(document.content, { getId });
+        for (const root of roots) sources.push(...importedBranchRoots(root));
+      } catch (error) {
+        log(`Could not import ${document.name}: ${error.message}`, 'error');
+      }
+    }
+    if (!sources.length) {
+      log('No importable SGF branches were found.', 'warn');
+      return;
+    }
+    let firstId = null;
+    mutateTree((draft) => {
+      const append = (parentId, source) => {
+        const created = draft.appendNode(parentId, variationData(source.data));
+        if (firstId == null) firstId = created;
+        for (const child of source.children) append(created, child);
+        return created;
+      };
+      for (const source of sources) append(nodeId, source);
+    }, {
+      select: () => firstId,
+      message: `Imported ${sources.length} branch${sources.length === 1 ? '' : 'es'}.`,
+    });
+  }
+
+  async function importFilesAsBranch() {
+    if (readOnly) { log('Read Only: importing branches is disabled.', 'warn'); return; }
+    if (isElectron) {
+      if (typeof desktop.importGames !== 'function') {
+        log('Importing files is not available in this build.', 'warn');
+        return;
+      }
+      try {
+        const result = await desktop.importGames();
+        if (!result || result.canceled) { log('Import canceled.', 'warn'); return; }
+        importSgfDocuments(result.files.map((file) => ({ name: basename(file.filePath), content: file.content })));
+      } catch (error) {
+        log(`Could not import files: ${error.message}`, 'error');
+      }
+      return;
+    }
+    importSgfInput.value = '';
+    importSgfInput.click();
+  }
+
+  importSgfInput.addEventListener('change', async () => {
+    const files = [...(importSgfInput.files || [])];
+    if (!files.length) return;
+    const documents = [];
+    for (const file of files) {
+      try {
+        documents.push({ name: file.name, content: await file.text() });
+      } catch (error) {
+        log(`Could not read ${file.name}: ${error.message}`, 'error');
+      }
+    }
+    importSgfDocuments(documents);
+  });
+
+  async function reloadCurrentFile() {
+    if (!filePath) { log('Reload is unavailable for an untitled game.', 'warn'); return; }
+    if (dirty && !(await askConfirm('Reload this file? Unsaved changes will be lost.', 'Reload'))) return;
+    const name = basename(filePath);
+    if (isElectron) {
+      if (typeof desktop.openRecent !== 'function') {
+        log('Reload is not available in this build.', 'warn');
+        return;
+      }
+      try {
+        const result = await desktop.openRecent(filePath);
+        if (!result || result.canceled) { log('Reload canceled.', 'warn'); return; }
+        if (applySgfText(result.content, result.filePath)) {
+          rememberRecent(result.filePath, result.content);
+          log(`Reloaded ${result.filePath}.`, 'success');
+        }
+      } catch (error) {
+        log(`Could not reload ${filePath}: ${error.message}`, 'error');
+      }
+      return;
+    }
+
+    let handle = browserSaveHandle;
+    let text = null;
+    let cached = false;
+    if (handle) {
+      try {
+        if (typeof handle.queryPermission === 'function') {
+          let permission = await handle.queryPermission({ mode: 'read' });
+          if (permission !== 'granted' && typeof handle.requestPermission === 'function') {
+            permission = await handle.requestPermission({ mode: 'read' });
+          }
+          if (permission !== 'granted') throw new Error('permission was denied');
+        }
+        text = await (await handle.getFile()).text();
+      } catch (error) {
+        log(`Could not reload ${name} from its file handle: ${error.message}`, 'warn');
+        handle = null;
+      }
+    }
+    if (text == null) {
+      const entry = recentFiles.find((item) => item.name === name);
+      if (entry?.content) {
+        text = entry.content;
+        cached = true;
+      }
+    }
+    if (text == null) {
+      log('That file is no longer available for reload.', 'warn');
+      return;
+    }
+    if (applySgfText(text, name, { browser: true, cached })) {
+      if (handle) {
+        browserSaveHandle = handle;
+        filePath = name;
+        void storeRecentHandle(name, handle);
+        updateTitle();
+      }
+      rememberRecent(name, text);
+      log(cached ? `Reloaded cached ${name}.` : `Reloaded ${name}.`, 'success');
+    }
+  }
+
   sgfFileInput.addEventListener('change', async () => {
     const file = sgfFileInput.files?.[0];
     if (!file) return;
@@ -2996,6 +3133,7 @@
         dirty = false;
         markClean();
         updateTitle();
+        syncMenuState();
         log(`Saved ${filePath} to the folder selected in the browser (the browser does not reveal the folder path).`, 'success');
         rememberRecent(filePath, content);
         return;
@@ -3007,6 +3145,7 @@
           dirty = false;
           markClean();
           updateTitle();
+          syncMenuState();
           log(`Saved ${name} via browser download; this browser cannot expose or choose the folder.`, 'warn');
           rememberRecent(name, content);
           return;
@@ -3020,6 +3159,7 @@
     dirty = false;
     markClean();
     updateTitle();
+    syncMenuState();
     log(`Downloaded ${name} to the browser download location (the exact folder is browser-controlled).`, 'success');
     rememberRecent(name, content);
   }
@@ -3038,11 +3178,120 @@
       dirty = false;
       markClean();
       updateTitle();
+      syncMenuState();
       log(`Saved to ${filePath}.`, 'success');
       rememberRecent(filePath, content);
     } else {
       await saveBrowserSgf(content, saveAs);
     }
+  }
+
+  function boardPictureName() {
+    if (!filePath) return 'board.png';
+    const stem = basename(filePath).replace(/\.sgf$/i, '') || 'board';
+    return `${stem}-board.png`;
+  }
+
+  function renderBoardPicture() {
+    if (!boardCanvas.width || !boardCanvas.height) throw new Error('The board is not ready.');
+    const output = document.createElement('canvas');
+    output.width = boardCanvas.width;
+    output.height = boardCanvas.height;
+    const context = output.getContext('2d');
+    const width = output.width;
+    const height = output.height;
+    const palettes = {
+      classic: ['#e3bd7d', '#d7a760', '#c6934c'],
+      flat: ['#e6c27f', '#dcb56e', '#d2a65b'],
+      dark: ['#4a2d1f', '#38231a', '#25140e'],
+      paper: ['#f7f0e1', '#efe7d7', '#e4d8c4'],
+    };
+    const colors = palettes[settings.theme] || palettes.classic;
+    const gradient = context.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, colors[0]);
+    gradient.addColorStop(0.52, colors[1]);
+    gradient.addColorStop(1, colors[2]);
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, width, height);
+
+    const glow = context.createRadialGradient(
+      width * 0.28, height * 0.18, 0,
+      width * 0.28, height * 0.18, Math.max(width, height) * 0.78,
+    );
+    glow.addColorStop(0, settings.theme === 'dark' ? 'rgba(255,220,172,.09)' : 'rgba(255,255,255,.20)');
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    context.fillStyle = glow;
+    context.fillRect(0, 0, width, height);
+
+    if (settings.theme !== 'flat') {
+      context.strokeStyle = 'rgba(0,0,0,.025)';
+      context.lineWidth = Math.max(1, width / 1200);
+      for (let x = 0; x < width; x += Math.max(10, width / 80)) {
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x + width * 0.03, height);
+        context.stroke();
+      }
+    }
+    context.drawImage(boardCanvas, 0, 0);
+    return output;
+  }
+
+  async function saveBoardPicture() {
+    let picture;
+    try { picture = renderBoardPicture(); }
+    catch (error) { log(`Could not render the board picture: ${error.message}`, 'error'); return; }
+    const name = boardPictureName();
+
+    if (isElectron && typeof desktop.saveBoardPicture === 'function') {
+      const base64 = picture.toDataURL('image/png').split(',')[1];
+      try {
+        const result = await desktop.saveBoardPicture({ base64, suggestedName: name });
+        if (!result || result.canceled) { log('Save picture canceled.', 'warn'); return; }
+        log(`Saved board picture to ${result.filePath}.`, 'success');
+      } catch (error) {
+        log(`Could not save the board picture: ${error.message}`, 'error');
+      }
+      return;
+    }
+
+    if (typeof window.showSaveFilePicker === 'function') {
+      try {
+        const handle = await window.showSaveFilePicker({
+          id: 'multigo-board-picture',
+          suggestedName: name,
+          types: [{ description: 'PNG image', accept: { 'image/png': ['.png'] } }],
+        });
+        const blob = await new Promise((resolve) => picture.toBlob(resolve, 'image/png'));
+        if (!blob) throw new Error('PNG encoding failed.');
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        log(`Saved board picture ${handle.name} to the selected browser folder.`, 'success');
+      } catch (error) {
+        if (error?.name === 'AbortError') { log('Save picture canceled.', 'warn'); return; }
+        if (['SecurityError', 'NotSupportedError'].includes(error?.name)) {
+          const anchor = document.createElement('a');
+          anchor.href = picture.toDataURL('image/png');
+          anchor.download = name;
+          document.body.append(anchor);
+          anchor.click();
+          anchor.remove();
+          log(`Saved board picture ${name} via browser download.`, 'warn');
+          return;
+        }
+        log(`Could not save the board picture: ${error.message}`, 'error');
+      }
+      return;
+    }
+
+    const anchor = document.createElement('a');
+    anchor.href = picture.toDataURL('image/png');
+    anchor.download = name;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    log(`Downloaded board picture ${name}.`, 'success');
   }
 
   function applySgfText(text, source, { browser = false, cached = false, handle = false } = {}) {
@@ -3553,7 +3802,9 @@
 
   const menuActions = {
     'new-game': newGame, 'open-sgf': openSgf,
+    'reload-file': reloadCurrentFile, 'import-branch': importFilesAsBranch,
     'save-sgf': () => saveSgf(false), 'save-sgf-as': () => saveSgf(true),
+    'save-board-picture': saveBoardPicture,
     quit: quitApp, undo, redo, 'toggle-edit': toggleEditMode, 'toggle-readonly': toggleReadOnly,
     'delete-node': deleteNode, 'make-main': makeMainVariation,
     'cut-variation': cutVariation, 'cut-after': cutAfterCurrent,
@@ -4226,7 +4477,7 @@
       if (key === 'n') { event.preventDefault(); runAction(newGame); }
       else if (key === 'o') { event.preventDefault(); runAction(openSgf); }
       else if (key === 's') { event.preventDefault(); runAction(() => saveSgf(event.shiftKey)); }
-      else if (key === 'q') { event.preventDefault(); runAction(quitApp); }
+      else if (key === 'q') { event.preventDefault(); runAction(event.shiftKey ? quitApp : saveBoardPicture); }
       else if (key === 'z') { event.preventDefault(); runAction(event.shiftKey ? redo : undo); }
       else if (key === 'y') { event.preventDefault(); runAction(redo); }
       else if (key === 'e') { event.preventDefault(); runAction(toggleEditMode); }
@@ -4505,6 +4756,7 @@
       sgfText: () => S.sgf.stringify([tree.root], { linebreak: '\n', indent: '  ' }),
       setTab,
       playAt, passTurn, selectNode, toggleEditMode, selectTool, startGame, applySgfText,
+      importSgfDocuments,
     };
   }
 
