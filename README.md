@@ -828,8 +828,8 @@ scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transf
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
-scripts/make-icon.ps1     regenerates the Classic kaya goban icon (GDI+, no tools needed)
-build/icon.ico            Windows application icon, 16-256 px
+scripts/make-icon.ps1     regenerates the lighter Classic kaya goban icon (GDI+, no tools needed)
+build/icon.ico            shared Windows icon for the app, installer, uninstaller and portable exe (16-256 px)
 build/icon-512.png        512 px icon export for store/desktop use
 ```
 

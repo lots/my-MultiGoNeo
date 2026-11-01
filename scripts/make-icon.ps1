@@ -26,24 +26,24 @@ function New-MasterBitmap {
   $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
   $g.Clear([System.Drawing.Color]::Transparent)
 
-  # Rounded tile using the Classic kaya goban palette: warm wood gradient
-  # (#e3bd7d -> #d7a760 -> #c6934c) with a faint dark brown grid.
+  # Rounded tile using the lighter Classic kaya palette:
+  # (#f2d9a7 -> #e6c486 -> #d8ac68) with a faint dark brown grid.
   $shape = New-RoundedPath 4 4 248 248 52
   $rect = New-Object System.Drawing.RectangleF 4, 4, 248, 248
   $bg = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
     $rect,
-    [System.Drawing.Color]::FromArgb(255, 227, 189, 125),
-    [System.Drawing.Color]::FromArgb(255, 198, 147, 76),
+    [System.Drawing.Color]::FromArgb(255, 242, 217, 167),
+    [System.Drawing.Color]::FromArgb(255, 216, 172, 104),
     135.0)
   $blend = New-Object System.Drawing.Drawing2D.ColorBlend 3
   $blend.Colors = [System.Drawing.Color[]]@(
-    [System.Drawing.Color]::FromArgb(255, 227, 189, 125),
-    [System.Drawing.Color]::FromArgb(255, 215, 167, 96),
-    [System.Drawing.Color]::FromArgb(255, 198, 147, 76))
+    [System.Drawing.Color]::FromArgb(255, 242, 217, 167),
+    [System.Drawing.Color]::FromArgb(255, 230, 196, 134),
+    [System.Drawing.Color]::FromArgb(255, 216, 172, 104))
   $blend.Positions = [single[]]@(0.0, 0.48, 1.0)
   $bg.InterpolationColors = $blend
   $g.FillPath($bg, $shape)
-  $edge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(220, 132, 89, 42)), 2.5
+  $edge = New-Object System.Drawing.Pen ([System.Drawing.Color]::FromArgb(210, 145, 102, 53)), 2.5
   $g.DrawPath($edge, $shape)
 
   # Faint 5x5 board grid in the Classic theme's dark brown line colour.
