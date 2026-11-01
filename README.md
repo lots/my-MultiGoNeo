@@ -584,7 +584,7 @@ layout and a 1100×1700 pass for the embed page:
 - imported two SGF files as branches (3 nodes total, two root children) and confirmed the
   imported node was current;
 - opened the **Save As Picture** dialog, confirmed it initially selected the full **13×13**
-  board, then exported a **6×5** region as a **300×267** / 112,322-byte PNG with labels on all
+  board, then exported a **6×5** region as a **500×444** / 293,745-byte PNG with labels on all
   four sides and goban lines clipped to the selected rectangle;
 - reopened the dialog and confirmed the previous **6×5** selection was restored; dragged a
   separate **6×7** manual region on the board, then exported a grayscale JPEG through the same

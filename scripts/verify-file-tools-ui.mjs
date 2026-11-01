@@ -131,7 +131,7 @@ await evaluate(`(() => {
   const auto = document.getElementById('picture-auto');
   auto.checked = false;
   auto.dispatchEvent(new Event('change', { bubbles: true }));
-  document.getElementById('picture-size').value = '300';
+  document.getElementById('picture-size').value = '500';
   document.getElementById('picture-space').value = '0.5';
   __figdesk.setPictureSelection({ x1: 3, y1: 2, x2: 8, y2: 6 });
 })()`)
