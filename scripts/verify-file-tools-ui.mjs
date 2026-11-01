@@ -119,17 +119,42 @@ const imported = await evaluate(`({
 })`)
 await shot('preview-import-branch.png')
 
+await clickAction('save-board-picture')
 await evaluate(`(() => {
-  window.__picture = { calls: 0, options: null, blobSize: 0 };
+  const auto = document.getElementById('picture-auto');
+  auto.checked = false;
+  auto.dispatchEvent(new Event('change', { bubbles: true }));
+  document.getElementById('picture-size').value = '300';
+  document.getElementById('picture-space').value = '0.5';
+  __figdesk.setPictureSelection({ x1: 3, y1: 2, x2: 8, y2: 6 });
+})()`)
+await sleep(250)
+const dialog = await evaluate(`({
+  open: document.getElementById('picture-dialog').open,
+  auto: document.getElementById('picture-auto').checked,
+  snapDisabled: document.getElementById('picture-snap').disabled,
+  selection: __figdesk.pictureSelection(),
+  status: document.getElementById('picture-status').textContent,
+})`)
+await shot('preview-picture-dialog.png')
+await evaluate(`(() => {
+  window.__picture = { calls: 0, options: null, blobSize: 0, image: null, previewOpen: false };
   const handle = {
     name: 'saved-board.png',
     createWritable: async () => ({
       write: async (blob) => {
         window.__picture.blobSize = blob.size;
-        window.__picture.dataUrl = await new Promise((resolve) => {
+        const dataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
           reader.readAsDataURL(blob);
+        });
+        window.__picture.dataUrl = dataUrl;
+        window.__picture.image = await new Promise((resolve) => {
+          const image = new Image();
+          image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+          image.onerror = () => resolve(null);
+          image.src = dataUrl;
         });
       },
       close: async () => {},
@@ -145,21 +170,81 @@ await evaluate(`(() => {
     },
   });
 })()`)
-await clickAction('save-board-picture')
-await sleep(350)
+await evaluate(`document.getElementById('picture-ok').click()`)
+await sleep(500)
 const picture = await evaluate(`({
   calls: window.__picture.calls,
   suggestedName: window.__picture.options?.suggestedName,
   blobSize: window.__picture.blobSize,
+  image: window.__picture.image,
+  dialogOpen: document.getElementById('picture-dialog').open,
+  previewOpen: document.getElementById('picture-preview-dialog').open,
+  previewSrc: document.getElementById('picture-preview-image').getAttribute('src')?.slice(0, 22) ?? null,
 })`)
+if (picture.previewOpen) {
+  await evaluate(`document.getElementById('picture-preview-close').click()`)
+  await sleep(100)
+}
 await evaluate(`document.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', ctrlKey: true, bubbles: true }))`)
-await sleep(350)
-const ctrlQ = await evaluate(`({ calls: window.__picture.calls })`)
+await sleep(250)
+const ctrlQ = await evaluate(`({
+  calls: window.__picture.calls,
+  dialogOpen: document.getElementById('picture-dialog').open,
+  selection: __figdesk.pictureSelection(),
+})`)
+await evaluate(`(() => {
+  const canvas = document.getElementById('board');
+  const start = __figdesk.pointFor(2, 2);
+  const end = __figdesk.pointFor(7, 8);
+  canvas.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 7, clientX: start.x, clientY: start.y }));
+  canvas.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 7, clientX: end.x, clientY: end.y }));
+  window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 7, clientX: end.x, clientY: end.y }));
+})()`)
+await sleep(250)
+const dragged = await evaluate(`({
+  auto: document.getElementById('picture-auto').checked,
+  selection: __figdesk.pictureSelection(),
+  status: document.getElementById('picture-status').textContent,
+})`)
+await evaluate(`(() => {
+  document.getElementById('picture-format').value = 'jpg';
+  document.getElementById('picture-gray').checked = true;
+  document.getElementById('picture-show').checked = false;
+  document.getElementById('picture-size').value = '200';
+  window.__picture2 = { calls: 0, type: null, size: 0 };
+  const handle = {
+    name: 'gray-board.jpg',
+    createWritable: async () => ({
+      write: async (blob) => {
+        window.__picture2.type = blob.type;
+        window.__picture2.size = blob.size;
+      },
+      close: async () => {},
+    }),
+  };
+  Object.defineProperty(window, 'showSaveFilePicker', {
+    configurable: true,
+    writable: true,
+    value: async () => {
+      window.__picture2.calls += 1;
+      return handle;
+    },
+  });
+})()`)
+await evaluate(`document.getElementById('picture-ok').click()`)
+await sleep(400)
+const jpg = await evaluate(`({
+  calls: window.__picture2.calls,
+  type: window.__picture2.type,
+  size: window.__picture2.size,
+  dialogOpen: document.getElementById('picture-dialog').open,
+  previewOpen: document.getElementById('picture-preview-dialog').open,
+})`)
 const pictureData = await evaluate(`window.__picture.dataUrl`)
 if (pictureData) {
   await fs.writeFile(path.join(outDir, 'preview-board-picture.png'), Buffer.from(pictureData.split(',')[1], 'base64'))
 }
 
-console.log(JSON.stringify({ beforeReload, reloadPrompt, afterReload, imported, picture, ctrlQ, errors }, null, 2))
+console.log(JSON.stringify({ beforeReload, reloadPrompt, afterReload, imported, dialog, picture, ctrlQ, dragged, jpg, errors }, null, 2))
 await send('Browser.close')
 ws.close()

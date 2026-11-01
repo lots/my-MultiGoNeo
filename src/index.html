@@ -523,8 +523,11 @@
 
     <main class="workspace" id="workspace">
       <section class="pane pane-board" id="pane-board" aria-label="Go board">
-        <canvas id="board" width="800" height="800" tabindex="0"
-                aria-label="Go board. Click an intersection to play a stone."></canvas>
+        <div class="board-stage" id="board-stage">
+          <canvas id="board" width="800" height="800" tabindex="0"
+                  aria-label="Go board. Click an intersection to play a stone."></canvas>
+          <canvas id="board-selection" aria-hidden="true"></canvas>
+        </div>
       </section>
 
       <div class="splitter splitter-v" id="splitter-v" role="separator"
@@ -892,6 +895,63 @@
     <div class="dialog-actions">
       <button type="button" class="btn" data-close-dialog>Cancel</button>
       <button type="button" class="btn btn-primary" id="custom-size-apply">Apply</button>
+    </div>
+  </dialog>
+
+  <dialog id="picture-dialog" class="picture-dialog" aria-labelledby="picture-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="picture-title">Save As Picture</h2>
+      <button type="button" class="icon-button" id="picture-close-icon" aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body picture-body">
+      <div class="picture-file-row">
+        <label class="dialog-field picture-file-field">File Name
+          <input id="picture-filename" autocomplete="off" spellcheck="false">
+        </label>
+        <button type="button" class="btn" id="picture-browse" title="Choose the output file">…</button>
+      </div>
+      <div class="picture-grid">
+        <label class="dialog-field">Format
+          <select id="picture-format">
+            <option value="png">png</option>
+            <option value="jpg">jpg</option>
+          </select>
+        </label>
+        <label class="dialog-field">Image size
+          <input id="picture-size" type="number" min="100" max="4000" step="50" value="500">
+        </label>
+        <label class="dialog-field">Add space
+          <input id="picture-space" type="number" min="0" max="5" step="0.05" value="0.85">
+        </label>
+      </div>
+      <div class="picture-checks">
+        <label class="check"><input id="picture-dead" type="checkbox" checked> Show dead stones</label>
+        <label class="check"><input id="picture-coords" type="checkbox" checked> Show coordinate</label>
+        <label class="check"><input id="picture-gray" type="checkbox"> Black and white board and stones</label>
+        <label class="check"><input id="picture-auto" type="checkbox" checked> Automatically select best area</label>
+        <label class="check"><input id="picture-snap" type="checkbox" disabled> Snap to close border</label>
+        <label class="check"><input id="picture-show" type="checkbox" checked> Show saved picture</label>
+      </div>
+      <p class="dialog-help picture-help" id="picture-help">Uncheck “Automatically select best area”, then drag on the board to choose a partial rectangle. The blue overlay marks the selected area; Add space and coordinate labels extend the exported margins.</p>
+      <p class="picture-status" id="picture-status" aria-live="polite"></p>
+      <p class="dialog-error" id="picture-error" role="alert" hidden></p>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" id="picture-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="picture-ok">OK</button>
+    </div>
+  </dialog>
+
+  <dialog id="picture-preview-dialog" class="picture-preview-dialog" aria-labelledby="picture-preview-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="picture-preview-title">Saved Picture</h2>
+      <button type="button" class="icon-button" id="picture-preview-close-icon" aria-label="Close">×</button>
+    </div>
+    <div class="picture-preview-body">
+      <img id="picture-preview-image" alt="Saved board picture preview">
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" id="picture-preview-close">Close</button>
     </div>
   </dialog>
 

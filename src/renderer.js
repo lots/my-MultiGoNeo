@@ -115,7 +115,9 @@
   const messageSplitter = $('#splitter-m');
   const clearMessageButton = $('#clear-message-button');
   const boardCanvas = $('#board');
+  const boardSelectionCanvas = $('#board-selection');
   const boardContext = boardCanvas.getContext('2d');
+  const boardSelectionContext = boardSelectionCanvas.getContext('2d');
   const statusNext = $('#status-next');
   const statusCaptures = $('#status-captures');
   const statusStones = $('#status-stones');
@@ -208,6 +210,28 @@
   const setupOpenReadOnly = $('#setup-open-readonly');
   const setupTabs = $$('.setup-tab');
   const setupPanels = $$('.setup-panel');
+  const pictureDialog = $('#picture-dialog');
+  const pictureFilename = $('#picture-filename');
+  const pictureBrowse = $('#picture-browse');
+  const pictureFormat = $('#picture-format');
+  const pictureSize = $('#picture-size');
+  const pictureSpace = $('#picture-space');
+  const pictureDead = $('#picture-dead');
+  const pictureCoords = $('#picture-coords');
+  const pictureGray = $('#picture-gray');
+  const pictureAuto = $('#picture-auto');
+  const pictureSnap = $('#picture-snap');
+  const pictureShow = $('#picture-show');
+  const pictureHelp = $('#picture-help');
+  const pictureStatus = $('#picture-status');
+  const pictureError = $('#picture-error');
+  const pictureOk = $('#picture-ok');
+  const pictureCancel = $('#picture-cancel');
+  const pictureCloseIcon = $('#picture-close-icon');
+  const picturePreviewDialog = $('#picture-preview-dialog');
+  const picturePreviewImage = $('#picture-preview-image');
+  const picturePreviewClose = $('#picture-preview-close');
+  const picturePreviewCloseIcon = $('#picture-preview-close-icon');
   const aboutDialog = $('#about-dialog');
   const shortcutsDialog = $('#shortcuts-dialog');
   const aboutRuntime = $('#about-runtime');
@@ -252,6 +276,13 @@
     showResultInTitle: true,
     soundEnabled: false,
     preferVariationChild: false,
+    pictureFormat: 'png',
+    pictureSize: 500,
+    pictureSpace: 0.85,
+    pictureCoords: true,
+    pictureGray: false,
+    pictureShow: true,
+    pictureAuto: true,
     defaultKomi: 6.5,
     whiteFirst: false,
     rightClickUndo: false,
@@ -301,6 +332,13 @@
         showResultInTitle: parsed.showResultInTitle !== false,
         soundEnabled: parsed.soundEnabled === true,
         preferVariationChild: parsed.preferVariationChild === true,
+        pictureFormat: parsed.pictureFormat === 'jpg' ? 'jpg' : 'png',
+        pictureSize: clamp(Number(parsed.pictureSize) || 500, 100, 4000),
+        pictureSpace: clamp(Number(parsed.pictureSpace) || 0, 0, 5),
+        pictureCoords: parsed.pictureCoords !== false,
+        pictureGray: parsed.pictureGray === true,
+        pictureShow: parsed.pictureShow !== false,
+        pictureAuto: parsed.pictureAuto !== false,
         defaultKomi: Number.isFinite(Number(parsed.defaultKomi)) ? Number(parsed.defaultKomi) : 6.5,
         whiteFirst: parsed.whiteFirst === true,
         rightClickUndo: parsed.rightClickUndo === true,
@@ -1346,6 +1384,14 @@
     cssWidth: 0, cssHeight: 0, margin: 0, spacing: 0, dpr: 1,
     sourceCols: 13, sourceRows: 13, cols: 13, rows: 13, originX: 0, originY: 0,
   };
+  const pictureState = {
+    selection: null,
+    manualSelection: null,
+    dragging: null,
+    targetPath: null,
+    targetHandle: null,
+    previewUrl: '',
+  };
   const BOARD_FONT = 'Inter, "Segoe UI", system-ui, sans-serif';
   let boardFrame = 0;
 
@@ -1465,13 +1511,20 @@
     boardView.originY = margin;
     boardCanvas.style.width = `${cssWidth}px`;
     boardCanvas.style.height = `${cssHeight}px`;
+    boardSelectionCanvas.style.width = `${cssWidth}px`;
+    boardSelectionCanvas.style.height = `${cssHeight}px`;
     const backingWidth = Math.round(cssWidth * dpr);
     const backingHeight = Math.round(cssHeight * dpr);
     if (boardCanvas.width !== backingWidth || boardCanvas.height !== backingHeight) {
       boardCanvas.width = backingWidth;
       boardCanvas.height = backingHeight;
     }
+    if (boardSelectionCanvas.width !== backingWidth || boardSelectionCanvas.height !== backingHeight) {
+      boardSelectionCanvas.width = backingWidth;
+      boardSelectionCanvas.height = backingHeight;
+    }
     boardContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+    boardSelectionContext.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawBoard();
   }
 
@@ -2181,6 +2234,58 @@
         }
       }
     }
+    drawBoardSelection();
+  }
+
+  function pictureSelectionRect(selection = pictureState.selection) {
+    if (!selection) return null;
+    const points = [
+      pointPosition(selection.x1, selection.y1),
+      pointPosition(selection.x2, selection.y1),
+      pointPosition(selection.x1, selection.y2),
+      pointPosition(selection.x2, selection.y2),
+    ];
+    return {
+      left: Math.min(...points.map((point) => point.x)),
+      top: Math.min(...points.map((point) => point.y)),
+      right: Math.max(...points.map((point) => point.x)),
+      bottom: Math.max(...points.map((point) => point.y)),
+      points,
+    };
+  }
+
+  function drawBoardSelection() {
+    const context = boardSelectionContext;
+    if (!context || !boardView.cssWidth) return;
+    context.clearRect(0, 0, boardView.cssWidth, boardView.cssHeight);
+    if (!pictureDialog.open) return;
+    if (pictureAuto?.checked) {
+      const best = bestPictureSelection();
+      if (!samePictureSelection(best, pictureState.selection)) {
+        pictureState.selection = best;
+        updatePictureStatus();
+      }
+    }
+    if (!pictureState.selection) return;
+    const rect = pictureSelectionRect();
+    if (!rect) return;
+    context.save();
+    context.fillStyle = 'rgba(30, 91, 181, 0.62)';
+    context.fillRect(rect.left, rect.top, Math.max(1, rect.right - rect.left), Math.max(1, rect.bottom - rect.top));
+    context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    context.lineWidth = 1.2;
+    context.strokeRect(rect.left + 0.5, rect.top + 0.5, Math.max(1, rect.right - rect.left - 1), Math.max(1, rect.bottom - rect.top - 1));
+    context.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+    context.lineWidth = 1;
+    for (const point of rect.points) {
+      context.beginPath();
+      context.moveTo(point.x - 3, point.y);
+      context.lineTo(point.x + 3, point.y);
+      context.moveTo(point.x, point.y - 3);
+      context.lineTo(point.x, point.y + 3);
+      context.stroke();
+    }
+    context.restore();
   }
 
   // Tree panel -----------------------------------------------------------
@@ -2836,6 +2941,49 @@
     dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
   });
 
+  pictureOk.addEventListener('click', confirmPictureDialog);
+  pictureCancel.addEventListener('click', closePictureDialog);
+  pictureCloseIcon.addEventListener('click', closePictureDialog);
+  pictureBrowse.addEventListener('click', choosePictureTarget);
+  pictureFilename.addEventListener('input', () => {
+    pictureState.targetPath = null;
+    pictureState.targetHandle = null;
+    pictureErrorMessage('');
+  });
+  pictureFormat.addEventListener('change', () => {
+    pictureState.targetPath = null;
+    pictureState.targetHandle = null;
+  });
+  pictureAuto.addEventListener('change', () => {
+    pictureSnap.disabled = pictureAuto.checked;
+    if (pictureAuto.checked) {
+      pictureState.manualSelection = null;
+      pictureState.selection = bestPictureSelection();
+    } else if (!pictureState.selection) {
+      pictureState.selection = bestPictureSelection();
+    }
+    updatePictureStatus();
+    drawBoardSelection();
+  });
+  pictureSnap.addEventListener('change', () => {
+    if (!pictureSnap.checked) return;
+    setPictureSelection(snapPictureSelection(pictureState.selection));
+  });
+  pictureDialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closePictureDialog();
+  });
+  pictureDialog.addEventListener('close', () => {
+    pictureState.dragging = null;
+    drawBoardSelection();
+  });
+  picturePreviewClose.addEventListener('click', () => picturePreviewDialog.close());
+  picturePreviewCloseIcon.addEventListener('click', () => picturePreviewDialog.close());
+  picturePreviewDialog.addEventListener('close', () => { picturePreviewImage.removeAttribute('src'); });
+  picturePreviewDialog.addEventListener('click', (event) => {
+    if (event.target === picturePreviewDialog) picturePreviewDialog.close();
+  });
+
   // File actions ---------------------------------------------------------
   function downloadText(text, filename) {
     const blob = new Blob([text], { type: 'application/x-go-sgf' });
@@ -3204,34 +3352,47 @@
     }
   }
 
-  function boardPictureName() {
-    if (!filePath) return 'board.png';
-    const stem = basename(filePath).replace(/\.sgf$/i, '') || 'board';
-    return `${stem}-board.png`;
+  function pictureBaseName() {
+    if (!filePath) return 'board';
+    const stem = basename(filePath).replace(/\.sgf$/i, '');
+    return stem ? `${stem}-board` : 'board';
   }
 
-  function renderBoardPicture() {
-    if (!boardCanvas.width || !boardCanvas.height) throw new Error('The board is not ready.');
-    const output = document.createElement('canvas');
-    output.width = boardCanvas.width;
-    output.height = boardCanvas.height;
-    const context = output.getContext('2d');
-    const width = output.width;
-    const height = output.height;
+  function pictureFormatValue() {
+    return pictureFormat?.value === 'jpg' ? 'jpg' : 'png';
+  }
+
+  function pictureMime(format = pictureFormatValue()) {
+    return format === 'jpg' ? 'image/jpeg' : 'image/png';
+  }
+
+  function pictureOutputName(format = pictureFormatValue()) {
+    const raw = (pictureFilename?.value || pictureBaseName())
+      .trim()
+      .replace(/\.(png|jpe?g)$/i, '')
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .slice(0, 100);
+    return `${raw || pictureBaseName()}.${format}`;
+  }
+
+  function picturePaletteColors() {
     const palettes = {
       classic: ['#e3bd7d', '#d7a760', '#c6934c'],
       flat: ['#e6c27f', '#dcb56e', '#d2a65b'],
       dark: ['#4a2d1f', '#38231a', '#25140e'],
       paper: ['#f7f0e1', '#efe7d7', '#e4d8c4'],
     };
-    const colors = palettes[settings.theme] || palettes.classic;
+    return palettes[settings.theme] || palettes.classic;
+  }
+
+  function fillPictureBackground(context, width, height) {
+    const colors = picturePaletteColors();
     const gradient = context.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, colors[0]);
     gradient.addColorStop(0.52, colors[1]);
     gradient.addColorStop(1, colors[2]);
     context.fillStyle = gradient;
     context.fillRect(0, 0, width, height);
-
     const glow = context.createRadialGradient(
       width * 0.28, height * 0.18, 0,
       width * 0.28, height * 0.18, Math.max(width, height) * 0.78,
@@ -3240,7 +3401,6 @@
     glow.addColorStop(1, 'rgba(255,255,255,0)');
     context.fillStyle = glow;
     context.fillRect(0, 0, width, height);
-
     if (settings.theme !== 'flat') {
       context.strokeStyle = 'rgba(0,0,0,.025)';
       context.lineWidth = Math.max(1, width / 1200);
@@ -3251,65 +3411,345 @@
         context.stroke();
       }
     }
-    context.drawImage(boardCanvas, 0, 0);
+  }
+
+  function pictureCoordinateLabel(point, axis, sourceRows) {
+    if (axis === 'x') {
+      if (settings.coordinatesStyle === 'A1') return columnLabel(point.x);
+      return String(point.x + 1);
+    }
+    if (settings.coordinatesStyle === 'A1') return String(sourceRows - point.y);
+    if (settings.coordinatesStyle === 'CJK') return numberToCJK(point.y + 1);
+    return String(point.y + 1);
+  }
+
+  function drawPictureCoordinates(context, layout) {
+    const {
+      outWidth, outHeight, coordPad, scale, cropLeft, cropTop, pad, dpr,
+      minGX, maxGX, minGY, maxGY,
+    } = layout;
+    if (!coordPad) return;
+    const origin = inverseBoardPoint(0, 0);
+    const horizontalNext = inverseBoardPoint(Math.min(1, boardView.cols - 1), 0);
+    const verticalNext = inverseBoardPoint(0, Math.min(1, boardView.rows - 1));
+    const horizontalAxis = horizontalNext.x !== origin.x ? 'x' : 'y';
+    const verticalAxis = verticalNext.x !== origin.x ? 'x' : 'y';
+    const originX = boardView.originX * dpr;
+    const originY = boardView.originY * dpr;
+    const spacing = boardView.spacing * dpr;
+    const xFor = (cssX) => (pad + cssX * dpr - cropLeft) * scale;
+    const yFor = (cssY) => (pad + cssY * dpr - cropTop) * scale;
+    const fontSize = Math.max(9, Math.min(18, Math.round(spacing * scale * 0.3)));
+    context.save();
+    context.font = `500 ${fontSize}px ${BOARD_FONT}`;
+    context.fillStyle = palette.label;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    const topY = (coordPad * 0.5) * scale;
+    const bottomY = outHeight - topY;
+    const leftX = (coordPad * 0.5) * scale;
+    const rightX = outWidth - leftX;
+    for (let gx = minGX; gx <= maxGX; gx += 1) {
+      const point = inverseBoardPoint(gx, minGY);
+      const label = pictureCoordinateLabel(point, horizontalAxis, boardView.sourceRows);
+      const x = xFor(boardView.originX + gx * boardView.spacing);
+      context.fillText(label, x, topY);
+      const bottomPoint = inverseBoardPoint(gx, maxGY);
+      context.fillText(pictureCoordinateLabel(bottomPoint, horizontalAxis, boardView.sourceRows), x, bottomY);
+    }
+    for (let gy = minGY; gy <= maxGY; gy += 1) {
+      const point = inverseBoardPoint(minGX, gy);
+      const yOut = yFor(boardView.originY + gy * boardView.spacing);
+      context.fillText(pictureCoordinateLabel(point, verticalAxis, boardView.sourceRows), leftX, yOut);
+      const rightPoint = inverseBoardPoint(maxGX, gy);
+      context.fillText(pictureCoordinateLabel(rightPoint, verticalAxis, boardView.sourceRows), rightX, yOut);
+    }
+    context.restore();
+  }
+
+  function renderBoardPicture(options = {}) {
+    if (!boardCanvas.width || !boardCanvas.height) throw new Error('The board is not ready.');
+    const selection = options.selection || pictureState.selection || bestPictureSelection();
+    const imageSize = clamp(Number(options.size) || 500, 100, 4000);
+    const addSpace = clamp(Number(options.space) || 0, 0, 5);
+    const showCoords = options.coords !== false;
+    const gray = options.gray === true;
+    const previousCoords = settings.coords;
+    const previousHover = hover;
+    const previousPending = pending;
+    const previousNext = settings.showNextMoves;
+    const previousSiblings = settings.showSiblings;
+    settings.coords = false;
+    settings.showNextMoves = false;
+    settings.showSiblings = false;
+    hover = null;
+    pending = null;
+    let base;
+    try {
+      drawBoard();
+      base = document.createElement('canvas');
+      base.width = boardCanvas.width;
+      base.height = boardCanvas.height;
+      const baseContext = base.getContext('2d');
+      baseContext.drawImage(boardCanvas, 0, 0);
+    } finally {
+      settings.coords = previousCoords;
+      settings.showNextMoves = previousNext;
+      settings.showSiblings = previousSiblings;
+      hover = previousHover;
+      pending = previousPending;
+      drawBoard();
+    }
+
+    const dpr = boardCanvas.width / boardView.cssWidth;
+    const spacing = boardView.spacing * dpr;
+    const points = [
+      pointPosition(selection.x1, selection.y1),
+      pointPosition(selection.x2, selection.y1),
+      pointPosition(selection.x1, selection.y2),
+      pointPosition(selection.x2, selection.y2),
+    ];
+    const minX = Math.min(...points.map((point) => point.x)) * dpr - spacing * 0.5;
+    const maxX = Math.max(...points.map((point) => point.x)) * dpr + spacing * 0.5;
+    const minY = Math.min(...points.map((point) => point.y)) * dpr - spacing * 0.5;
+    const maxY = Math.max(...points.map((point) => point.y)) * dpr + spacing * 0.5;
+    const margin = addSpace * spacing;
+    const coordPad = showCoords ? Math.max(14 * dpr, spacing * 0.72) : 0;
+    const pad = Math.ceil(margin + coordPad);
+    const padded = document.createElement('canvas');
+    padded.width = base.width + pad * 2;
+    padded.height = base.height + pad * 2;
+    const paddedContext = padded.getContext('2d');
+    fillPictureBackground(paddedContext, padded.width, padded.height);
+    paddedContext.drawImage(base, pad, pad);
+
+    const cropLeft = minX;
+    const cropTop = minY;
+    const cropWidth = (maxX - minX) + 2 * pad;
+    const cropHeight = (maxY - minY) + 2 * pad;
+    const outputScale = imageSize / Math.max(1, Math.max(cropWidth, cropHeight));
+    const outWidth = Math.max(1, Math.round(cropWidth * outputScale));
+    const outHeight = Math.max(1, Math.round(cropHeight * outputScale));
+    const output = document.createElement('canvas');
+    output.width = outWidth;
+    output.height = outHeight;
+    const context = output.getContext('2d');
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(
+      padded,
+      cropLeft, cropTop, cropWidth, cropHeight,
+      0, 0, outWidth, outHeight,
+    );
+
+    if (showCoords) {
+      const selectedPoints = points.map((point) => ({ x: point.x * dpr, y: point.y * dpr }));
+      const minGX = Math.round((Math.min(...selectedPoints.map((point) => point.x)) - boardView.originX * dpr) / spacing);
+      const maxGX = Math.round((Math.max(...selectedPoints.map((point) => point.x)) - boardView.originX * dpr) / spacing);
+      const minGY = Math.round((Math.min(...selectedPoints.map((point) => point.y)) - boardView.originY * dpr) / spacing);
+      const maxGY = Math.round((Math.max(...selectedPoints.map((point) => point.y)) - boardView.originY * dpr) / spacing);
+      drawPictureCoordinates(context, {
+        outWidth, outHeight, coordPad, scale: outputScale, cropLeft, cropTop, pad, dpr,
+        minGX: Math.max(0, minGX), maxGX: Math.min(boardView.cols - 1, maxGX),
+        minGY: Math.max(0, minGY), maxGY: Math.min(boardView.rows - 1, maxGY),
+      });
+    }
+
+    if (gray) {
+      const grayCanvas = document.createElement('canvas');
+      grayCanvas.width = output.width;
+      grayCanvas.height = output.height;
+      const grayContext = grayCanvas.getContext('2d');
+      grayContext.filter = 'grayscale(1)';
+      grayContext.drawImage(output, 0, 0);
+      return grayCanvas;
+    }
     return output;
   }
 
-  async function saveBoardPicture() {
-    let picture;
-    try { picture = renderBoardPicture(); }
-    catch (error) { log(`Could not render the board picture: ${error.message}`, 'error'); return; }
-    const name = boardPictureName();
+  function pictureErrorMessage(message) {
+    if (!pictureError) return;
+    pictureError.textContent = message;
+    pictureError.hidden = !message;
+  }
 
-    if (isElectron && typeof desktop.saveBoardPicture === 'function') {
-      const base64 = picture.toDataURL('image/png').split(',')[1];
+  function openPictureDialog() {
+    if (!boardCanvas.width) { log('The board is not ready.', 'warn'); return; }
+    pictureState.targetPath = null;
+    pictureState.targetHandle = null;
+    pictureState.dragging = null;
+    pictureFilename.value = pictureBaseName();
+    pictureFormat.value = settings.pictureFormat || 'png';
+    pictureSize.value = String(settings.pictureSize || 500);
+    pictureSpace.value = String(settings.pictureSpace ?? 0.85);
+    pictureCoords.checked = settings.pictureCoords !== false;
+    pictureGray.checked = settings.pictureGray === true;
+    pictureShow.checked = settings.pictureShow !== false;
+    pictureAuto.checked = settings.pictureAuto !== false;
+    pictureSnap.disabled = pictureAuto.checked;
+    pictureSnap.checked = false;
+    pictureState.manualSelection = null;
+    pictureState.selection = pictureAuto.checked ? bestPictureSelection() : bestPictureSelection();
+    pictureErrorMessage('');
+    updatePictureStatus();
+    if (!pictureDialog.open) pictureDialog.show();
+    drawBoardSelection();
+    pictureFilename.focus();
+    pictureFilename.select();
+  }
+
+  function closePictureDialog() {
+    pictureState.dragging = null;
+    pictureState.targetPath = null;
+    pictureState.targetHandle = null;
+    if (pictureDialog.open) pictureDialog.close();
+    drawBoardSelection();
+  }
+
+  async function choosePictureTarget() {
+    const name = pictureOutputName();
+    const format = pictureFormatValue();
+    if (isElectron && typeof desktop.chooseBoardPicture === 'function') {
       try {
-        const result = await desktop.saveBoardPicture({ base64, suggestedName: name });
-        if (!result || result.canceled) { log('Save picture canceled.', 'warn'); return; }
-        log(`Saved board picture to ${result.filePath}.`, 'success');
+        const result = await desktop.chooseBoardPicture({ suggestedName: name, format });
+        if (!result || result.canceled || !result.filePath) return;
+        pictureState.targetPath = result.filePath;
+        pictureState.targetHandle = null;
+        pictureFilename.value = basename(result.filePath).replace(/\.(png|jpe?g)$/i, '');
+        if (/\.jpe?g$/i.test(result.filePath)) pictureFormat.value = 'jpg';
       } catch (error) {
-        log(`Could not save the board picture: ${error.message}`, 'error');
+        pictureErrorMessage(`Could not choose a file: ${error.message}`);
       }
       return;
     }
-
     if (typeof window.showSaveFilePicker === 'function') {
       try {
         const handle = await window.showSaveFilePicker({
           id: 'multigo-board-picture',
           suggestedName: name,
-          types: [{ description: 'PNG image', accept: { 'image/png': ['.png'] } }],
+          types: [{ description: `${format.toUpperCase()} image`, accept: { [pictureMime(format)]: [`.${format}`] } }],
         });
-        const blob = await new Promise((resolve) => picture.toBlob(resolve, 'image/png'));
-        if (!blob) throw new Error('PNG encoding failed.');
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        log(`Saved board picture ${handle.name} to the selected browser folder.`, 'success');
+        pictureState.targetHandle = handle;
+        pictureState.targetPath = null;
+        pictureFilename.value = handle.name.replace(/\.(png|jpe?g)$/i, '');
+        if (/\.jpe?g$/i.test(handle.name)) pictureFormat.value = 'jpg';
       } catch (error) {
-        if (error?.name === 'AbortError') { log('Save picture canceled.', 'warn'); return; }
-        if (['SecurityError', 'NotSupportedError'].includes(error?.name)) {
-          const anchor = document.createElement('a');
-          anchor.href = picture.toDataURL('image/png');
-          anchor.download = name;
-          document.body.append(anchor);
-          anchor.click();
-          anchor.remove();
-          log(`Saved board picture ${name} via browser download.`, 'warn');
-          return;
-        }
-        log(`Could not save the board picture: ${error.message}`, 'error');
+        if (error?.name !== 'AbortError') pictureErrorMessage(`Could not choose a file: ${error.message}`);
       }
       return;
     }
+    log('Use the File Name field; this browser cannot choose a target path.', 'warn');
+  }
 
-    const anchor = document.createElement('a');
-    anchor.href = picture.toDataURL('image/png');
-    anchor.download = name;
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    log(`Downloaded board picture ${name}.`, 'success');
+  function showPicturePreview(url) {
+    if (!url || !picturePreviewImage) return;
+    picturePreviewImage.src = url;
+    if (!picturePreviewDialog.open) picturePreviewDialog.showModal();
+  }
+
+  async function saveBoardPicture() {
+    openPictureDialog();
+  }
+
+  async function confirmPictureDialog() {
+    const size = Number(pictureSize.value);
+    const space = Number(pictureSpace.value);
+    if (!Number.isFinite(size) || size < 100 || size > 4000) {
+      pictureErrorMessage('Image size must be between 100 and 4000 pixels.');
+      pictureSize.focus();
+      return;
+    }
+    if (!Number.isFinite(space) || space < 0 || space > 5) {
+      pictureErrorMessage('Add space must be between 0 and 5.');
+      pictureSpace.focus();
+      return;
+    }
+    const format = pictureFormatValue();
+    const name = pictureOutputName(format);
+    pictureErrorMessage('');
+    pictureOk.disabled = true;
+    try {
+      if (isElectron && !pictureState.targetPath) {
+        const picture = renderBoardPicture({
+          selection: pictureState.selection, size, space,
+          coords: pictureCoords.checked, gray: pictureGray.checked,
+        });
+        const base64 = picture.toDataURL(pictureMime(format), format === 'jpg' ? 0.92 : undefined).split(',')[1];
+        const result = await desktop.saveBoardPicture({
+          base64, suggestedName: name, format, filePath: null,
+        });
+        if (!result || result.canceled) { log('Save picture canceled.', 'warn'); return; }
+        settings.pictureFormat = format;
+        settings.pictureSize = size;
+        settings.pictureSpace = space;
+        settings.pictureCoords = pictureCoords.checked;
+        settings.pictureGray = pictureGray.checked;
+        settings.pictureShow = pictureShow.checked;
+        settings.pictureAuto = pictureAuto.checked;
+        saveSettings();
+        closePictureDialog();
+        log(`Saved board picture to ${result.filePath}.`, 'success');
+        if (pictureShow.checked) showPicturePreview(picture.toDataURL(pictureMime(format), format === 'jpg' ? 0.92 : undefined));
+        return;
+      }
+
+      let handle = pictureState.targetHandle;
+      if (!isElectron && !handle && typeof window.showSaveFilePicker === 'function') {
+        handle = await window.showSaveFilePicker({
+          id: 'multigo-board-picture',
+          suggestedName: name,
+          types: [{ description: `${format.toUpperCase()} image`, accept: { [pictureMime(format)]: [`.${format}`] } }],
+        });
+        pictureState.targetHandle = handle;
+      }
+
+      const picture = renderBoardPicture({
+        selection: pictureState.selection, size, space,
+        coords: pictureCoords.checked, gray: pictureGray.checked,
+      });
+      const mime = pictureMime(format);
+      let savePath = name;
+      if (isElectron) {
+        const base64 = picture.toDataURL(mime, format === 'jpg' ? 0.92 : undefined).split(',')[1];
+        const result = await desktop.saveBoardPicture({
+          base64, suggestedName: name, format, filePath: pictureState.targetPath || null,
+        });
+        if (!result || result.canceled) { log('Save picture canceled.', 'warn'); return; }
+        savePath = result.filePath;
+      } else if (handle) {
+        const blob = await new Promise((resolve) => picture.toBlob(resolve, mime, format === 'jpg' ? 0.92 : undefined));
+        if (!blob) throw new Error(`${format.toUpperCase()} encoding failed.`);
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        savePath = handle.name || name;
+      } else {
+        const anchor = document.createElement('a');
+        anchor.href = picture.toDataURL(mime, format === 'jpg' ? 0.92 : undefined);
+        anchor.download = name;
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+
+      settings.pictureFormat = format;
+      settings.pictureSize = size;
+      settings.pictureSpace = space;
+      settings.pictureCoords = pictureCoords.checked;
+      settings.pictureGray = pictureGray.checked;
+      settings.pictureShow = pictureShow.checked;
+      settings.pictureAuto = pictureAuto.checked;
+      saveSettings();
+      closePictureDialog();
+      log(`Saved board picture ${savePath}.`, 'success');
+      if (pictureShow.checked) showPicturePreview(picture.toDataURL(mime, format === 'jpg' ? 0.92 : undefined));
+    } catch (error) {
+      if (error?.name === 'AbortError') { log('Save picture canceled.', 'warn'); return; }
+      pictureErrorMessage(`Could not save the picture: ${error.message}`);
+      log(`Could not save the board picture: ${error.message}`, 'error');
+    } finally {
+      pictureOk.disabled = false;
+    }
   }
 
   function applySgfText(text, source, { browser = false, cached = false, handle = false } = {}) {
@@ -4368,7 +4808,112 @@
     statusCursor.textContent = point ? `${t('Cursor')}: ${coordLabel(point.x, point.y)}` : `${t('Cursor')}: —`;
   }
 
+  function pictureSelectionSize(selection) {
+    return {
+      width: Math.abs(selection.x2 - selection.x1) + 1,
+      height: Math.abs(selection.y2 - selection.y1) + 1,
+    };
+  }
+
+  function samePictureSelection(a, b) {
+    return Boolean(a && b && a.x1 === b.x1 && a.y1 === b.y1 && a.x2 === b.x2 && a.y2 === b.y2);
+  }
+
+  function bestPictureSelection() {
+    const width = currentBoard?.width || gameSize().width;
+    const height = currentBoard?.height || gameSize().height;
+    let minX = width - 1;
+    let minY = height - 1;
+    let maxX = 0;
+    let maxY = 0;
+    let found = false;
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        if (!currentBoard?.signMap?.[y]?.[x]) continue;
+        found = true;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+    return found
+      ? { x1: minX, y1: minY, x2: maxX, y2: maxY }
+      : { x1: 0, y1: 0, x2: width - 1, y2: height - 1 };
+  }
+
+  function updatePictureStatus() {
+    if (!pictureStatus) return;
+    if (!pictureState.selection) {
+      pictureStatus.textContent = 'Select an area on the board.';
+      return;
+    }
+    const size = pictureSelectionSize(pictureState.selection);
+    const area = `${coordLabel(pictureState.selection.x1, pictureState.selection.y1)}–${coordLabel(pictureState.selection.x2, pictureState.selection.y2)}`;
+    const mode = pictureAuto.checked ? 'Automatic best area' : 'Manual selection';
+    pictureStatus.textContent = `${mode}: ${area} · ${size.width}×${size.height} intersections`;
+    if (pictureHelp) {
+      pictureHelp.classList.toggle('is-manual', !pictureAuto.checked);
+    }
+  }
+
+  function setPictureSelection(selection, { manual = true } = {}) {
+    if (!selection) return;
+    const width = currentBoard?.width || gameSize().width;
+    const height = currentBoard?.height || gameSize().height;
+    const x1 = Math.max(0, Math.min(width - 1, Math.min(selection.x1, selection.x2)));
+    const x2 = Math.max(0, Math.min(width - 1, Math.max(selection.x1, selection.x2)));
+    const y1 = Math.max(0, Math.min(height - 1, Math.min(selection.y1, selection.y2)));
+    const y2 = Math.max(0, Math.min(height - 1, Math.max(selection.y1, selection.y2)));
+    pictureState.selection = { x1, y1, x2, y2 };
+    if (manual) pictureState.manualSelection = { ...pictureState.selection };
+    updatePictureStatus();
+    drawBoardSelection();
+  }
+
+  function snapPictureSelection(selection) {
+    if (!pictureSnap.checked || pictureAuto.checked) return selection;
+    const width = currentBoard?.width || gameSize().width;
+    const height = currentBoard?.height || gameSize().height;
+    const next = { ...selection };
+    if (next.x1 <= 1) next.x1 = 0;
+    if (next.y1 <= 1) next.y1 = 0;
+    if (next.x2 >= width - 2) next.x2 = width - 1;
+    if (next.y2 >= height - 2) next.y2 = height - 1;
+    return next;
+  }
+
+  function beginPictureSelection(event) {
+    const point = pointFromEvent(event);
+    if (!point) return false;
+    if (pictureAuto.checked) {
+      pictureAuto.checked = false;
+      pictureSnap.disabled = false;
+    }
+    pictureState.dragging = { x: point.x, y: point.y, pointerId: event.pointerId };
+    setPictureSelection({ x1: point.x, y1: point.y, x2: point.x, y2: point.y });
+    try { boardCanvas.setPointerCapture?.(event.pointerId); } catch { /* synthetic pointer */ }
+    return true;
+  }
+
+  function updatePictureSelectionDrag(point) {
+    if (!pictureState.dragging || !point) return;
+    const start = pictureState.dragging;
+    setPictureSelection({ x1: start.x, y1: start.y, x2: point.x, y2: point.y });
+  }
+
+  function finishPictureSelection() {
+    if (!pictureState.dragging) return;
+    pictureState.dragging = null;
+    const snapped = snapPictureSelection(pictureState.selection);
+    setPictureSelection(snapped);
+  }
+
   boardCanvas.addEventListener('pointermove', (event) => {
+    if (pictureState.dragging) {
+      updatePictureSelectionDrag(pointFromEvent(event));
+      return;
+    }
     const point = pointFromEvent(event);
     const same = (point && hover && point.x === hover.x && point.y === hover.y) || (!point && !hover);
     if (same) return;
@@ -4399,12 +4944,19 @@
       return;
     }
     if (event.button !== 0) return;
+    if (pictureDialog.open) {
+      event.preventDefault();
+      beginPictureSelection(event);
+      return;
+    }
     const point = pointFromEvent(event);
     if (!point) return;
     event.preventDefault();
     if (mode === 'edit') editAt(point.x, point.y);
     else playAt(point.x, point.y);
   });
+  boardCanvas.addEventListener('pointerup', finishPictureSelection);
+  window.addEventListener('pointerup', finishPictureSelection);
   boardCanvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
   // Toolbar / shortcuts --------------------------------------------------
@@ -4774,7 +5326,9 @@
       sgfText: () => S.sgf.stringify([tree.root], { linebreak: '\n', indent: '  ' }),
       setTab,
       playAt, passTurn, selectNode, toggleEditMode, selectTool, startGame, applySgfText,
-      importSgfDocuments,
+      importSgfDocuments, openPictureDialog,
+      pictureSelection: () => (pictureState.selection ? { ...pictureState.selection } : null),
+      setPictureSelection: (selection) => setPictureSelection(selection),
     };
   }
 

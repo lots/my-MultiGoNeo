@@ -199,26 +199,57 @@ function registerIpc() {
     return { canceled: false, files };
   });
 
-  ipcMain.handle('board:save-picture', async (event, payload) => {
-    const base64 = payload && typeof payload.base64 === 'string' ? payload.base64 : '';
-    if (!base64 || base64.length > 30_000_000) throw new Error('Invalid board picture payload.');
+  ipcMain.handle('board:choose-picture', async (event, payload) => {
+    const format = payload && payload.format === 'jpg' ? 'jpg' : 'png';
     const suggested = payload && typeof payload.suggestedName === 'string' && payload.suggestedName.trim()
       ? path.basename(payload.suggestedName)
-      : 'board.png';
-    const filename = suggested.toLowerCase().endsWith('.png') ? suggested : `${suggested}.png`;
+      : `board.${format}`;
+    const filename = suggested.toLowerCase().endsWith(`.${format}`) ? suggested : `${suggested}.${format}`;
     const options = {
       title: 'Save Board as Picture',
       defaultPath: dialogDefaultPath(filename),
-      filters: [{ name: 'PNG Images', extensions: ['png'] }],
+      filters: format === 'jpg'
+        ? [{ name: 'JPEG Images', extensions: ['jpg', 'jpeg'] }]
+        : [{ name: 'PNG Images', extensions: ['png'] }],
     };
     const win = windowFrom(event);
     const result = win
       ? await dialog.showSaveDialog(win, options)
       : await dialog.showSaveDialog(options);
     if (result.canceled || !result.filePath) return { canceled: true };
-    await fs.writeFile(result.filePath, Buffer.from(base64, 'base64'));
-    rememberDialogDirectory(result.filePath);
     return { canceled: false, filePath: result.filePath };
+  });
+
+  ipcMain.handle('board:save-picture', async (event, payload) => {
+    const base64 = payload && typeof payload.base64 === 'string' ? payload.base64 : '';
+    if (!base64 || base64.length > 30_000_000) throw new Error('Invalid board picture payload.');
+    const format = payload && payload.format === 'jpg' ? 'jpg' : 'png';
+    const suggested = payload && typeof payload.suggestedName === 'string' && payload.suggestedName.trim()
+      ? path.basename(payload.suggestedName)
+      : `board.${format}`;
+    let filename = suggested.toLowerCase().endsWith(`.${format}`) ? suggested : `${suggested}.${format}`;
+    if (format === 'jpg' && !/\.(jpe?g)$/i.test(filename)) filename = `${filename}.jpg`;
+    let filePath = payload && typeof payload.filePath === 'string' && payload.filePath.trim()
+      ? payload.filePath
+      : null;
+    if (!filePath) {
+      const options = {
+        title: 'Save Board as Picture',
+        defaultPath: dialogDefaultPath(filename),
+        filters: format === 'jpg'
+          ? [{ name: 'JPEG Images', extensions: ['jpg', 'jpeg'] }]
+          : [{ name: 'PNG Images', extensions: ['png'] }],
+      };
+      const win = windowFrom(event);
+      const result = win
+        ? await dialog.showSaveDialog(win, options)
+        : await dialog.showSaveDialog(options);
+      if (result.canceled || !result.filePath) return { canceled: true };
+      filePath = result.filePath;
+    }
+    await fs.writeFile(filePath, Buffer.from(base64, 'base64'));
+    rememberDialogDirectory(filePath);
+    return { canceled: false, filePath };
   });
 
   ipcMain.handle('game:open-path', async (_event, payload) => {

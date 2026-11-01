@@ -37,8 +37,9 @@ boards [below](#board-themes-and-responsive-layout).
   if the branch disappeared after an external edit, it warns and returns to the root.
 - **File → Import Files as Branch…** imports multiple SGFs under the current node, skipping
   empty root nodes.
-- **File → Save Board as Picture** exports the displayed board to PNG; `Ctrl+Q` now triggers
-  this command, while Quit is `Ctrl+Shift+Q`.
+- **File → Save Board as Picture** opens a MultiGo-style export dialog with partial-board
+  drag selection, PNG/JPEG, size/space and coordinate/grayscale options; `Ctrl+Q` triggers the
+  command, while Quit is `Ctrl+Shift+Q`.
 - **Unsaved guard**: orange `UNSAVED` status, red file dot, title bullet and confirmations
   before New/Open/Recent/Reload/Quit/Reset operations.
 - **View → Rotate Clockwise / Flip Horizontally / Flip Vertically / Reset Board (`G`)**:
@@ -260,15 +261,26 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
 - **File → Import Files as Branch…** accepts multiple SGF files and appends each game as a
   branch under the current node. Empty SGF roots are skipped so their first moves become the
   branch points.
-- **File → Save Board as Picture** exports the current displayed board — including theme,
-  coordinates and stones — as PNG with a `${name}-board.png` suggestion.
-- The picture command uses the native PNG save dialog in Electron and the File System Access
-  picker (or download fallback) in browsers.
+- **File → Save Board as Picture** now opens a MultiGo-style **Save As Picture** dialog with:
+  File Name + browse button, **png / jpg** format, **Image size**, **Add space**, **Show dead
+  stones**, **Show coordinate**, **Black and white board and stones**, **Automatically select
+  best area**, **Snap to close border** and **Show saved picture**.
+- Uncheck **Automatically select best area** and drag directly on the board to choose a
+  partial rectangle. The blue translucent overlay marks the selected region; coordinate labels
+  are then drawn around all four sides of that region in the exported image.
+- **Add space** adds a grid-unit margin around the selection; **Image size** is the longest
+  exported side in pixels (100–4000). **Snap to close border** expands a manual selection that
+  is close to a board edge.
+- The picture command uses the native save dialog in Electron and the File System Access picker
+  (or download fallback) in browsers. **Show saved picture** opens an in-app preview after a
+  successful save.
 - `Ctrl+Q` is now **Save Board as Picture**; Quit moved to `Ctrl+Shift+Q`.
 
 ![Imported SGF files as sibling branches](preview-import-branch.png)
 
-![Board picture exported to PNG](preview-board-picture.png)
+![Save As Picture dialog with partial board selection](preview-picture-dialog.png)
+
+![Partial board exported to PNG with coordinates](preview-board-picture.png)
 
 ### Save/open location messages
 
@@ -555,9 +567,11 @@ layout and a 1100×1700 pass for the embed page:
   `W[cc]` / move 2, and cleared dirty;
 - imported two SGF files as branches (3 nodes total, two root children) and confirmed the
   imported node was current;
-- exported the board as PNG through a stubbed file picker: suggested
-  `import-board.png`, produced an 872×872 / 898,963-byte image, and `Ctrl+Q` invoked the same
-  command;
+- opened the **Save As Picture** dialog, unchecked automatic selection and exported a
+  **6×5** region as a **300×264** / 78,769-byte PNG with coordinates on all four sides;
+- dragged a separate **6×7** manual region on the board, then exported a grayscale JPEG
+  through the same dialog and confirmed `image/jpeg`;
+- `Ctrl+Q` opened the dialog without invoking a file picker until **OK** was pressed;
 - marked a document dirty and confirmed the orange **UNSAVED** status, red file-label dot and
   title bullet; New Game and Open SGF both showed the unsaved-loss confirmation, and Cancel
   preserved the 2-node dirty document;
@@ -647,7 +661,7 @@ Screenshots: [main editor](preview.png), [custom 5×9 board](preview-custom.png)
 [merged Options Preferences dialog](preview-preferences.png),
 [compact initial Info layout](preview-r17-layout.png),
 [unsaved indicator](preview-dirty.png), [imported branches](preview-import-branch.png),
-[exported board picture](preview-board-picture.png),
+[picture dialog](preview-picture-dialog.png), [partial board picture](preview-board-picture.png),
 [rotated board](preview-board-rotate.png), [flipped board](preview-board-flip.png),
 [focused Game Info panel](preview-info-focus.png),
 [restored layout after Done](preview-info-restored.png),
@@ -798,7 +812,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Save SGF As | `Ctrl+Shift+S` |
 | Reload current file | File → Reload |
 | Import files as branches | File → Import Files as Branch… |
-| Save board as PNG | File → Save Board as Picture or `Ctrl+Q` |
+| Save board as picture | File → Save Board as Picture or `Ctrl+Q` (PNG/JPEG, partial selection) |
 | Quit | File → Quit or `Ctrl+Shift+Q` |
 | Copy / paste SGF | `Ctrl+Shift+C` / `Ctrl+Shift+V` |
 | Menus | `Alt+F / E / A / P / V / T / O / H` |

@@ -19,6 +19,7 @@ const api = {
   openRecent: (filePath) => ipcRenderer.invoke('game:open-path', { filePath }),
   importGames: () => ipcRenderer.invoke('game:import'),
   saveGame: (payload) => ipcRenderer.invoke('game:save', payload),
+  chooseBoardPicture: (payload) => ipcRenderer.invoke('board:choose-picture', payload),
   saveBoardPicture: (payload) => ipcRenderer.invoke('board:save-picture', payload),
 };
 
