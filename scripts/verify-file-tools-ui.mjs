@@ -77,18 +77,35 @@ await send('Page.navigate', { url })
 await waitForApp()
 await sleep(300)
 
-const reloadSgf = '(;GM[1]FF[4]SZ[13])'
+const reloadSgf = '(;GM[1]FF[4]SZ[13];B[dd](;W[ee])(;W[cc]))'
 await evaluate(`__figdesk.applySgfText(${JSON.stringify(reloadSgf)}, 'reload.sgf')`)
 await evaluate(`__figdesk.addRecent('reload.sgf', ${JSON.stringify(reloadSgf)})`)
-await evaluate(`__figdesk.playAt(3, 3)`)
+await evaluate(`(() => {
+  const second = __figdesk.tree.root.children[0].children[1];
+  __figdesk.selectNode(second.id);
+  const input = document.getElementById('comment-input');
+  input.value = 'dirty comment';
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+})()`)
 await sleep(150)
-const beforeReload = await evaluate(`({ nodes: __figdesk.snapshot().nodes, dirty: __figdesk.dirty })`)
+const beforeReload = await evaluate(`({
+  nodes: __figdesk.snapshot().nodes,
+  moveNumber: __figdesk.snapshot().moveNumber,
+  vertex: __figdesk.nodeData().W?.[0] ?? null,
+  dirty: __figdesk.dirty,
+})`)
 await clickAction('reload-file')
 const reloadPrompt = await evaluate(`({ open: document.getElementById('confirm-dialog').open, message: document.getElementById('confirm-message').textContent })`)
 await evaluate(`document.getElementById('confirm-ok').click()`)
 await sleep(300)
-const afterReload = await evaluate(`({ nodes: __figdesk.snapshot().nodes, dirty: __figdesk.dirty })`)
+const afterReload = await evaluate(`({
+  nodes: __figdesk.snapshot().nodes,
+  moveNumber: __figdesk.snapshot().moveNumber,
+  vertex: __figdesk.nodeData().W?.[0] ?? null,
+  dirty: __figdesk.dirty,
+})`)
 
+await evaluate(`__figdesk.applySgfText('(;GM[1]FF[4]SZ[13])', 'import.sgf')`)
 await evaluate(`__figdesk.importSgfDocuments([
   { name: 'first.sgf', content: '(;GM[1]FF[4]SZ[13];B[dd])' },
   { name: 'second.sgf', content: '(;GM[1]FF[4]SZ[13];W[kk])' },

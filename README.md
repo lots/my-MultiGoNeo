@@ -229,7 +229,10 @@ The File menu keeps the **last seven opened or saved SGF files** under **Recent 
 ### Reload, imports and picture export
 
 - **File → Reload** re-reads the current SGF from disk (Electron) or from the retained browser
-  file handle/cache, with the same unsaved-changes confirmation as Open.
+  file handle/cache, with the same unsaved-changes confirmation as Open. It restores the exact
+  branch path and node that was selected before reloading, so study can continue in place; if
+  the file changed and that path no longer exists, it reports that the previous position is
+  gone and falls back to the root.
 - **File → Import Files as Branch…** accepts multiple SGF files and appends each game as a
   branch under the current node. Empty SGF roots are skipped so their first moves become the
   branch points.
@@ -524,11 +527,12 @@ layout and a 1100×1700 pass for the embed page:
 - changed **Move Numbers** and **Numbering** through their View dropdowns;
 - confirmed the autoplay icon is distinct from First Child, the status bar has only the lower
   rule, and the menu bar contains no Video item;
-- confirmed **Reload** prompted for unsaved changes, restored 2 nodes to 1 and cleared dirty;
+- confirmed **Reload** prompted for unsaved changes, kept the same 4-node branch on
+  `W[cc]` / move 2, and cleared dirty;
 - imported two SGF files as branches (3 nodes total, two root children) and confirmed the
   imported node was current;
 - exported the board as PNG through a stubbed file picker: suggested
-  `reload-board.png`, produced an 872×872 / 898,963-byte image, and `Ctrl+Q` invoked the same
+  `import-board.png`, produced an 872×872 / 898,963-byte image, and `Ctrl+Q` invoked the same
   command;
 - marked a document dirty and confirmed the orange **UNSAVED** status, red file-label dot and
   title bullet; New Game and Open SGF both showed the unsaved-loss confirmation, and Cancel

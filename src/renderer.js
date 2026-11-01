@@ -913,6 +913,21 @@
   }
 
   // Position-path DSL (see src/path-spec.js) ------------------------------
+  function currentPositionSpec() {
+    return tree && window.MultiGoPath ? window.MultiGoPath.build(tree, nodeId) : '';
+  }
+
+  function restorePositionSpec(spec) {
+    if (!spec || !tree || !window.MultiGoPath) return false;
+    const target = window.MultiGoPath.resolve(spec, tree, tree.root.id);
+    if (target == null || !tree.get(target)) return false;
+    // Reject a clamped fallback: the restored node must still have the same
+    // branch path, not merely the nearest surviving node.
+    if (window.MultiGoPath.build(tree, target) !== spec) return false;
+    selectNode(target);
+    return true;
+  }
+
   function applyPositionPath(spec) {
     if (!tree || !window.MultiGoPath) return false;
     const tokens = window.MultiGoPath.parse(spec);
@@ -3022,6 +3037,7 @@
     if (!filePath) { log('Reload is unavailable for an untitled game.', 'warn'); return; }
     if (dirty && !(await askConfirm('Reload this file? Unsaved changes will be lost.', 'Reload'))) return;
     const name = basename(filePath);
+    const positionSpec = currentPositionSpec();
     if (isElectron) {
       if (typeof desktop.openRecent !== 'function') {
         log('Reload is not available in this build.', 'warn');
@@ -3031,8 +3047,9 @@
         const result = await desktop.openRecent(filePath);
         if (!result || result.canceled) { log('Reload canceled.', 'warn'); return; }
         if (applySgfText(result.content, result.filePath)) {
+          const restored = !positionSpec || restorePositionSpec(positionSpec);
           rememberRecent(result.filePath, result.content);
-          log(`Reloaded ${result.filePath}.`, 'success');
+          log(`Reloaded ${result.filePath}.${restored ? ' Previous position restored.' : ' Previous position no longer exists.'}`, restored ? 'success' : 'warn');
         }
       } catch (error) {
         log(`Could not reload ${filePath}: ${error.message}`, 'error');
@@ -3076,8 +3093,9 @@
         void storeRecentHandle(name, handle);
         updateTitle();
       }
+      const restored = !positionSpec || restorePositionSpec(positionSpec);
       rememberRecent(name, text);
-      log(cached ? `Reloaded cached ${name}.` : `Reloaded ${name}.`, 'success');
+      log(`${cached ? `Reloaded cached ${name}.` : `Reloaded ${name}.`}${restored ? ' Previous position restored.' : ' Previous position no longer exists.'}`, restored ? 'success' : 'warn');
     }
   }
 
