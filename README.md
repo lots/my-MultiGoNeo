@@ -40,6 +40,8 @@ Released 2026-11-01. The Windows artifacts are `MultiGo-Neo-1.1.1-setup.exe` and
   if the branch disappeared after an external edit, it warns and returns to the root.
 - **File → Import Files as Branch…** imports multiple SGFs under the current node, skipping
   empty root nodes.
+- **Adjustable comment display size** — A−/A+ in the Comment header, persisted per app and
+  never written into the SGF.
 - **File → Save Board as Picture** opens a MultiGo-style export dialog with partial-board
   drag selection, PNG/JPEG, size/space and coordinate/grayscale options; the first opening
   selects the full board, later openings restore the last selection, the cursor becomes a hand
@@ -91,6 +93,11 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   height is remembered across launches. The same comment is rendered below the editor using
   the Markdown subset, so formatted text can be checked while editing. In Read Only mode the
   editor is hidden and only the rendered comment is shown.
+- The rendered comment has **A− / A+** display-size controls in its header (9–24 px). The size
+  is stored only in the app’s `localStorage` preference; it is not written to the SGF and
+  survives both page reloads and loading a different SGF.
+
+![Comment display font-size controls and rendered Markdown](preview/preview-comment-font.png)
 - Edit tool strip: black/white stones, eraser, cross, triangle, square, circle, line, arrow,
   dim, label, and number.
 - **Delete Move** is available from the toolbar in both Play and Edit modes (and from the
@@ -616,6 +623,9 @@ layout and a 1100×1700 pass for the embed page:
 - confirmed the Comment tab starts with a three-line editor and shows the rendered Markdown
   comment below it; a 120 px resize survived reload, while Read Only still shows only the
   rendered preview;
+- changed the rendered comment from 12 px to 15 px, confirmed the SGF text did not change,
+  the 15 px size survived a page reload and loading a different SGF, and the app remained
+  clean;
 - chose **Edit → Edit Game Info** and confirmed the info panel grew to 1180×802 px at
   1440×1024, the Game Tree and Message panes stayed at 48 px, the Info tab was active and the
   Black field received focus;
@@ -806,6 +816,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Preferences | Options → Preferences…; OK applies, Cancel discards |
 | Read Only | Edit → Read Only; navigation only, save disabled |
 | Comment editor | Comment tab; three-line editor, vertically resizable, height remembered; rendered Markdown below |
+| Comment display size | A− / A+ in the Comment header; 9–24 px, persisted per app and never written to the SGF |
 | Edit Game Info | Edit → Edit Game Info; maximizes the Info panel and focuses Black; **Done** restores the previous layout |
 | Responsive layout | View → Responsive Layout (auto below 1120 px) |
 | Copy position link | Tools → Copy Position Link |
@@ -924,6 +935,7 @@ scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branc
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
+scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js

@@ -589,7 +589,14 @@
           </div>
 
           <div class="tab-panel" id="panel-comment" role="tabpanel" aria-labelledby="tab-comment" hidden>
-            <div class="comment-head" id="comment-title">Node comment</div>
+            <div class="comment-head">
+              <span id="comment-title">Node comment</span>
+              <span class="comment-font-controls" aria-label="Comment display font size">
+                <button type="button" class="comment-font-button" id="comment-font-dec" title="Decrease comment font size">A−</button>
+                <output class="comment-font-value" id="comment-font-size" aria-live="polite">12</output>
+                <button type="button" class="comment-font-button" id="comment-font-inc" title="Increase comment font size">A+</button>
+              </span>
+            </div>
             <textarea class="comment-input" id="comment-input" rows="3" placeholder="Write a comment for this node. Markdown is supported."></textarea>
             <div class="comment-preview" id="comment-preview"></div>
           </div>

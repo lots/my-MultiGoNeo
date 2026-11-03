@@ -167,6 +167,9 @@
   const commentTitle = $('#comment-title');
   const commentInput = $('#comment-input');
   const commentPreview = $('#comment-preview');
+  const commentFontDec = $('#comment-font-dec');
+  const commentFontInc = $('#comment-font-inc');
+  const commentFontSize = $('#comment-font-size');
   const sgfFileInput = $('#sgf-file');
   const importSgfInput = $('#import-sgf-files');
   const confirmDialog = $('#confirm-dialog');
@@ -263,6 +266,7 @@
     autoPlayDelay: 1000,
     fastStep: 20,
     commentHeight: null,
+    commentFontSize: 12,
     defaultSize: 13,
     boardRotation: 0,
     boardFlipH: false,
@@ -320,6 +324,7 @@
         commentHeight: Number.isFinite(Number(parsed.commentHeight)) && Number(parsed.commentHeight) >= 40
           ? Number(parsed.commentHeight)
           : null,
+        commentFontSize: clamp(Number(parsed.commentFontSize) || 12, 9, 24),
         defaultSize: [9, 13, 19].includes(Number(parsed.defaultSize)) ? Number(parsed.defaultSize) : 13,
         boardRotation: [0, 90, 180, 270].includes(Number(parsed.boardRotation)) ? Number(parsed.boardRotation) : 0,
         boardFlipH: parsed.boardFlipH === true,
@@ -2606,6 +2611,24 @@
     }
   }
 
+  function applyCommentFontSize() {
+    const size = clamp(Number(settings.commentFontSize) || 12, 9, 24);
+    settings.commentFontSize = size;
+    commentPreview.style.fontSize = `${size}px`;
+    if (commentFontSize) commentFontSize.textContent = String(size);
+    if (commentFontDec) commentFontDec.disabled = size <= 9;
+    if (commentFontInc) commentFontInc.disabled = size >= 24;
+  }
+
+  function changeCommentFontSize(delta) {
+    const next = clamp((Number(settings.commentFontSize) || 12) + delta, 9, 24);
+    if (next === settings.commentFontSize) return;
+    settings.commentFontSize = next;
+    saveSettings();
+    applyCommentFontSize();
+    log(`Comment display size: ${next}px.`);
+  }
+
   function renderCommentPreview(text) {
     commentPreview.replaceChildren();
     if (!text.trim()) {
@@ -4398,6 +4421,7 @@
   $('#game-info').addEventListener('submit', (event) => event.preventDefault());
 
   applyCommentHeight();
+  applyCommentFontSize();
   if (window.ResizeObserver) {
     let commentResizeFrame = 0;
     const commentResizeObserver = new ResizeObserver(() => {
@@ -4416,6 +4440,8 @@
   }
 
   commentInput.addEventListener('input', () => renderCommentPreview(commentInput.value));
+  commentFontDec.addEventListener('click', () => changeCommentFontSize(-1));
+  commentFontInc.addEventListener('click', () => changeCommentFontSize(1));
   commentInput.addEventListener('change', () => {
     const value = commentInput.value;
     const node = currentNode();
