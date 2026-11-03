@@ -40,7 +40,20 @@ async function pictureDefaultDirectory(sourcePath) {
   return lastDialogDirectory || app.getPath('documents');
 }
 
-function createWindow() {
+function sgfPathFromArgs(argv) {
+  const args = Array.isArray(argv) ? argv : [];
+  for (let index = 1; index < args.length; index += 1) {
+    const argument = args[index];
+    if (!argument || argument.startsWith('--') || argument.startsWith('-')) continue;
+    if (!/\.sgf$/i.test(argument)) continue;
+    return path.resolve(argument);
+  }
+  return null;
+}
+
+let pendingOpenFile = sgfPathFromArgs(process.argv);
+
+function createWindow(initialFile = null) {
   const win = new BrowserWindow({
     width: 1440,
     height: 1024,
@@ -61,7 +74,10 @@ function createWindow() {
   });
 
   const pathArgument = process.argv.find((argument) => argument.startsWith('--path='));
-  const loadOptions = pathArgument ? { query: { path: pathArgument.slice('--path='.length) } } : undefined;
+  const query = {};
+  if (pathArgument) query.path = pathArgument.slice('--path='.length);
+  if (initialFile) query.file = initialFile;
+  const loadOptions = Object.keys(query).length ? { query } : undefined;
   win.loadFile(path.join(__dirname, '..', 'src', 'index.html'), loadOptions).catch((error) => {
     dialog.showErrorBox('MultiGo Neo failed to start', error.message);
     app.quit();
@@ -295,18 +311,41 @@ const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
+    const filePath = sgfPathFromArgs(argv);
     const [win] = BrowserWindow.getAllWindows();
-    if (!win) return;
+    if (!win) {
+      createWindow(filePath);
+      return;
+    }
     if (win.isMinimized()) win.restore();
     win.focus();
+    if (!filePath) return;
+    const deliver = () => {
+      if (!win.isDestroyed()) win.webContents.send('app:open-file', filePath);
+    };
+    if (win.webContents.isLoadingMainFrame()) win.webContents.once('did-finish-load', deliver);
+    else deliver();
+  });
+
+  app.on('open-file', (event, filePath) => {
+    event.preventDefault();
+    if (!/\.sgf$/i.test(filePath || '')) return;
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+      mainWindow.webContents.send('app:open-file', path.resolve(filePath));
+    } else {
+      pendingOpenFile = path.resolve(filePath);
+    }
   });
 
   app.whenReady().then(() => {
     installApplicationMenu();
     configureSessions();
     registerIpc();
-    createWindow();
+    createWindow(pendingOpenFile);
+    pendingOpenFile = null;
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();

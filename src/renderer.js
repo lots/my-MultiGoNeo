@@ -694,6 +694,7 @@
   const startupParams = new URLSearchParams(window.location.search);
   const startupSgf = startupParams.get('sgf');
   const startupPath = startupParams.get('path') || '';
+  const startupFile = startupParams.get('file') || '';
   let startupPathApplied = false;
 
   const currentNode = () => (tree && nodeId != null ? tree.get(nodeId) : null);
@@ -3031,6 +3032,23 @@
     log(`New ${gameSize().width}×${gameSize().height} game.`);
   }
 
+  async function openAssociatedFile(filePath) {
+    if (!filePath || !isElectron) return false;
+    if (dirty && !(await askConfirm('Open another game? Unsaved changes will be lost.', 'Open'))) return false;
+    try {
+      const result = await desktop.openRecent(filePath);
+      if (!result || result.canceled) return false;
+      if (applySgfText(result.content, result.filePath)) {
+        rememberRecent(result.filePath, result.content);
+        log(`Opened ${result.filePath}.`, 'success');
+        return true;
+      }
+    } catch (error) {
+      log(`Could not open ${filePath}: ${error.message}`, 'error');
+    }
+    return false;
+  }
+
   async function openSgf() {
     if (dirty && !(await askConfirm('Open another game? Unsaved changes will be lost.', 'Open'))) return;
     if (isElectron) {
@@ -5331,6 +5349,11 @@
       filePath = null;
       dirty = false;
       updateTitle();
+    } else if (startupFile) {
+      void openAssociatedFile(startupFile);
+    }
+    if (isElectron && typeof desktop.onOpenFile === 'function') {
+      desktop.onOpenFile((file) => { void openAssociatedFile(file); });
     }
     if (startupPath && !startupPathApplied) {
       if (!maybeApplyStartupPath()) log('The position link will apply once a game is loaded.', 'warn');

@@ -71,6 +71,7 @@
       "shortcutName": "MultiGo Neo",
       "uninstallDisplayName": "MultiGo Neo ${version}",
       "artifactName": "MultiGo-Neo-${version}-setup.${ext}",
+      "include": "build/installer.nsh",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico"

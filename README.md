@@ -721,6 +721,13 @@ no Microsoft Store required.
 `MultiGo-Neo-1.1.1-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
+**Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
+double-clicking an SGF in File Explorer launches MultiGo Neo and loads that file. If the app is
+already running, the existing window is focused and the file is opened there; unsaved changes
+are confirmed first. For the portable build, use **Open with → Choose another app** once to
+associate the portable executable with `.sgf`; it accepts the file path from Explorer and then
+behaves the same way.
+
 **Requirements:** Windows 10 or Windows 11, 64-bit (x64). Windows 11 on ARM runs the x64
 build through the built-in emulation.
 
@@ -829,6 +836,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Move-number count | View → Move Numbers dropdown |
 | Undo / redo | `Ctrl+Z` / `Ctrl+Shift+Z` |
 | New / open / save SGF | `Ctrl+N` / `Ctrl+O` / `Ctrl+S` |
+| Open SGF from Explorer | Double-click the associated `.sgf` (installer registers it; portable: Open with → Choose another app) |
 | Save SGF As | `Ctrl+Shift+S` |
 | Reload current file | File → Reload |
 | Import files as branches | File → Import Files as Branch… |

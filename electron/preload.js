@@ -21,6 +21,12 @@ const api = {
   saveGame: (payload) => ipcRenderer.invoke('game:save', payload),
   chooseBoardPicture: (payload) => ipcRenderer.invoke('board:choose-picture', payload),
   saveBoardPicture: (payload) => ipcRenderer.invoke('board:save-picture', payload),
+  onOpenFile: (callback) => {
+    if (typeof callback !== 'function') return () => {};
+    const listener = (_event, filePath) => callback(filePath);
+    ipcRenderer.on('app:open-file', listener);
+    return () => ipcRenderer.removeListener('app:open-file', listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('figdesk', Object.freeze(api));
