@@ -250,6 +250,31 @@
       </div>
 
       <div class="menu" role="none">
+        <button type="button" class="menu-trigger" id="menu-engine" role="menuitem"
+                aria-haspopup="true" aria-expanded="false" aria-controls="popup-engine" data-key="g">Engine</button>
+        <div class="menu-popup" id="popup-engine" role="menu" aria-labelledby="menu-engine" hidden>
+          <button type="button" class="menu-item" role="menuitem" data-action="engine-manage">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Manage Engines…</span>
+          </button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitem" data-action="engine-toggle-attach">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label" id="engine-menu-attach-label">Attach Engine</span>
+          </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="engine-genmove">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Generate Move</span>
+          </button>
+          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="engine-toggle-analysis"
+                  id="engine-menu-analysis" aria-checked="false">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Analysis</span>
+          </button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitem" data-action="engine-console">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">GTP Console…</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="menu" role="none">
         <button type="button" class="menu-trigger" id="menu-view" role="menuitem"
                 aria-haspopup="true" aria-expanded="false" aria-controls="popup-view" data-key="v">View</button>
         <div class="menu-popup" id="popup-view" role="menu" aria-labelledby="menu-view" hidden>
@@ -540,6 +565,7 @@
             <div class="tabs" role="tablist" aria-label="Information panels">
               <button type="button" class="tab is-active" id="tab-info" role="tab" aria-selected="true" aria-controls="panel-info" data-tab="info">Info</button>
               <button type="button" class="tab" id="tab-comment" role="tab" aria-selected="false" aria-controls="panel-comment" data-tab="comment">Comment</button>
+              <button type="button" class="tab" id="tab-engine" role="tab" aria-selected="false" aria-controls="panel-engine" data-tab="engine">Engine</button>
             </div>
             <div class="info-head-actions">
               <span class="panel-meta" id="file-label">Untitled</span>
@@ -600,6 +626,34 @@
             <textarea class="comment-input" id="comment-input" rows="3" placeholder="Write a comment for this node. Markdown is supported."></textarea>
             <div class="comment-preview" id="comment-preview"></div>
           </div>
+
+          <div class="tab-panel engine-tab" id="panel-engine" role="tabpanel" aria-labelledby="tab-engine" hidden>
+            <div class="engine-panel">
+              <div class="engine-picker">
+                <select id="engine-select" aria-label="GTP engine"></select>
+                <button type="button" class="btn" id="engine-attach">Attach</button>
+                <button type="button" class="btn" id="engine-manage" title="Add or edit engines">Manage…</button>
+              </div>
+              <p class="engine-status" id="engine-status">No engine attached.</p>
+              <div class="engine-actions">
+                <button type="button" class="btn" id="engine-genmove" disabled>Generate Move</button>
+                <button type="button" class="btn" id="engine-console-open" disabled>Console…</button>
+                <label class="check engine-analysis-toggle">
+                  <input type="checkbox" id="engine-analysis" disabled> Analysis
+                </label>
+              </div>
+              <div class="engine-eval" id="engine-eval" hidden>
+                <div class="engine-eval-numbers">
+                  <span class="engine-winrate" id="engine-winrate">–</span>
+                  <span class="engine-score" id="engine-score"></span>
+                </div>
+                <div class="engine-bar"><div class="engine-bar-fill" id="engine-bar-fill"></div></div>
+                <ol class="engine-moves" id="engine-moves"></ol>
+                <p class="engine-hint">Click a candidate to play it.</p>
+              </div>
+              <p class="engine-note" id="engine-note"></p>
+            </div>
+          </div>
         </section>
 
         <div class="splitter splitter-h" id="splitter-h" role="separator"
@@ -647,7 +701,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.1</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.2</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">
@@ -962,10 +1016,48 @@
     </div>
   </dialog>
 
+  <dialog id="engines-dialog" class="engines-dialog" aria-labelledby="engines-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="engines-title">GTP Engines</h2>
+      <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body">
+      <p class="dialog-help">Engine executables are started as external processes. GNU Go:
+        <code>gnugo --mode gtp</code>. KataGo: <code>katago gtp -model &lt;model&gt; -config &lt;gtp.cfg&gt;</code>.
+        Arguments are passed exactly as written.</p>
+      <div class="engine-rows" id="engine-rows"></div>
+      <button type="button" class="btn" id="engine-add">Add Engine</button>
+      <p class="dialog-error" id="engines-error" role="alert" hidden></p>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-close-dialog>Cancel</button>
+      <button type="button" class="btn btn-primary" id="engines-save">Save</button>
+    </div>
+  </dialog>
+
+  <dialog id="engine-console-dialog" class="engine-console-dialog" aria-labelledby="engine-console-title">
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="engine-console-title">GTP Console</h2>
+      <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
+    </div>
+    <div class="dialog-body engine-console-body">
+      <pre class="engine-console-log" id="engine-console-log" aria-live="polite"></pre>
+      <form class="engine-console-form" id="engine-console-form" autocomplete="off">
+        <input id="engine-console-input" placeholder="genmove B" spellcheck="false" aria-label="GTP command">
+        <button type="submit" class="btn btn-primary">Send</button>
+      </form>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-close-dialog>Close</button>
+    </div>
+  </dialog>
+
   <input type="file" id="sgf-file" accept=".sgf,application/x-go-sgf,text/plain" hidden>
   <input type="file" id="import-sgf-files" accept=".sgf,application/x-go-sgf,text/plain" multiple hidden>
   <script src="sabaki-bundle.js"></script>
   <script src="path-spec.js"></script>
+  <script src="engine-core.js"></script>
+  <script src="engine.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

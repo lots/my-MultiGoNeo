@@ -7,7 +7,9 @@ Sabaki 0.60.2 — and the design and reference material it was built from is kep
 
 This is the **core SGF editor milestone** of the migration: game tree and variations,
 lossless SGF, comments, the full markup toolset, and the fork's coloured-line/dim extensions
-are implemented. Scoring, GTP engines, alternate file formats, and the remaining MultiGo/
+are implemented. A Sabaki-derived **GTP engine layer** now sits alongside them: attach GNU Go
+or KataGo, generate moves, stream analysis into the board overlay and Engine tab, and drive
+the engine from a GTP console. Scoring, alternate file formats, and the remaining MultiGo/
 Sabaki features are planned for later phases.
 
 The renderer also ports seven interaction ideas from BesoGo: **variation badges**, **per-tool
@@ -18,7 +20,7 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The 1.1.1 build adds **Reload-in-place**, **multi-file branch import**, **PNG board export**,
+The 1.1.2 build adds **Reload-in-place**, **multi-file branch import**, **PNG board export**,
 a prominent **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**, and
 one shared lighter icon for the app, installer and portable build.
 
@@ -31,10 +33,10 @@ boards [below](#board-themes-and-responsive-layout).
 
 ## What is implemented
 
-### Version 1.1.1
+### Version 1.1.2
 
-Released 2026-11-01. The Windows artifacts are `MultiGo-Neo-1.1.1-setup.exe` and
-`MultiGo-Neo-1.1.1-portable.exe`.
+Released 2026-11-04. The Windows artifacts are `MultiGo-Neo-1.1.2-setup.exe` and
+`MultiGo-Neo-1.1.2-portable.exe`.
 
 - **File → Reload** restores the exact selected branch and node after re-reading the file;
   if the branch disappeared after an external edit, it warns and returns to the root.
@@ -42,6 +44,9 @@ Released 2026-11-01. The Windows artifacts are `MultiGo-Neo-1.1.1-setup.exe` and
   empty root nodes.
 - **Adjustable comment display size** — A−/A+ in the Comment header, persisted per app and
   never written into the SGF.
+- **Explorer integration** — the installer registers a per-user `.sgf` association; double-click
+  launches the app and loads the file, and a running instance focuses and opens it. The portable
+  build accepts the same path after manual **Open with** association.
 - **File → Save Board as Picture** opens a MultiGo-style export dialog with partial-board
   drag selection, PNG/JPEG, size/space and coordinate/grayscale options; the first opening
   selects the full board, later openings restore the last selection, the cursor becomes a hand
@@ -191,6 +196,43 @@ The Edit menu now covers variation editing as well as display edits:
 - The comment editor is replaced by the rendered comment preview.
 
 ![Read Only mode with locked controls and status badge](preview/preview-readonly.png)
+
+### GTP engines
+
+The **Engine** tab (next to Info and Comment) attaches an external GTP engine. The engine
+layer is ported from my-Sabaki/Sabaki: `electron/gtp.js` speaks the protocol, `src/engine.js`
+owns the session and UI, and `src/engine-core.js` holds the shared coordinate, analysis and
+position-rebuild helpers.
+
+- **Manage Engines…** (Engine menu, or the tab button) stores a name, executable path and
+  arguments per engine. Examples: GNU Go `gnugo --mode gtp`; KataGo
+  `katago gtp -model <model.bin.gz> -config <gtp.cfg>`.
+- **Attach / Detach** starts the executable as a child process. `name`, `version`,
+  `protocol_version` and `list_commands` are queried on attach; engines are stopped when the
+  window closes, the page reloads or the engine is detached.
+- **Board sync** rebuilds the position from the root on every move or navigation:
+  `boardsize`, `komi`, `clear_board`, `set_free_handicap` (or replayed handicap stones),
+  setup stones, then every `B`/`W` and `pass` in the current path.
+- **Generate Move** sends `genmove` for the side to move and appends the answer as a normal
+  tree node; `pass` and `resign` are handled.
+- **Analysis** streams `kata-analyze`, `lz-analyze` or `analyze` (the first command the engine
+  advertises, reporting every 500 ms). The top candidates appear as a translucent board overlay
+  with win-rate labels; the Engine tab shows the side-to-move win rate, score lead and a
+  clickable candidate list. Analysis restarts automatically after every position change.
+- **GTP Console…** shows the traffic and accepts raw commands (`genmove B`, `showboard`,
+  `final_score`).
+
+![KataGo-style analysis overlay and Engine tab](preview/engine-analysis.png)
+
+![GTP console with the fake test engine](preview/engine-console.png)
+
+![GNU Go 3.8 attached and answering a move on a 13×13 board](preview/gnugo-game.png)
+
+Limitations: GNU Go is playable but implements no analysis command, so its Analysis checkbox
+stays disabled; KataGo is the intended analysis engine. Rectangular boards are sent as
+`boardsize W H`, which KataGo accepts and strict GTP engines may reject. The analysis interval
+is fixed, there is no engine-vs-engine mode and no win-rate graph yet, and engines are external
+programs the user installs.
 
 ### Game Information
 
@@ -705,22 +747,25 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [四4 coordinates](preview/preview-cjk.png),
 [classic theme](preview/preview-theme-classic.png), [flat theme](preview/preview-theme-flat.png),
 [dark theme](preview/preview-theme-dark.png), [paper theme](preview/preview-theme-paper.png),
-[portrait layout](preview/preview-portrait.png) and [embeds](preview/preview-embed.png).
+[portrait layout](preview/preview-portrait.png),
+[engine analysis](preview/engine-analysis.png), [GTP console](preview/engine-console.png),
+[GNU Go playing](preview/gnugo-game.png)
+and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
 `scripts/verify-themes-ui.mjs`.
 
-**Electron caveat:** the dependencies are installed (Electron 37.10.3), but the Electron
-runtime cannot reach `app.ready` in this headless agent session (Chromium crashpad:
-`not connected`). The native window, native dialogs and installers were not exercised here.
-Run `npm start` from a normal interactive desktop terminal.
+**Electron caveat:** Electron needs an interactive desktop and, in this restricted agent
+session, only started with `--no-sandbox --disable-gpu`. The window, engine IPC and CDP tests
+ran that way; native dialogs and installers were not exercised here. Run `npm start` from a
+normal interactive desktop terminal.
 
 ## Install on Windows
 
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.1-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.2-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -728,7 +773,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.1-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.2-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -790,8 +835,8 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.1-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.1-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.2-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.2-portable.exe` — single-file portable build.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
@@ -887,7 +932,8 @@ Known limitations of this milestone:
 - **Only the first game tree in a collection is loaded.** Saving writes that one tree.
 - **No NGF, GIB or UGF import.** SGF only for now.
 - **No find/hotspot mode, guess mode, scoring/estimator, or dead-stone marking.**
-- **No GTP engine support** yet (planned after the core editor).
+- **GTP engines are external programs**: GNU Go has no analysis command, analysis interval and
+  win-rate graph are not configurable yet, and engine-vs-engine play is not implemented.
 - Markdown is a [safe subset](#supported-comment-markdown), not full Sabaki react-markdown; code blocks and images are not
   rendered as code/images.
 - No user theme/texture **directory** (the four built-in CSS themes are fixed), no
@@ -909,6 +955,8 @@ src/vendor/linecolor.js   adapted from my-Sabaki (MIT): coloured AR/LN values
 src/vendor/dim.js         adapted from my-Sabaki (MIT): DD/SBKDD rectangles
 src/sabaki-bundle.js      esbuild IIFE bundle exposing window.SabakiLibs
 src/path-spec.js          position-path parser/resolver/builder, shared with the embed
+src/engine-core.js        GTP vertex/analysis/sync helpers shared by renderer and tests
+src/engine.js             engine list, attach/detach, sync, analysis overlay, console
 src/index.html            menus, toolbars, tabs, board, graph, dialogs
 src/styles.css            MultiGo Neo shell, edit bar, tabs, graph, comments, portrait layout
 src/themes/*.css          Classic / Flat / Dark / Paper board palettes (CSS custom properties)
@@ -917,9 +965,13 @@ src/embed.html            zero-JS embed examples
 src/embed.js              auto-init canvas viewer for [data-multigo] elements
 src/embed.css             embed widget and demo-page styles
 electron/main.js          native window, dialogs, folder memory, IPC, --path
+electron/gtp.js           dependency-free GTP controller (framing, streaming, timeouts)
+electron/engine-manager.js  engine process registry and IPC event forwarding
 electron/preload.js       contextBridge API
 scripts/test-tree.js      5 tree/SGF/go-board tests
 scripts/test-path.js      5 position-path tests
+scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
+scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs
 scripts/test-engine.js    legacy coordinate/rules tests
 scripts/verify-port-ui.mjs CDP test for the seven ported ideas and screenshots
 scripts/verify-requests-ui.mjs CDP test for FF[4] logs, recents, pass labels and 四4
@@ -938,6 +990,7 @@ scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG 
 scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
+scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
 scripts/make-icon.ps1     regenerates the lighter Classic kaya goban icon (GDI+, no tools needed)
 build/icon.ico            shared Windows icon for the app, installer, uninstaller and portable exe (16-256 px)
@@ -973,7 +1026,7 @@ canvas renderer, tabs and game graph presentation are this project's own work.
 ## Next phases
 
 1. Scoring/estimator, dead-stone marking and score drawer.
-2. GTP engine attachment, analysis, heatmap, win-rate graph and engine-vs-engine.
+2. Engine-vs-engine play, configurable analysis interval/visits, win-rate graph, engine presets and score-lead display refinements.
 3. NGF/GIB/UGF import, collections/game chooser.
 4. Find/hotspots, guess mode, board transformations, and full SGF property editing.
 5. User theme/texture packs, richer Markdown, and complete localization of runtime messages.
