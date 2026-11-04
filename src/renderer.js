@@ -162,8 +162,10 @@
   const editbarHint = $('#editbar-hint');
   const tabInfo = $('#tab-info');
   const tabComment = $('#tab-comment');
+  const tabEngine = $('#tab-engine');
   const panelInfo = $('#panel-info');
   const panelComment = $('#panel-comment');
+  const panelEngine = $('#panel-engine');
   const commentTitle = $('#comment-title');
   const commentInput = $('#comment-input');
   const commentPreview = $('#comment-preview');
@@ -292,6 +294,10 @@
     whiteFirst: false,
     rightClickUndo: false,
     openReadOnly: false,
+    engines: [],
+    selectedEngineId: null,
+    engineAnalysis: false,
+    engineColor: 'off',
   };
   let settings = (() => {
     try {
@@ -358,6 +364,21 @@
         whiteFirst: parsed.whiteFirst === true,
         rightClickUndo: parsed.rightClickUndo === true,
         openReadOnly: parsed.openReadOnly === true,
+        engines: Array.isArray(parsed.engines)
+          ? parsed.engines
+            .filter((engine) => engine && typeof engine === 'object')
+            .map((engine) => ({
+              id: typeof engine.id === 'string' ? engine.id : '',
+              name: typeof engine.name === 'string' ? engine.name : '',
+              path: typeof engine.path === 'string' ? engine.path : '',
+              args: typeof engine.args === 'string' ? engine.args : '',
+              cwd: typeof engine.cwd === 'string' ? engine.cwd : '',
+            }))
+            .filter((engine) => engine.id && engine.path)
+          : [],
+        selectedEngineId: typeof parsed.selectedEngineId === 'string' ? parsed.selectedEngineId : null,
+        engineAnalysis: parsed.engineAnalysis === true,
+        engineColor: ['off', 'B', 'W'].includes(parsed.engineColor) ? parsed.engineColor : 'off',
       };
     } catch {
       return { ...DEFAULT_SETTINGS };
@@ -689,6 +710,7 @@
   let infoFocusSnapshot = null;
   let dirty = false;
   let allowDirtyUnload = false;
+  let quitInProgress = false;
   let cursor = null;
   let hover = null;
   let currentBoard = null;
@@ -813,6 +835,7 @@
     resizeBoard();
     updateTitle();
     if (!dirty) markClean();
+    if (window.MultiGoEngine) window.MultiGoEngine.onGameStarted();
   }
 
   function refreshBoard() {
@@ -1079,18 +1102,18 @@
   }
 
   function playAt(x, y) {
-    if (!currentBoard) return;
-    if (mode === 'edit') { editAt(x, y); return; }
+    if (!currentBoard) return false;
+    if (mode === 'edit') { editAt(x, y); return false; }
     const sign = playerToMove();
     const analysis = currentBoard.analyzeMove(sign, [x, y]);
-    if (analysis.overwrite) { log('That point is already occupied.', 'warn'); return; }
-    if (analysis.suicide) { log('Suicide is not allowed.', 'warn'); return; }
-    if (analysis.ko) { log('Ko: that recapture is not allowed yet.', 'warn'); return; }
+    if (analysis.overwrite) { log('That point is already occupied.', 'warn'); return false; }
+    if (analysis.suicide) { log('Suicide is not allowed.', 'warn'); return false; }
+    if (analysis.ko) { log('Ko: that recapture is not allowed yet.', 'warn'); return false; }
 
     const prop = sign > 0 ? 'B' : 'W';
     const value = sgfPoint(x, y);
     const existing = findChildMove(prop, value);
-    if (existing) { selectNode(existing.id); return; }
+    if (existing) { selectNode(existing.id); return true; }
 
     let selectedId = null;
     const ok = mutateTree(
@@ -1103,15 +1126,17 @@
       playMoveSound();
       renderStatus();
       logNodeProperties(currentNode());
+      if (window.MultiGoEngine) window.MultiGoEngine.onMovePlayed(sign);
     }
+    return Boolean(ok);
   }
 
   function passTurn() {
-    if (mode === 'edit') { log('Pass is only available in play mode.', 'warn'); return; }
+    if (mode === 'edit') { log('Pass is only available in play mode.', 'warn'); return false; }
     const sign = playerToMove();
     const prop = sign > 0 ? 'B' : 'W';
     const existing = findChildMove(prop, '');
-    if (existing) { selectNode(existing.id); return; }
+    if (existing) { selectNode(existing.id); return true; }
     let selectedId = null;
     const ok = mutateTree(
       (draft) => { selectedId = draft.appendNode(nodeId, { [prop]: [''] }); },
@@ -1120,7 +1145,9 @@
     if (ok) {
       playMoveSound(true);
       logNodeProperties(currentNode());
+      if (window.MultiGoEngine) window.MultiGoEngine.onMovePlayed(sign);
     }
+    return Boolean(ok);
   }
 
   // Markup ---------------------------------------------------------------
@@ -2206,6 +2233,10 @@
       drawVariationBadge(hint, stoneRadius, 1);
     }
 
+    if (window.MultiGoEngine) {
+      window.MultiGoEngine.drawOverlay(context, pointPosition, stoneRadius);
+    }
+
     if (lastPoint && settings.focusMarker !== 'none') {
       const { x: px, y: py } = pointPosition(lastPoint.x, lastPoint.y);
       const isTriangle = settings.focusMarker !== 'dot';
@@ -2656,17 +2687,26 @@
     renderCommentPreview(text);
   }
 
+  const TAB_PANELS = [
+    ['info', tabInfo, panelInfo],
+    ['comment', tabComment, panelComment],
+    ['engine', tabEngine, panelEngine],
+  ];
+
   function setTab(tab) {
     activeTab = tab;
-    const isInfo = tab === 'info';
-    tabInfo.classList.toggle('is-active', isInfo);
-    tabComment.classList.toggle('is-active', !isInfo);
-    tabInfo.setAttribute('aria-selected', String(isInfo));
-    tabComment.setAttribute('aria-selected', String(!isInfo));
-    panelInfo.hidden = !isInfo;
-    panelComment.hidden = isInfo;
-    if (isInfo) syncInfoForm();
-    else renderComment();
+    if (tab !== 'engine' && window.MultiGoEngine && window.MultiGoEngine.closeConsole) {
+      window.MultiGoEngine.closeConsole();
+    }
+    for (const [name, button, panel] of TAB_PANELS) {
+      const selected = name === tab;
+      button.classList.toggle('is-active', selected);
+      button.setAttribute('aria-selected', String(selected));
+      panel.hidden = !selected;
+    }
+    if (tab === 'info') syncInfoForm();
+    else if (tab === 'comment') renderComment();
+    else if (tab === 'engine' && window.MultiGoEngine) window.MultiGoEngine.refreshPanel();
   }
 
   // Toolbar and menus ----------------------------------------------------
@@ -2825,6 +2865,7 @@
     syncMenuState();
     updateTitle();
     if (activeTab === 'comment') renderComment();
+    if (window.MultiGoEngine) window.MultiGoEngine.onPositionChanged();
   }
 
   // Safe Markdown subset -------------------------------------------------
@@ -3917,11 +3958,25 @@
   }
 
   async function quitApp() {
-    if (dirty && !(await askConfirm('Quit without saving the current game?', 'Quit'))) return;
-    if (!isElectron) { log('Quit is only available in the desktop build.', 'warn'); return; }
-    allowDirtyUnload = true;
-    log('Closing MultiGo Neo…');
-    await desktop.quit();
+    if (quitInProgress) return;
+    quitInProgress = true;
+    try {
+      if (dirty && !(await askConfirm('Quit without saving the current game?', 'Quit'))) {
+        quitInProgress = false;
+        return;
+      }
+      if (!isElectron) {
+        log('Quit is only available in the desktop build.', 'warn');
+        quitInProgress = false;
+        return;
+      }
+      allowDirtyUnload = true;
+      log('Closing MultiGo Neo…');
+      await desktop.quit();
+    } catch {
+      quitInProgress = false;
+      allowDirtyUnload = false;
+    }
   }
 
   // Tree operations ------------------------------------------------------
@@ -4394,6 +4449,14 @@
     'reset-layout': resetLayout, 'copy-sgf': copySgf, 'paste-sgf': pasteSgf,
     'clear-recents': clearRecentFiles,
     'clear-messages': clearMessages, 'toggle-turn': toggleTurn,
+    'engine-manage': () => window.MultiGoEngine && window.MultiGoEngine.manageEngines(),
+    'engine-toggle-attach': () => window.MultiGoEngine && window.MultiGoEngine.toggleAttach(),
+    'engine-genmove': () => window.MultiGoEngine && window.MultiGoEngine.generateMove(),
+    'engine-toggle-analysis': () => window.MultiGoEngine && window.MultiGoEngine.toggleAnalysis(),
+    'engine-console': () => {
+      setTab('engine');
+      if (window.MultiGoEngine) window.MultiGoEngine.openConsole();
+    },
     preferences: openSetup, shortcuts: showShortcuts, about: showAbout,
   };
 
@@ -4456,6 +4519,7 @@
   });
   tabInfo.addEventListener('click', () => setTab('info'));
   tabComment.addEventListener('click', () => setTab('comment'));
+  tabEngine.addEventListener('click', () => setTab('engine'));
   infoDone.addEventListener('click', restoreInfoPanel);
 
   function toggleCoordinates() {
@@ -5381,6 +5445,9 @@
     if (isElectron && typeof desktop.onOpenFile === 'function') {
       desktop.onOpenFile((file) => { void openAssociatedFile(file); });
     }
+    if (isElectron && typeof desktop.onCloseRequest === 'function') {
+      desktop.onCloseRequest(() => { void quitApp(); });
+    }
     if (startupPath && !startupPathApplied) {
       if (!maybeApplyStartupPath()) log('The position link will apply once a game is loaded.', 'warn');
     }
@@ -5390,6 +5457,23 @@
     if (stored.invalid) log('The saved panel layout could not be read.', 'warn');
     renderAll();
     resizeBoard();
+    if (window.MultiGoEngine) {
+      window.MultiGoEngine.init({
+        getTree: () => tree,
+        getNodeId: () => nodeId,
+        getSettings: () => settings,
+        saveSettings,
+        log,
+        coordLabel: (x, y) => coordLabel(x, y),
+        isOccupied: (x, y) => Boolean(currentBoard && currentBoard.get([x, y]) !== 0),
+        isReadOnly: () => readOnly,
+        isEditMode: () => mode === 'edit',
+        getCurrentNode: () => currentNode(),
+        scheduleBoardDraw,
+        playMove: (x, y) => playAt(x, y),
+        playPass: () => passTurn(),
+      });
+    }
   }
 
   if (new URLSearchParams(window.location.search).has('test')) {

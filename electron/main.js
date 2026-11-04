@@ -4,14 +4,47 @@ const { app, BrowserWindow, Menu, dialog, ipcMain, session, shell } = require('e
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
+const { EngineManager } = require('./engine-manager');
+const { EngineConfig, chooseConfigPath } = require('./engine-config');
+
 const isMac = process.platform === 'darwin';
 const APP_ID = 'com.illegear.multigoneo';
 const ALLOWED_PERMISSIONS = new Set(['clipboard-read', 'clipboard-sanitized-write']);
+const engines = new EngineManager();
+let engineConfig = null;
+
+function getEngineConfig() {
+  if (engineConfig) return engineConfig;
+  const appPath = app.getAppPath();
+  const resourcesPath = process.resourcesPath;
+  const filePath = chooseConfigPath({
+    isPackaged: app.isPackaged,
+    appPath,
+    exeDir: path.dirname(process.execPath),
+    userData: app.getPath('userData'),
+    resourcesPath,
+    env: process.env,
+  });
+  const bundledDir = path.join(resourcesPath, 'engines');
+  const repoDir = path.join(appPath, 'engines');
+  engineConfig = new EngineConfig({
+    filePath,
+    seedPaths: [
+      path.join(bundledDir, 'engines.json'),
+      path.join(repoDir, 'engines.json'),
+    ],
+    fallbackDirs: [bundledDir, repoDir],
+  });
+  return engineConfig;
+}
 
 app.setName('MultiGo Neo');
 if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
 
 let mainWindow = null;
+// The top-right X is routed through the renderer so it can run the same
+// unsaved-game confirmation as File > Quit (Ctrl+Shift+Q).
+let allowWindowClose = false;
 // my-Sabaki's dialog-folder memory: Open/Save start where you last were.
 let lastDialogDirectory = null;
 
@@ -85,6 +118,19 @@ function createWindow(initialFile = null) {
 
   win.once('ready-to-show', () => win.show());
 
+  win.on('close', (event) => {
+    if (allowWindowClose) return;
+    if (win.webContents.isDestroyed() || win.webContents.isLoadingMainFrame()) return;
+    event.preventDefault();
+    win.webContents.send('app:close-request');
+  });
+
+  const webContentsId = win.webContents.id;
+
+  win.webContents.on('did-start-navigation', (_event, _url, isInPlace, isMainFrame) => {
+    if (isMainFrame && !isInPlace) engines.stopFor(webContentsId);
+  });
+
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/i.test(url)) shell.openExternal(url);
     return { action: 'deny' };
@@ -98,6 +144,7 @@ function createWindow(initialFile = null) {
   });
 
   win.on('closed', () => {
+    engines.stopFor(webContentsId);
     if (mainWindow === win) mainWindow = null;
   });
 
@@ -125,6 +172,7 @@ function windowFrom(event) {
 
 function registerIpc() {
   ipcMain.handle('app:quit', () => {
+    allowWindowClose = true;
     app.quit();
   });
 
@@ -295,6 +343,37 @@ function registerIpc() {
     rememberDialogDirectory(filePath);
     return { canceled: false, filePath, content };
   });
+
+  ipcMain.handle('engine:start', (event, payload) => engines.start(payload, event.sender));
+  ipcMain.handle('engine:send', (_event, payload) => engines.send(payload));
+  ipcMain.handle('engine:stop', (_event, payload) => engines.stop(payload));
+
+  ipcMain.handle('engines:config-load', () => getEngineConfig().load());
+  ipcMain.handle('engines:config-save', (_event, payload) => {
+    const list = payload && Array.isArray(payload.engines) ? payload.engines : null;
+    if (!list) throw new Error('No engine list was provided.');
+    return getEngineConfig().save(list);
+  });
+
+  ipcMain.handle('engine:choose-path', async (event) => {
+    const options = {
+      title: 'Choose GTP Engine',
+      defaultPath: dialogDefaultPath(),
+      properties: ['openFile'],
+      filters: process.platform === 'win32'
+        ? [
+          { name: 'Executables', extensions: ['exe', 'bat', 'cmd'] },
+          { name: 'All Files', extensions: ['*'] },
+        ]
+        : [{ name: 'All Files', extensions: ['*'] }],
+    };
+    const win = windowFrom(event);
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    if (result.canceled || result.filePaths.length === 0) return { canceled: true };
+    return { canceled: false, filePath: result.filePaths[0] };
+  });
 }
 
 function configureSessions() {
@@ -350,6 +429,11 @@ if (!hasSingleInstanceLock) {
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
+  });
+
+  app.on('before-quit', () => {
+    allowWindowClose = true;
+    engines.disposeAll();
   });
 
   app.on('window-all-closed', () => {

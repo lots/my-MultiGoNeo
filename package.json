@@ -10,9 +10,10 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "test": "node scripts/test-tree.js && node scripts/test-path.js && node scripts/test-gtp.js",
+    "test": "node scripts/test-tree.js && node scripts/test-path.js && node scripts/test-gtp.js && node scripts/test-engine-config.js",
     "test:path": "node scripts/test-path.js",
     "test:gtp": "node scripts/test-gtp.js",
+    "test:engines": "node scripts/test-engine-config.js",
     "test:legacy": "node scripts/test-engine.js",
     "bundle": "node scripts/build-sabaki-bundle.mjs",
     "icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icon.ps1",
@@ -45,6 +46,15 @@
       "src/**/*",
       "package.json",
       "LICENSE"
+    ],
+    "extraResources": [
+      {
+        "from": "engines",
+        "to": "engines",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "win": {
       "icon": "build/icon.ico",

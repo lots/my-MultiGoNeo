@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "engines": [
+    {
+      "id": "gnugo",
+      "name": "GNU Go 3.8",
+      "path": "gnugo.cmd",
+      "args": "",
+      "commands": ""
+    },
+    {
+      "id": "fuego",
+      "name": "Fuego 1.1",
+      "path": "fuego.cmd",
+      "args": "",
+      "commands": ""
+    },
+    {
+      "id": "pachi",
+      "name": "Pachi 12.50",
+      "path": "pachi.cmd",
+      "args": "",
+      "commands": ""
+    }
+  ]
+}

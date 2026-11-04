@@ -24,6 +24,9 @@ The 1.1.2 build adds **Reload-in-place**, **multi-file branch import**, **PNG bo
 a prominent **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**, and
 one shared lighter icon for the app, installer and portable build.
 
+The **GTP engine layer** described below landed after the 1.1.2 release, so the published
+1.1.2 binaries do not include it; build from this tree to use it.
+
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
 [Modified FF[4]](#modified-ff4)). The board ships in **four themes**, previewed on 13×13
@@ -199,6 +202,8 @@ The Edit menu now covers variation editing as well as display edits:
 
 ### GTP engines
 
+**Status:** new in this tree, after the 1.1.2 release — the 1.1.2 installers predate it.
+
 The **Engine** tab (next to Info and Comment) attaches an external GTP engine. The engine
 layer is ported from my-Sabaki/Sabaki: `electron/gtp.js` speaks the protocol, `src/engine.js`
 owns the session and UI, and `src/engine-core.js` holds the shared coordinate, analysis and
@@ -207,6 +212,14 @@ position-rebuild helpers.
 - **Manage Engines…** (Engine menu, or the tab button) stores a name, executable path and
   arguments per engine. Examples: GNU Go `gnugo --mode gtp`; KataGo
   `katago gtp -model <model.bin.gz> -config <gtp.cfg>`.
+- **One shared configuration file**: [`engines/engines.json`](engines/engines.json) is
+  hand-editable and is exactly what Manage Engines reads and writes. Relative paths resolve
+  next to the JSON, then against the bundled `engines/` folder; set `MULTIGO_ENGINE_CONFIG`
+  to use another file.
+- **Local shims**: [`engines/`](engines/) contains one `.cmd` per engine on this device
+  (GNU Go, Fuego, Pachi 11/12, KataGo CUDA/OpenCL/legacy, Leela Zero/0.11, AQ, AQ-mini,
+  Zen7, ZenEstimate), modelled on `Documents\Weiqi\bin`. See
+  [`engines/README.md`](engines/README.md).
 - **Attach / Detach** starts the executable as a child process. `name`, `version`,
   `protocol_version` and `list_commands` are queried on attach; engines are stopped when the
   window closes, the page reloads or the engine is detached.
@@ -215,18 +228,27 @@ position-rebuild helpers.
   setup stones, then every `B`/`W` and `pass` in the current path.
 - **Generate Move** sends `genmove` for the side to move and appends the answer as a normal
   tree node; `pass` and `resign` are handled.
+- **Engine plays** (Off / Black / White) makes the engine answer every human move
+  automatically; with Black selected it moves immediately after attaching or starting a new
+  game. In Off mode, Generate Move stays manual. The engine only auto-answers at the end of
+  the current variation, never while reviewing an earlier position.
 - **Analysis** streams `kata-analyze`, `lz-analyze` or `analyze` (the first command the engine
   advertises, reporting every 500 ms). The top candidates appear as a translucent board overlay
   with win-rate labels; the Engine tab shows the side-to-move win rate, score lead and a
   clickable candidate list. Analysis restarts automatically after every position change.
-- **GTP Console…** shows the traffic and accepts raw commands (`genmove B`, `showboard`,
-  `final_score`).
+- **GTP Console…** opens a docked console panel at the lower right of the workspace (not a
+  modal). It accepts raw commands (`genmove B`, `showboard`, `final_score`) and closes when
+  you leave the Engine tab or press its ×.
 
 ![KataGo-style analysis overlay and Engine tab](preview/engine-analysis.png)
 
-![GTP console with the fake test engine](preview/engine-console.png)
+![Docked GTP console at the lower right](preview/engine-console.png)
+
+![Manage Engines editing engines/engines.json, with the active configuration path shown](preview/engines-config.png)
 
 ![GNU Go 3.8 attached and answering a move on a 13×13 board](preview/gnugo-game.png)
+
+![Engine playing Black automatically and answering White](preview/engine-auto.png)
 
 Limitations: GNU Go is playable but implements no analysis command, so its Analysis checkbox
 stays disabled; KataGo is the intended analysis engine. Rectangular boards are sent as
@@ -452,17 +474,29 @@ There is deliberately no Video menu; it is not part of the Go editor.
 
 ### Variation badges
 
-The variation overlay now matches the MultiGo reference:
+**What they are.** Small blue letters drawn on the board — `A`, `B`, `C`… — at the points of
+the moves that can be played from the current position. They are canvas overlays, not stones,
+so the position underneath stays readable.
 
-- **Show Next Moves** places a blue **A** at the first continuation.
-- **Show Sibling Variations** places **all children of the current node** at their move
-  points, labelled **A, B, C…** in child order, only when at least two children exist. A
-  single main branch produces no marker. It does not read the current node's parent's other
-  branches.
-- No translucent ghost stones are drawn for these variation hints: the board shows only the
-  blue letters, so the position is not visually polluted.
-- This was verified against `ff4_ex_new.sgf`: the 19×19 node with six continuations shows
-  **A–F**, and the following `W d16` node shows **A–D**, matching the good MultiGo captures.
+**Why they matter.** Variations normally live only in the game tree, at the side of the board.
+Badges put the alternatives *on the board*, so you can see at a glance which continuations
+exist here, compare them with the surrounding stones, and keep the shape in view while
+reviewing. It is the MultiGo convention, and it deliberately avoids the visual noise of
+translucent ghost stones.
+
+**How to use them.**
+
+- **View → Show Next Moves** marks only the first continuation with a blue **A**.
+- **View → Show Sibling Variations** marks **all children of the current node** with
+  **A, B, C…** in child order, and only when there is more than one child. A single main
+  branch gets no marker, and it does not look at the parent's other branches.
+- The letters follow the game-tree order, so **A** is the child the tree lists first.
+- A badge is also a shortcut: clicking the point selects the existing continuation — the
+  renderer reuses the child whose move matches instead of creating a duplicate node.
+- The red triangle still marks the last move, and badges never change the SGF.
+
+This was verified against `ff4_ex_new.sgf`: the 19×19 node with six continuations shows
+**A–F**, and the following `W d16` node shows **A–D**, matching the good MultiGo captures.
 
 ![All six child variations A-F at the current position](preview/preview-variation-node23.png)
 
@@ -590,9 +624,10 @@ architecture; the dialog notes these limitations.
 
 ## Verification
 
-10 tests (`npm test`) cover variations, unknown-property preservation, immutable tree
-mutation, captures, custom rectangular sizes, the 52-point alphabet, markup round-trips and
-the position-path parser/resolver (including build/resolve round-trips through every branch).
+The suites behind `npm test` cover variations, unknown-property preservation, immutable tree
+mutation, captures, custom rectangular sizes, the 52-point alphabet, markup round-trips, the
+position-path parser/resolver (including build/resolve round-trips through every branch), the
+GTP session layer against a fake engine, and engine-configuration loading/saving.
 The legacy pure-Go helper tests remain available as `npm run test:legacy`.
 
 The UI was driven in Chromium at exactly 1440×1024, plus a 980×900 pass for the responsive
@@ -721,6 +756,11 @@ layout and a 1100×1700 pass for the embed page:
 - loaded a record ending in `B[]`, `W[]` and confirmed both tree nodes show **`p`** with the
   `pass` tooltip;
 - switched coordinates to **四4** and confirmed Arabic column numbers with Chinese row numerals;
+- attached an engine from the Engine tab and confirmed the GTP handshake status;
+- generated a move and confirmed the engine answer arrived as a normal tree node;
+- ran analysis and read the win rate and candidate list in the Engine tab, including at the
+  root, with the overlay drawn on the board;
+- opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
 - no console exceptions.
 
 All screenshots live in the [`preview/`](preview/) subfolder.
@@ -749,7 +789,8 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [dark theme](preview/preview-theme-dark.png), [paper theme](preview/preview-theme-paper.png),
 [portrait layout](preview/preview-portrait.png),
 [engine analysis](preview/engine-analysis.png), [GTP console](preview/engine-console.png),
-[GNU Go playing](preview/gnugo-game.png)
+[engine configuration](preview/engines-config.png), [GNU Go playing](preview/gnugo-game.png),
+[automatic engine play](preview/engine-auto.png)
 and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
@@ -811,8 +852,10 @@ committed, so the browser preview works without a build step.
 
 ```powershell
 npm start          # Electron window
-npm test           # tree/SGF + path-spec tests
+npm test           # tree/SGF, position-path, GTP and engine-config tests
 npm run test:path  # position-path parser only
+npm run test:gtp   # GTP session against the fake-engine fixture
+npm run test:engines  # engine configuration load/save
 npm run test:legacy
 npm run bundle     # rebuild src/sabaki-bundle.js after changing src/vendor or src/sabaki-entry.js
 npm start -- --path=B1B2   # Electron opens with a pending position path
@@ -897,9 +940,15 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Reload current file | File → Reload |
 | Import files as branches | File → Import Files as Branch… |
 | Save board as picture | File → Save Board as Picture or `Ctrl+Q` (PNG/JPEG, partial selection) |
-| Quit | File → Quit or `Ctrl+Shift+Q` |
+| Quit | File → Quit, `Ctrl+Shift+Q`, or the window X (same unsaved-game confirmation; desktop only) |
 | Copy / paste SGF | `Ctrl+Shift+C` / `Ctrl+Shift+V` |
-| Menus | `Alt+F / E / A / P / V / T / O / H` |
+| Engine tab | Click **Engine** next to Info / Comment |
+| Manage engines | Engine → Manage Engines… |
+| Attach / detach engine | Engine → Attach Engine; the same item becomes Detach Engine |
+| Generate Move | Engine → Generate Move (or the Engine tab button) |
+| Engine analysis | Engine → Analysis |
+| GTP console | Engine → GTP Console… |
+| Menus | `Alt+F / E / A / P / V / T / O / H / G` |
 | Help | `F1` |
 
 ## SGF support and limits
@@ -966,11 +1015,16 @@ src/embed.js              auto-init canvas viewer for [data-multigo] elements
 src/embed.css             embed widget and demo-page styles
 electron/main.js          native window, dialogs, folder memory, IPC, --path
 electron/gtp.js           dependency-free GTP controller (framing, streaming, timeouts)
+electron/engine-config.js reader/writer for engines/engines.json
 electron/engine-manager.js  engine process registry and IPC event forwarding
 electron/preload.js       contextBridge API
+engines/*.cmd             local engine shims (GNU Go, Fuego, Pachi, KataGo, Leela, AQ, Zen)
+engines/engines.json      hand-editable engine connection list shared with Manage Engines
+engines/README.md         shim and configuration reference
 scripts/test-tree.js      5 tree/SGF/go-board tests
 scripts/test-path.js      5 position-path tests
 scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
+scripts/test-engine-config.js  engine JSON load/save/path tests
 scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs
 scripts/test-engine.js    legacy coordinate/rules tests
 scripts/verify-port-ui.mjs CDP test for the seven ported ideas and screenshots

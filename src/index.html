@@ -635,6 +635,14 @@
                 <button type="button" class="btn" id="engine-manage" title="Add or edit engines">Manage…</button>
               </div>
               <p class="engine-status" id="engine-status">No engine attached.</p>
+              <div class="engine-color-row">
+                <label for="engine-color">Engine plays</label>
+                <select id="engine-color">
+                  <option value="off">Off (manual Generate Move)</option>
+                  <option value="B">Black — moves automatically</option>
+                  <option value="W">White — moves automatically</option>
+                </select>
+              </div>
               <div class="engine-actions">
                 <button type="button" class="btn" id="engine-genmove" disabled>Generate Move</button>
                 <button type="button" class="btn" id="engine-console-open" disabled>Console…</button>
@@ -678,6 +686,18 @@
             <button type="button" class="message-clear" id="clear-message-button">Clear</button>
           </div>
           <div class="statuslog" id="statuslog" role="log" aria-live="polite"></div>
+        </section>
+
+        <section class="engine-console-panel" id="engine-console-panel" aria-label="GTP console" hidden>
+          <div class="engine-console-head">
+            <span>GTP Console</span>
+            <button type="button" class="icon-button" id="engine-console-close" aria-label="Close console">×</button>
+          </div>
+          <pre class="engine-console-log" id="engine-console-log" aria-live="polite"></pre>
+          <form class="engine-console-form" id="engine-console-form" autocomplete="off">
+            <input id="engine-console-input" placeholder="genmove B" spellcheck="false" aria-label="GTP command">
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
         </section>
       </div>
     </main>
@@ -1022,33 +1042,21 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="dialog-help">Engine executables are started as external processes. GNU Go:
-        <code>gnugo --mode gtp</code>. KataGo: <code>katago gtp -model &lt;model&gt; -config &lt;gtp.cfg&gt;</code>.
-        Arguments are passed exactly as written.</p>
+      <p class="dialog-help">Engine executables or <code>.cmd</code> shims are started as external
+        processes. GNU Go: <code>gnugo --mode gtp</code>. KataGo:
+        <code>katago gtp -model &lt;model&gt; -config &lt;gtp.cfg&gt;</code>.
+        This dialog and <code>engines/engines.json</code> are the same list; edit either.</p>
+      <p class="dialog-help engine-config-path" id="engine-config-path"></p>
       <div class="engine-rows" id="engine-rows"></div>
-      <button type="button" class="btn" id="engine-add">Add Engine</button>
+      <div class="engine-dialog-actions">
+        <button type="button" class="btn" id="engine-add">Add Engine</button>
+        <button type="button" class="btn" id="engine-reload">Reload File</button>
+      </div>
       <p class="dialog-error" id="engines-error" role="alert" hidden></p>
     </div>
     <div class="dialog-actions">
       <button type="button" class="btn" data-close-dialog>Cancel</button>
       <button type="button" class="btn btn-primary" id="engines-save">Save</button>
-    </div>
-  </dialog>
-
-  <dialog id="engine-console-dialog" class="engine-console-dialog" aria-labelledby="engine-console-title">
-    <div class="dialog-head">
-      <h2 class="dialog-title" id="engine-console-title">GTP Console</h2>
-      <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
-    </div>
-    <div class="dialog-body engine-console-body">
-      <pre class="engine-console-log" id="engine-console-log" aria-live="polite"></pre>
-      <form class="engine-console-form" id="engine-console-form" autocomplete="off">
-        <input id="engine-console-input" placeholder="genmove B" spellcheck="false" aria-label="GTP command">
-        <button type="submit" class="btn btn-primary">Send</button>
-      </form>
-    </div>
-    <div class="dialog-actions">
-      <button type="button" class="btn" data-close-dialog>Close</button>
     </div>
   </dialog>
 
