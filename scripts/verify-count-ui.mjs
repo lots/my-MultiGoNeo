@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-// Drives the Count Territory flow in a DevTools-enabled Chromium.
+// Drives the Play > Estimate / Play > Score flow in a DevTools-enabled Chromium.
 //
 //   node scripts/verify-count-ui.mjs 9347 . "file:///.../src/index.html?test=1"
 
@@ -203,6 +203,7 @@ const menuEstimate = await evaluate(`(() => {
     dead: c.dead,
     result: document.getElementById('count-result').textContent,
     title: document.querySelector('.count-title').textContent,
+    hint: document.querySelector('.count-hint').textContent,
   };
 })()`)
 await sleep(200)
@@ -218,19 +219,20 @@ const menuScore = await evaluate(`(() => {
     dead: c.dead,
     result: document.getElementById('count-result').textContent,
     title: document.querySelector('.count-title').textContent,
+    hint: document.querySelector('.count-hint').textContent,
   };
 })()`)
 await sleep(200)
 await shot('preview/preview-score.png')
 
-const toolsCount = await evaluate(`(() => {
+// The old Count Territory command must be gone; only Estimate / Score remain.
+const legacyCountRemoved = await evaluate(`(() => {
   __figdesk.exitCount();
-  document.getElementById('menu-tools').click();
-  document.querySelector('#popup-tools [data-action="count-territory"]').click();
-  const c = __figdesk.count();
-  const result = { active: c.active, mode: c.mode };
-  __figdesk.exitCount();
-  return result;
+  return {
+    menuItem: Boolean(document.querySelector('[data-action="count-territory"]')),
+    estimate: Boolean(document.querySelector('[data-action="estimate"]')),
+    score: Boolean(document.querySelector('[data-action="score"]')),
+  };
 })()`)
 
 const sgf = `(;GM[1]FF[4]SZ[13]KM[6.5]RU[Japanese]PB[Black]PW[White]`
@@ -362,6 +364,6 @@ await evaluate(`__figdesk.applySgfText('(;GM[1]FF[4]SZ[8]AB[aa][ah][ha][hh])', '
 await sleep(350)
 await shot('preview/preview-8x8.png')
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, toolsCount, initial, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, errors }, null, 2))
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

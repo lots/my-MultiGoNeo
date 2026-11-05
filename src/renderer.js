@@ -629,15 +629,15 @@
     'Remember Last Board Size': '记住上次棋盘尺寸',
     'Autoplay Delay': '自动播放间隔',
     'Reset All Settings': '重置所有设置', 'Keyboard Shortcuts': '快捷键', 'About MultiGo Neo': '关于 MultiGo Neo',
-    'Count Territory': '计算领地', 'Show Go Bowls': '显示棋钵', Rules: '规则',
+    'Show Go Bowls': '显示棋钵', Rules: '规则',
     Estimate: '形势判断', Score: '计算胜负',
-    'Estimated dead stones. Click a stone to adjust.': '已估算死子，点击棋子可调整。',
+    'Toggle group status.': '点击切换棋块状态。',
+    'Please select dead stones.': '请选择死子。',
     Japanese: '日本规则', Chinese: '中国规则',
     'Black territory': '黑方领地', 'White territory': '白方领地',
     'Black prisoners': '黑方提子', 'White prisoners': '白方提子',
     'Black stones': '黑方棋子', 'White stones': '白方棋子',
     Dame: '单官', Komi: '贴目', 'Write RE': '写入结果', Done: '完成',
-    'Click stones to mark them dead.': '点击棋子标记为死子。',
     'Both players passed, so the game is over. Count the result?': '双方连续停一手，对局结束。要计算胜负吗？',
     'Count Result': '计算胜负', 'Keep Playing': '继续对局',
     Info: '信息', Comment: '注释', 'Game Tree': '棋谱树', Message: '消息', Clear: '清除',
@@ -1322,7 +1322,7 @@
 
   function updateBowls() {
     // Bowls are live during play (Japanese rules) and while counting; the
-    // counting card only adds dead stones to the prisoner totals.
+    // scoring card only adds dead stones to the prisoner totals.
     const rules = countState.active ? countState.rules : gameRules();
     const show = settings.showBowls !== false && rules === 'japanese' && bowlRoom();
     const changed = bowlBlack.hidden === show;
@@ -1344,8 +1344,8 @@
     countCard.dataset.mode = countState.mode;
     countTitle.textContent = t(countState.mode === 'estimate' ? 'Estimate' : 'Score');
     countHint.textContent = t(countState.mode === 'estimate'
-      ? 'Estimated dead stones. Click a stone to adjust.'
-      : 'Click stones to mark them dead.');
+      ? 'Toggle group status.'
+      : 'Please select dead stones.');
     countRulesSelect.value = countState.rules;
     const result = countState.result;
     if (!result) return;
@@ -1388,7 +1388,7 @@
     syncMenuState();
     const label = countState.mode === 'estimate' ? 'Estimate' : 'Score';
     log(`${label} (${countState.rules === 'chinese' ? 'Chinese area' : 'Japanese territory'}):`
-      + `${countState.mode === 'estimate' ? ' dead stones estimated, click to adjust.' : ' click stones to mark them dead.'}`);
+      + `${countState.mode === 'estimate' ? ' toggle group status.' : ' please select dead stones.'}`);
     return true;
   }
 
@@ -1403,16 +1403,12 @@
     updateCountPanel();
     refreshCountLayout();
     syncMenuState();
-    log('Counting closed.');
+    log('Scoring closed.');
   }
 
   function toggleCountMode(mode) {
     if (countState.active && countState.mode === mode) exitCount();
     else enterCount(settings.countRules, mode);
-  }
-
-  function toggleCountTerritory() {
-    toggleCountMode('score');
   }
 
   function toggleCountStone(x, y) {
@@ -3212,7 +3208,6 @@
     const hasChild = Boolean(node && node.children.length);
     setMenuItemChecked('toggle-next-moves', settings.showNextMoves);
     setMenuItemChecked('toggle-siblings', settings.showSiblings);
-    setMenuItemChecked('count-territory', countState.active);
     setMenuItemChecked('estimate', countState.active && countState.mode === 'estimate');
     setMenuItemChecked('score', countState.active && countState.mode === 'score');
     setMenuItemChecked('toggle-bowls', settings.showBowls !== false);
@@ -4840,7 +4835,6 @@
     'toggle-coords': toggleCoordinates, 'toggle-numbers': toggleMoveNumbers,
     'toggle-next-moves': () => toggleSettingFlag('showNextMoves', (on) => `Next moves ${on ? 'shown' : 'hidden'}.`),
     'toggle-siblings': () => toggleSettingFlag('showSiblings', (on) => `Sibling variations ${on ? 'shown' : 'hidden'}.`),
-    'count-territory': toggleCountTerritory,
     estimate: () => toggleCountMode('estimate'),
     score: () => toggleCountMode('score'),
     'toggle-bowls': toggleGoBowls,
@@ -5667,7 +5661,6 @@
       else if (key === 'e' && event.shiftKey) { event.preventDefault(); runAction(() => toggleCountMode('estimate')); }
       else if (key === 'r' && event.shiftKey) { event.preventDefault(); runAction(() => toggleCountMode('score')); }
       else if (key === 'e') { event.preventDefault(); runAction(toggleEditMode); }
-      else if (key === 'k') { event.preventDefault(); runAction(toggleCountTerritory); }
       else if (key === 'p' && event.shiftKey) { event.preventDefault(); runAction(toggleTurn); }
       else if (key === 'd' && event.shiftKey) { event.preventDefault(); runAction(() => selectTool('dim')); }
       else if (key === 'c' && event.shiftKey) { event.preventDefault(); runAction(copySgf); }

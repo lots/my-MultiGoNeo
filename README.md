@@ -9,8 +9,8 @@ This is the **core SGF editor milestone** of the migration: game tree and variat
 lossless SGF, comments, the full markup toolset, and the fork's coloured-line/dim extensions
 are implemented. A Sabaki-derived **GTP engine layer** now sits alongside them: attach GNU Go
 or KataGo, generate moves, stream analysis into the board overlay and Engine tab, and drive
-the engine from a GTP console. **Counting territory** (Japanese or Chinese) marks dead stones,
-shades ownership and writes the result to `RE`. Alternate file formats and the remaining
+the engine from a GTP console. **Play → Estimate / Score** (Japanese or Chinese) marks dead
+stones, shades ownership and writes the result to `RE`. Alternate file formats and the remaining
 MultiGo/Sabaki features are planned for later phases.
 
 The renderer also ports seven interaction ideas from BesoGo: **variation badges**, **per-tool
@@ -21,7 +21,7 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.3 build** adds the Sabaki-derived **GTP engine layer**, MultiGo-style **counting
+The **1.1.3 build** adds the Sabaki-derived **GTP engine layer**, Sabaki-style **scoring
 territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board edge
 fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**, **PNG board
 export**, the **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**
@@ -44,10 +44,10 @@ Released 2026-11-05. The Windows artifacts are `MultiGo-Neo-1.1.3-setup.exe` and
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
   overlay and Engine tab, and drive the engine from the docked GTP console. See
   [GTP engines](#gtp-engines).
-- **Counting territory** — MultiGo-style counting with dead-stone marking, Japanese and Chinese
+- **Estimate and Score** — Sabaki-style scoring with dead-stone marking, Japanese and Chinese
   rules, board shading, dame dots, captured-stone bowls and **Write RE**. **Play → Estimate**
   pre-marks dead stones; **Play → Score** starts manual. See
-  [Counting territory](#counting-territory).
+  [Estimate and Score](#estimate-and-score).
 - **Two consecutive passes** end the game and offer to count the result.
 - **Captured-stone bowls** stay visible during Japanese-rules play, drawn top-down on light wood
   beside the goban and glued to it when the pane resizes.
@@ -146,7 +146,7 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   `12. AR[aa:ae:red]`. Comments stay in the Comment tab rather than flooding the log.
 - Setup stone tools are toggles: clicking the same colour removes the stone, clicking the
   opposite colour replaces it.
-- Counting is manual and lives in [Counting territory](#counting-territory).
+- Scoring is manual and lives in [Estimate and Score](#estimate-and-score).
 
 ![FF[4] move and non-move properties in the Message panel](preview/preview-property-log.png)
 
@@ -478,7 +478,7 @@ The View menu now covers the practical MultiGo-style display controls:
 - **Show Sibling Variations**: **all child variations of the current node**, labelled
   **A, B, C…** in child order, but **only when there is more than one child**. A single
   continuation is the main branch and gets no sibling marker.
-- **Show Go Bowls**: the captured-stone bowls shown during play and counting in Japanese rules
+- **Show Go Bowls**: the captured-stone bowls shown during play and scoring in Japanese rules
   (hidden automatically when the board pane is too narrow)
 - the last move keeps the **red triangle** marker in every mode
 - **Responsive Layout**
@@ -532,27 +532,25 @@ line/arrow/dim preview.
 
 ![Pass nodes use the compact p label](preview/preview-pass-tree.png)
 
-### Counting territory
+### Estimate and Score
 
-**Play → Score** (`Ctrl+Shift+R`) and **Tools → Count Territory** (`Ctrl+K`) open the manual
-counting card; **Play → Estimate** (`Ctrl+Shift+E`) opens the same card with the dead stones
-already estimated, ready to adjust. The board is shaded either way, and the editor does the
-arithmetic.
+**Play → Estimate** (`Ctrl+Shift+E`) and **Play → Score** (`Ctrl+Shift+R`) are the two scoring
+modes, following Sabaki. Estimate opens the scoring card with the dead stones already estimated;
+Score opens it with no dead stones and waits for you to pick them. The board is shaded either
+way, and the editor does the arithmetic.
 
-- **Estimate vs Score**: Estimate runs a heuristic over the position — a chain with no eye whose
-  liberties are sealed inside enemy territory is marked dead — then you can click to correct it.
-  Score starts with no dead stones and waits for you to select them. Both use the same card and
-  the same rules switch.
+- **Estimate**: runs a heuristic over the position — a chain with no eye whose liberties are
+  sealed inside enemy territory is marked dead — and then lets you toggle groups to correct it.
+- **Score**: starts clean; clicking a stone marks its whole chain dead (and counts it as a
+  prisoner), clicking again revives it. A marked chain gets a red X.
 - **Shading**: black-held points are dark, white-held points are light, and neutral **dame**
   points get a small grey dot.
-- **Dead stones**: click a stone to mark its whole chain dead (and count it as a prisoner);
-  click again to revive it. A marked chain gets a red X. Empty points are left alone.
 - **Rules**: Japanese (territory + prisoners) or Chinese (stones + territory). Komi is read
   from the root `KM` property and shown in the card.
 - **Card**: territory for both sides, prisoners (Japanese) or stones on the board (Chinese),
   dame, komi and the result — `B+3.5`, `W+0.5` or `Jigo`.
 - **Write RE** stores the result in the root node (and the title updates); **Done** or `Esc`
-  closes counting. The card only takes clicks on its controls, so stones underneath it remain
+  closes scoring. The card only takes clicks on its controls, so stones underneath it remain
   clickable.
 - **Captured-stone bowls**: two light-wood bowls flank the goban for the whole Japanese-rules
   game and stay glued to it when the pane resizes — they are laid out beside the board, not
@@ -561,15 +559,15 @@ arithmetic.
   white one), each with 3D radial shading, a specular highlight and a drop shadow so both
   colours stay legible on the light wood. No number is printed in the bowl — the status bar
   already shows `Captures: B n · W n`. They update live as captures are played, and again while
-  counting (dead stones join the prisoner total). In Chinese rules they stay hidden, they
+  scoring (dead stones join the prisoner total). In Chinese rules they stay hidden, they
   disappear when the board pane is too narrow, and **View → Show Go Bowls** turns them off
   manually.
 
 Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
-alive, just like pressing count in MultiGo. Estimate is only a heuristic, so correct it by hand
-when it gets a group wrong.
+alive, just like Sabaki's score mode. Estimate is only a heuristic, so correct it by hand when
+it gets a group wrong.
 
-![Japanese counting: shaded territory, dame dots and the two captured-stone bowls](preview/preview-count-japanese.png)
+![Japanese scoring: shaded territory, dame dots and the two captured-stone bowls](preview/preview-count-japanese.png)
 
 ![A dead stone marked with a red X; Black now holds one prisoner](preview/preview-count-dead.png)
 
@@ -579,7 +577,7 @@ when it gets a group wrong.
 
 ![Play > Score: the same position with no dead stones selected](preview/preview-score.png)
 
-The bowls are live during play as well, not only while counting — here Black has captured one
+The bowls are live during play as well, not only while scoring — here Black has captured one
 White stone and the bowl shows it:
 
 ![Captured-stone bowls during play, drawn top-down on light wood](preview/preview-bowls.png)
@@ -587,7 +585,7 @@ White stone and the bowl shows it:
 ![The white bowl holding a captured black stone, clearly visible on the light wood](preview/preview-bowls-white.png)
 
 When two passes are played consecutively the game is over: a prompt offers **Count Result** or
-**Keep Playing**, and accepting opens the same counting card.
+**Keep Playing**, and accepting opens the same scoring card.
 
 ### Board themes and responsive layout
 
@@ -842,7 +840,7 @@ layout and a 1100×1700 pass for the embed page:
 - ran analysis and read the win rate and candidate list in the Engine tab, including at the
   root, with the overlay drawn on the board;
 - opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
-- opened **Count Territory** on a 13×13 position with a black and a white wall and confirmed
+- chose **Play → Score** on a 13×13 position with a black and a white wall and confirmed
   black/white territory **39/52**, 90 dame and `W+58.5`;
 - confirmed the captured-stone bowls are already visible **during play** on a Japanese-rules
   game, showing exactly one white stone (no duplicated number) with the status bar reading
@@ -855,15 +853,14 @@ layout and a 1100×1700 pass for the embed page:
 - chose **Play → Estimate** and confirmed it entered Estimate mode with the sealed white stone
   already marked dead and `B+43.5` shown, then **Play → Score** on the same position and
   confirmed no dead stones and `W+6.5`;
-- confirmed **Tools → Count Territory** still opens manual Score mode;
 - clicked the lone white stone inside Black's area and confirmed it became one prisoner, Black's
   territory stayed 39, the result moved to `W+18.5` and the black bowl showed **1**;
 - switched to **Chinese** rules and confirmed stone counts replaced prisoners, the bowls hid and
   the result became `W+19.5`;
-- wrote the result to `RE` and confirmed it round-tripped into the SGF; `Esc` closed counting;
+- wrote the result to `RE` and confirmed it round-tripped into the SGF; `Esc` closed scoring;
 - shrank the board pane to 520 px and confirmed the bowls hid themselves;
 - played two consecutive passes, saw the **Count Result** prompt, and confirmed accepting it
-  opened the counting card;
+  opened the scoring card;
 - rendered **8×8, 4×4 and 2×2** boards and confirmed the edge stones stay inside the canvas
   (14–17 px clearance) with the coordinate labels 8 px clear of the stones;
 - no console exceptions.
@@ -896,9 +893,9 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [engine analysis](preview/engine-analysis.png), [GTP console](preview/engine-console.png),
 [engine configuration](preview/engines-config.png), [GNU Go playing](preview/gnugo-game.png),
 [automatic engine play](preview/engine-auto.png),
-[Japanese counting](preview/preview-count-japanese.png),
+[Japanese scoring](preview/preview-count-japanese.png),
 [dead stone counted](preview/preview-count-dead.png),
-[Chinese counting](preview/preview-count-chinese.png),
+[Chinese scoring](preview/preview-count-chinese.png),
 [play-time captured-stone bowls](preview/preview-bowls.png),
 [captured black stone in the white bowl](preview/preview-bowls-white.png),
 [Play > Estimate](preview/preview-estimate.png), [Play > Score](preview/preview-score.png),
@@ -1060,9 +1057,8 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Generate Move | Engine → Generate Move (or the Engine tab button) |
 | Engine analysis | Engine → Analysis |
 | GTP console | Engine → GTP Console… |
-| Count territory | Play → Score (`Ctrl+Shift+R`) or Tools → Count Territory (`Ctrl+K`); click stones to mark them dead |
-| Estimate score | Play → Estimate (`Ctrl+Shift+E`) — opens the same card with dead stones estimated |
-| Close counting | `Esc` or the **Done** button in the count card |
+| Estimate / Score | Play → Estimate (`Ctrl+Shift+E`) or Play → Score (`Ctrl+Shift+R`); click stones to mark them dead |
+| Close scoring | `Esc` or the **Done** button in the scoring card |
 | Captured-stone bowls | View → Show Go Bowls (Japanese games, wide board panes only) |
 | Menus | `Alt+F / E / A / P / V / T / O / H / G` |
 | Help | `F1` |
@@ -1096,8 +1092,8 @@ Known limitations of this milestone:
 
 - **Only the first game tree in a collection is loaded.** Saving writes that one tree.
 - **No NGF, GIB or UGF import.** SGF only for now.
-- **No find/hotspot mode or guess mode.** Counting is manual: seki and life-and-death are the
-  player's judgement, with no automatic dead-stone suggestion.
+- **No find/hotspot mode or guess mode.** Scoring is manual: seki and life-and-death are the
+  player's judgement; Estimate offers a heuristic dead-stone suggestion that you can correct.
 - **GTP engines are external programs**: GNU Go has no analysis command, analysis interval and
   win-rate graph are not configurable yet, and engine-vs-engine play is not implemented.
 - Markdown is a [safe subset](#supported-comment-markdown), not full Sabaki react-markdown; code blocks and images are not
@@ -1162,7 +1158,7 @@ scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transf
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
 scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
-scripts/verify-count-ui.mjs CDP test for counting, dead stones, bowls, RE and double passes
+scripts/verify-count-ui.mjs CDP test for Estimate/Score, dead stones, bowls, RE and double passes
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
@@ -1199,7 +1195,7 @@ canvas renderer, tabs and game graph presentation are this project's own work.
 
 ## Next phases
 
-1. Automatic dead-stone suggestion and score-drawer refinements for counting.
+1. Automatic dead-stone suggestion and score-drawer refinements for scoring.
 2. Engine-vs-engine play, configurable analysis interval/visits, win-rate graph, engine presets and score-lead display refinements.
 3. NGF/GIB/UGF import, collections/game chooser.
 4. Find/hotspots, guess mode, board transformations, and full SGF property editing.
