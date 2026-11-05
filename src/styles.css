@@ -2362,7 +2362,7 @@ kbd {
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  width: 86px;
+  width: 104px;
   pointer-events: none;
 }
 
@@ -2370,24 +2370,14 @@ kbd {
   display: none;
 }
 
-.bowl-black { left: 6px; }
-.bowl-white { right: 6px; }
+.bowl-black { left: 2px; }
+.bowl-white { right: 2px; }
 
 .bowl-art {
-  width: 86px;
-  height: 86px;
+  width: 104px;
+  height: 104px;
   overflow: visible;
   filter: drop-shadow(0 2px 5px rgba(40, 24, 8, 0.32));
-}
-
-.bowl-number {
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  fill: #fdf7ea;
-  paint-order: stroke;
-  stroke: rgba(40, 24, 8, 0.55);
-  stroke-width: 0.7px;
 }
 
 .bowl-label {

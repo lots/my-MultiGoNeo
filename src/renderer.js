@@ -197,8 +197,6 @@
   };
   const bowlBlack = $('#bowl-black');
   const bowlWhite = $('#bowl-white');
-  const bowlBlackCount = $('#bowl-black-count');
-  const bowlWhiteCount = $('#bowl-white-count');
   const bowlBlackStones = $('#bowl-black-stones');
   const bowlWhiteStones = $('#bowl-white-stones');
   const labelDialog = $('#label-dialog');
@@ -1189,7 +1187,7 @@
   }
 
   // Counting -------------------------------------------------------------
-  const COUNT_BOWL_SPACE = 104;
+  const COUNT_BOWL_SPACE = 114;
   const COUNT_MIN_BOARD = 320;
   const countState = {
     active: false,
@@ -1241,14 +1239,20 @@
   }
 
   const BOWL_STONES = (() => {
-    const points = [];
-    for (let i = 0; i < 12; i += 1) {
-      const angle = ((i * 30) - 90) * (Math.PI / 180);
-      points.push([50 + Math.cos(angle) * 27.5, 50 + Math.sin(angle) * 27.5]);
+    // Fill from the centre outwards so one or two captured stones sit where the
+    // eye expects them, with the rim left clear.
+    const points = [[50, 50]];
+    for (let i = 0; i < 6; i += 1) {
+      const angle = ((i * 60) - 90) * (Math.PI / 180);
+      points.push([50 + Math.cos(angle) * 13, 50 + Math.sin(angle) * 13]);
     }
     for (let i = 0; i < 8; i += 1) {
       const angle = ((i * 45) - 67.5) * (Math.PI / 180);
-      points.push([50 + Math.cos(angle) * 19.5, 50 + Math.sin(angle) * 19.5]);
+      points.push([50 + Math.cos(angle) * 22.5, 50 + Math.sin(angle) * 22.5]);
+    }
+    for (let i = 0; i < 6; i += 1) {
+      const angle = ((i * 60) - 60) * (Math.PI / 180);
+      points.push([50 + Math.cos(angle) * 30, 50 + Math.sin(angle) * 30]);
     }
     return points;
   })();
@@ -1276,17 +1280,27 @@
   function renderBowlStones(group, count, stoneSign) {
     if (!group) return;
     const shown = Math.max(0, Math.min(Number(count) || 0, BOWL_STONES.length));
-    if (group.children.length === shown) return;
+    if (group.children.length === shown * 2) return;
+    const isWhite = stoneSign < 0;
     group.replaceChildren();
     for (let index = 0; index < shown; index += 1) {
       const [cx, cy] = BOWL_STONES[index];
+      const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      shadow.setAttribute('cx', cx.toFixed(2));
+      shadow.setAttribute('cy', (cy + 0.9).toFixed(2));
+      shadow.setAttribute('r', '6.6');
+      shadow.setAttribute('class', 'bowl-stone-shadow');
+      shadow.setAttribute('fill', 'rgba(74, 48, 18, 0.28)');
+      group.append(shadow);
+
       const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       stone.setAttribute('cx', cx.toFixed(2));
       stone.setAttribute('cy', cy.toFixed(2));
-      stone.setAttribute('r', '5.4');
-      stone.setAttribute('fill', stoneSign > 0 ? '#f4f2ea' : '#1d1f23');
-      stone.setAttribute('stroke', stoneSign > 0 ? '#b9b6aa' : '#5b6068');
-      stone.setAttribute('stroke-width', '0.9');
+      stone.setAttribute('class', 'bowl-stone');
+      stone.setAttribute('r', '6.6');
+      stone.setAttribute('fill', isWhite ? '#fffdf4' : '#121418');
+      stone.setAttribute('stroke', isWhite ? '#5a421f' : '#f3e7cd');
+      stone.setAttribute('stroke-width', isWhite ? '1.25' : '1');
       group.append(stone);
     }
   }
@@ -1301,8 +1315,6 @@
     bowlWhite.hidden = !show;
     if (show) {
       const counts = bowlCounts();
-      bowlBlackCount.textContent = String(counts.black);
-      bowlWhiteCount.textContent = String(counts.white);
       // The black bowl keeps White's captured stones and the white bowl Black's.
       renderBowlStones(bowlBlackStones, counts.black, -1);
       renderBowlStones(bowlWhiteStones, counts.white, 1);
@@ -5880,7 +5892,10 @@
         rules: countState.rules,
         dead: [...countState.dead],
         result: countState.result,
-        bowls: { shown: !bowlBlack.hidden, black: bowlBlackCount.textContent, white: bowlWhiteCount.textContent },
+        bowls: (() => {
+          const counts = bowlCounts();
+          return { shown: !bowlBlack.hidden, black: counts.black, white: counts.white };
+        })(),
       }),
       enterCount: (rules) => enterCount(rules),
       exitCount: () => exitCount(),

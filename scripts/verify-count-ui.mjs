@@ -119,14 +119,37 @@ const captureSgf = '(;GM[1]FF[4]SZ[9]RU[Japanese]PB[Black]PW[White]KM[6.5]'
   + ';B[ed];W[ee];B[ef];W[ad];B[de];W[ae];B[fe])'
 await evaluate(`__figdesk.applySgfText(${JSON.stringify(captureSgf)}, 'captures.sgf')`)
 await selectLeaf()
-const playBowls = await evaluate(`(() => ({
-  visible: !document.getElementById('bowl-black').hidden,
-  black: document.getElementById('bowl-black-count').textContent,
-  white: document.getElementById('bowl-white-count').textContent,
-  blackStones: document.querySelectorAll('#bowl-black-stones circle').length,
-  whiteStones: document.querySelectorAll('#bowl-white-stones circle').length,
-}))()`)
+const playBowls = await evaluate(`(() => {
+  const c = __figdesk.count().bowls;
+  return {
+    visible: !document.getElementById('bowl-black').hidden,
+    black: c.black,
+    white: c.white,
+    blackStones: document.querySelectorAll('#bowl-black-stones .bowl-stone').length,
+    whiteStones: document.querySelectorAll('#bowl-white-stones .bowl-stone').length,
+    status: document.getElementById('status-captures').textContent,
+  };
+})()`)
 await shot('preview/preview-bowls.png')
+
+// The mirror case: White captures a Black stone, so the White bowl shows a
+// black stone (the contrast case that used to vanish on the dark bowl).
+const whiteCaptureSgf = '(;GM[1]FF[4]SZ[9]RU[Japanese]PB[Black]PW[White]KM[6.5]'
+  + ';B[aa];W[ed];B[ee];W[ef];B[ab];W[de];B[ac];W[fe])'
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(whiteCaptureSgf)}, 'white-captures.sgf')`)
+await selectLeaf()
+const whiteBowls = await evaluate(`(() => {
+  const c = __figdesk.count().bowls;
+  return {
+    visible: !document.getElementById('bowl-white').hidden,
+    black: c.black,
+    white: c.white,
+    blackStones: document.querySelectorAll('#bowl-black-stones .bowl-stone').length,
+    whiteStones: document.querySelectorAll('#bowl-white-stones .bowl-stone').length,
+    status: document.getElementById('status-captures').textContent,
+  };
+})()`)
+await shot('preview/preview-bowls-white.png')
 
 // Chinese rules do not use prisoners, so the bowls stay hidden during play.
 const chineseSgf = '(;GM[1]FF[4]SZ[9]RU[Chinese]PB[Black]PW[White];B[ed];W[ee];B[ef])'
@@ -134,7 +157,7 @@ await evaluate(`__figdesk.applySgfText(${JSON.stringify(chineseSgf)}, 'chinese.s
 await selectLeaf()
 const chineseBowls = await evaluate(`({
   visible: !document.getElementById('bowl-black').hidden,
-  white: document.getElementById('bowl-white-count').textContent,
+  white: __figdesk.count().bowls.white,
 })`)
 
 const sgf = `(;GM[1]FF[4]SZ[13]KM[6.5]RU[Japanese]PB[Black]PW[White]`
@@ -170,8 +193,10 @@ const afterDead = await evaluate(`(() => {
     blackTerritory: document.getElementById('count-black-territory').textContent,
     blackPrisoners: document.getElementById('count-black-prisoners').textContent,
     result: document.getElementById('count-result').textContent,
-    bowlBlack: document.getElementById('bowl-black-count').textContent,
-    bowlWhite: document.getElementById('bowl-white-count').textContent,
+    bowlBlack: c.bowls.black,
+    bowlWhite: c.bowls.white,
+    bowlBlackStones: document.querySelectorAll('#bowl-black-stones .bowl-stone').length,
+    bowlWhiteStones: document.querySelectorAll('#bowl-white-stones .bowl-stone').length,
   };
 })()`)
 await shot('preview/preview-count-dead.png')
@@ -242,6 +267,6 @@ const doublePass = await evaluate(`(async () => {
   return { open, message, counting };
 })()`)
 
-console.log(JSON.stringify({ playBowls, chineseBowls, initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
+console.log(JSON.stringify({ playBowls, whiteBowls, chineseBowls, initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)
