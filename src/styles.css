@@ -2375,19 +2375,19 @@ kbd {
 
 .bowl-art {
   width: 86px;
-  height: 79px;
+  height: 86px;
   overflow: visible;
-  filter: drop-shadow(0 2px 4px rgba(40, 24, 8, 0.28));
+  filter: drop-shadow(0 2px 5px rgba(40, 24, 8, 0.32));
 }
 
 .bowl-number {
   font-family: inherit;
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 700;
   fill: #fdf7ea;
   paint-order: stroke;
-  stroke: rgba(40, 24, 8, 0.45);
-  stroke-width: 0.8px;
+  stroke: rgba(40, 24, 8, 0.55);
+  stroke-width: 0.7px;
 }
 
 .bowl-label {

@@ -104,6 +104,39 @@ if (!ready) throw new Error('MultiGo Neo did not initialise')
 
 const letter = (index) => String.fromCharCode(97 + index)
 const column = (x) => Array.from({ length: 13 }, (_, y) => `[${letter(x)}${letter(y)}]`).join('')
+
+async function selectLeaf() {
+  await evaluate(`(() => {
+    let leaf = window.__figdesk.tree.root;
+    while (leaf.children.length) leaf = leaf.children[0];
+    window.__figdesk.selectNode(leaf.id);
+  })()`)
+  await sleep(250)
+}
+
+// Bowls are live during play: Black captures one White stone with this sequence.
+const captureSgf = '(;GM[1]FF[4]SZ[9]RU[Japanese]PB[Black]PW[White]KM[6.5]'
+  + ';B[ed];W[ee];B[ef];W[ad];B[de];W[ae];B[fe])'
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(captureSgf)}, 'captures.sgf')`)
+await selectLeaf()
+const playBowls = await evaluate(`(() => ({
+  visible: !document.getElementById('bowl-black').hidden,
+  black: document.getElementById('bowl-black-count').textContent,
+  white: document.getElementById('bowl-white-count').textContent,
+  blackStones: document.querySelectorAll('#bowl-black-stones circle').length,
+  whiteStones: document.querySelectorAll('#bowl-white-stones circle').length,
+}))()`)
+await shot('preview/preview-bowls.png')
+
+// Chinese rules do not use prisoners, so the bowls stay hidden during play.
+const chineseSgf = '(;GM[1]FF[4]SZ[9]RU[Chinese]PB[Black]PW[White];B[ed];W[ee];B[ef])'
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(chineseSgf)}, 'chinese.sgf')`)
+await selectLeaf()
+const chineseBowls = await evaluate(`({
+  visible: !document.getElementById('bowl-black').hidden,
+  white: document.getElementById('bowl-white-count').textContent,
+})`)
+
 const sgf = `(;GM[1]FF[4]SZ[13]KM[6.5]RU[Japanese]PB[Black]PW[White]`
   + `AB${column(3)}AW${column(8)}[bh])`
 
@@ -209,6 +242,6 @@ const doublePass = await evaluate(`(async () => {
   return { open, message, counting };
 })()`)
 
-console.log(JSON.stringify({ initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
+console.log(JSON.stringify({ playBowls, chineseBowls, initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

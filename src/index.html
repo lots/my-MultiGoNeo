@@ -556,26 +556,24 @@
     <main class="workspace" id="workspace">
       <section class="pane pane-board" id="pane-board" aria-label="Go board">
         <div class="bowl bowl-black" id="bowl-black" hidden aria-hidden="true">
-          <svg class="bowl-art" viewBox="0 0 100 92" focusable="false">
+          <svg class="bowl-art" viewBox="0 0 100 100" focusable="false">
             <defs>
-              <linearGradient id="bowl-wood-black" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#c99b62"/>
-                <stop offset="0.55" stop-color="#a9783f"/>
-                <stop offset="1" stop-color="#7c5127"/>
-              </linearGradient>
-              <clipPath id="bowl-clip-black"><path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z"/></clipPath>
+              <radialGradient id="bowl-wood-black" cx="38%" cy="30%" r="78%">
+                <stop offset="0" stop-color="#d9ae74"/>
+                <stop offset="0.62" stop-color="#b3814a"/>
+                <stop offset="1" stop-color="#74491f"/>
+              </radialGradient>
+              <radialGradient id="bowl-cavity-black" cx="50%" cy="44%" r="62%">
+                <stop offset="0" stop-color="#2c1c0f"/>
+                <stop offset="1" stop-color="#0f0904"/>
+              </radialGradient>
             </defs>
-            <path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z" fill="url(#bowl-wood-black)" stroke="rgba(60,35,10,.5)" stroke-width="1.5"/>
-            <ellipse cx="50" cy="36" rx="36" ry="10" fill="#6d4520"/>
-            <ellipse cx="50" cy="36" rx="31" ry="7.5" fill="#2b1a0c"/>
-            <g clip-path="url(#bowl-clip-black)">
-              <circle cx="34" cy="36" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
-              <circle cx="45" cy="38" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
-              <circle cx="56" cy="36" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
-              <circle cx="66" cy="38" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
-              <circle cx="50" cy="40" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
-            </g>
-            <text x="50" y="68" text-anchor="middle" class="bowl-number" id="bowl-black-count">0</text>
+            <circle cx="50" cy="50" r="47" fill="url(#bowl-wood-black)" stroke="rgba(48,26,8,.6)" stroke-width="1.6"/>
+            <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,235,200,.35)" stroke-width="2"/>
+            <circle cx="50" cy="50" r="37" fill="url(#bowl-cavity-black)"/>
+            <g id="bowl-black-stones"></g>
+            <circle cx="50" cy="50" r="14" fill="rgba(8,6,4,.66)" stroke="rgba(255,255,255,.28)" stroke-width="1"/>
+            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" class="bowl-number" id="bowl-black-count">0</text>
           </svg>
           <span class="bowl-label">Black</span>
         </div>
@@ -585,26 +583,24 @@
           <canvas id="board-selection" aria-hidden="true"></canvas>
         </div>
         <div class="bowl bowl-white" id="bowl-white" hidden aria-hidden="true">
-          <svg class="bowl-art" viewBox="0 0 100 92" focusable="false">
+          <svg class="bowl-art" viewBox="0 0 100 100" focusable="false">
             <defs>
-              <linearGradient id="bowl-wood-white" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#d8b483"/>
-                <stop offset="0.55" stop-color="#bb8f57"/>
-                <stop offset="1" stop-color="#8d6134"/>
-              </linearGradient>
-              <clipPath id="bowl-clip-white"><path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z"/></clipPath>
+              <radialGradient id="bowl-wood-white" cx="38%" cy="30%" r="78%">
+                <stop offset="0" stop-color="#e6c79b"/>
+                <stop offset="0.62" stop-color="#c59a63"/>
+                <stop offset="1" stop-color="#8a5e32"/>
+              </radialGradient>
+              <radialGradient id="bowl-cavity-white" cx="50%" cy="44%" r="62%">
+                <stop offset="0" stop-color="#33210f"/>
+                <stop offset="1" stop-color="#120b05"/>
+              </radialGradient>
             </defs>
-            <path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z" fill="url(#bowl-wood-white)" stroke="rgba(60,35,10,.45)" stroke-width="1.5"/>
-            <ellipse cx="50" cy="36" rx="36" ry="10" fill="#7d5327"/>
-            <ellipse cx="50" cy="36" rx="31" ry="7.5" fill="#2b1a0c"/>
-            <g clip-path="url(#bowl-clip-white)">
-              <circle cx="34" cy="36" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
-              <circle cx="45" cy="38" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
-              <circle cx="56" cy="36" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
-              <circle cx="66" cy="38" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
-              <circle cx="50" cy="40" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
-            </g>
-            <text x="50" y="68" text-anchor="middle" class="bowl-number" id="bowl-white-count">0</text>
+            <circle cx="50" cy="50" r="47" fill="url(#bowl-wood-white)" stroke="rgba(48,26,8,.55)" stroke-width="1.6"/>
+            <circle cx="50" cy="50" r="41" fill="none" stroke="rgba(255,245,225,.4)" stroke-width="2"/>
+            <circle cx="50" cy="50" r="37" fill="url(#bowl-cavity-white)"/>
+            <g id="bowl-white-stones"></g>
+            <circle cx="50" cy="50" r="14" fill="rgba(8,6,4,.66)" stroke="rgba(255,255,255,.28)" stroke-width="1"/>
+            <text x="50" y="50" text-anchor="middle" dominant-baseline="central" class="bowl-number" id="bowl-white-count">0</text>
           </svg>
           <span class="bowl-label">White</span>
         </div>

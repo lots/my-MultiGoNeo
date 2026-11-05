@@ -468,7 +468,7 @@ The View menu now covers the practical MultiGo-style display controls:
 - **Show Sibling Variations**: **all child variations of the current node**, labelled
   **A, B, C…** in child order, but **only when there is more than one child**. A single
   continuation is the main branch and gets no sibling marker.
-- **Show Go Bowls**: the captured-stone bowls used while counting in Japanese rules
+- **Show Go Bowls**: the captured-stone bowls shown during play and counting in Japanese rules
   (hidden automatically when the board pane is too narrow)
 - the last move keeps the **red triangle** marker in every mode
 - **Responsive Layout**
@@ -539,10 +539,12 @@ editor does the arithmetic.
 - **Write RE** stores the result in the root node (and the title updates); **Done** or `Esc`
   closes counting. The card only takes clicks on its controls, so stones underneath it remain
   clickable.
-- **Captured-stone bowls**: in Japanese counting a bowl sits on each side of the board — black
-  on the left, white on the right — showing that side's prisoner count. The bowls appear only
-  when Japanese rules are selected and there is enough horizontal space; when the board pane
-  is narrow they hide themselves. **View → Show Go Bowls** turns them off manually.
+- **Captured-stone bowls**: two bowls sit beside the board for the whole Japanese-rules game —
+  black on the left, white on the right. They are drawn **top-down**, so the captured stones
+  are visible inside the bowl and the count sits in the middle. They update live as captures
+  are played, and again while counting (dead stones join the prisoner total). In Chinese rules
+  they stay hidden, they disappear when the board pane is too narrow, and **View → Show Go
+  Bowls** turns them off manually.
 
 Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
 alive, just like pressing count in MultiGo. There is no automatic dead-stone suggestion.
@@ -552,6 +554,11 @@ alive, just like pressing count in MultiGo. There is no automatic dead-stone sug
 ![A dead stone marked with a red X; Black now holds one prisoner](preview/preview-count-dead.png)
 
 ![Chinese area scoring: stones and territory, no prisoners, bowls hidden](preview/preview-count-chinese.png)
+
+The bowls are live during play as well, not only while counting — here Black has captured one
+White stone and the bowl shows it:
+
+![Captured-stone bowls during play, top-down with the prisoner count in the middle](preview/preview-bowls.png)
 
 When two passes are played consecutively the game is over: a prompt offers **Count Result** or
 **Keep Playing**, and accepting opens the same counting card.
@@ -810,6 +817,9 @@ layout and a 1100×1700 pass for the embed page:
 - opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
 - opened **Count Territory** on a 13×13 position with a black and a white wall and confirmed
   black/white territory **39/52**, 90 dame and `W+58.5`;
+- confirmed the captured-stone bowls are already visible **during play** on a Japanese-rules
+  game, showing exactly one white stone and the count **1** after Black captured a stone;
+- loaded the same position with `RU[Chinese]` and confirmed the bowls stay hidden;
 - clicked the lone white stone inside Black's area and confirmed it became one prisoner, Black's
   territory stayed 39, the result moved to `W+18.5` and the black bowl showed **1**;
 - switched to **Chinese** rules and confirmed stone counts replaced prisoners, the bowls hid and
@@ -850,7 +860,8 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [automatic engine play](preview/engine-auto.png),
 [Japanese counting](preview/preview-count-japanese.png),
 [dead stone counted](preview/preview-count-dead.png),
-[Chinese counting](preview/preview-count-chinese.png)
+[Chinese counting](preview/preview-count-chinese.png),
+[play-time captured-stone bowls](preview/preview-bowls.png)
 and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
@@ -1010,7 +1021,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | GTP console | Engine → GTP Console… |
 | Count territory | Tools → Count Territory or `Ctrl+K`; click stones to mark them dead |
 | Close counting | `Esc` or the **Done** button in the count card |
-| Captured-stone bowls | View → Show Go Bowls (Japanese counting, wide board panes only) |
+| Captured-stone bowls | View → Show Go Bowls (Japanese games, wide board panes only) |
 | Menus | `Alt+F / E / A / P / V / T / O / H / G` |
 | Help | `F1` |
 

@@ -199,6 +199,8 @@
   const bowlWhite = $('#bowl-white');
   const bowlBlackCount = $('#bowl-black-count');
   const bowlWhiteCount = $('#bowl-white-count');
+  const bowlBlackStones = $('#bowl-black-stones');
+  const bowlWhiteStones = $('#bowl-white-stones');
   const labelDialog = $('#label-dialog');
   const labelInput = $('#label-input');
   const labelOk = $('#label-ok');
@@ -1238,17 +1240,72 @@
     return rect.width - 28 - COUNT_BOWL_SPACE * 2 >= COUNT_MIN_BOARD;
   }
 
+  const BOWL_STONES = (() => {
+    const points = [];
+    for (let i = 0; i < 12; i += 1) {
+      const angle = ((i * 30) - 90) * (Math.PI / 180);
+      points.push([50 + Math.cos(angle) * 27.5, 50 + Math.sin(angle) * 27.5]);
+    }
+    for (let i = 0; i < 8; i += 1) {
+      const angle = ((i * 45) - 67.5) * (Math.PI / 180);
+      points.push([50 + Math.cos(angle) * 19.5, 50 + Math.sin(angle) * 19.5]);
+    }
+    return points;
+  })();
+
+  function gameRules() {
+    const rules = String(rootProperty('RU', '') || '').toLowerCase();
+    if (rules.includes('chinese') || rules.includes('area')) return 'chinese';
+    return 'japanese';
+  }
+
+  function bowlCounts() {
+    if (countState.active && countState.result) {
+      return {
+        black: countState.result.blackPrisoners,
+        white: countState.result.whitePrisoners,
+      };
+    }
+    if (!currentBoard) return { black: 0, white: 0 };
+    return {
+      black: currentBoard.getCaptures(1) || 0,
+      white: currentBoard.getCaptures(-1) || 0,
+    };
+  }
+
+  function renderBowlStones(group, count, stoneSign) {
+    if (!group) return;
+    const shown = Math.max(0, Math.min(Number(count) || 0, BOWL_STONES.length));
+    if (group.children.length === shown) return;
+    group.replaceChildren();
+    for (let index = 0; index < shown; index += 1) {
+      const [cx, cy] = BOWL_STONES[index];
+      const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      stone.setAttribute('cx', cx.toFixed(2));
+      stone.setAttribute('cy', cy.toFixed(2));
+      stone.setAttribute('r', '5.4');
+      stone.setAttribute('fill', stoneSign > 0 ? '#f4f2ea' : '#1d1f23');
+      stone.setAttribute('stroke', stoneSign > 0 ? '#b9b6aa' : '#5b6068');
+      stone.setAttribute('stroke-width', '0.9');
+      group.append(stone);
+    }
+  }
+
   function updateBowls() {
-    const show = countState.active
-      && countState.rules === 'japanese'
-      && settings.showBowls !== false
-      && bowlRoom();
+    // Bowls are live during play (Japanese rules) and while counting; the
+    // counting card only adds dead stones to the prisoner totals.
+    const rules = countState.active ? countState.rules : gameRules();
+    const show = settings.showBowls !== false && rules === 'japanese' && bowlRoom();
     const changed = bowlBlack.hidden === show;
     bowlBlack.hidden = !show;
     bowlWhite.hidden = !show;
-    if (show && countState.result) {
-      bowlBlackCount.textContent = String(countState.result.blackPrisoners);
-      bowlWhiteCount.textContent = String(countState.result.whitePrisoners);
+    if (show) {
+      const counts = bowlCounts();
+      bowlBlackCount.textContent = String(counts.black);
+      bowlWhiteCount.textContent = String(counts.white);
+      // The black bowl keeps White's captured stones and the white bowl Black's.
+      renderBowlStones(bowlBlackStones, counts.black, -1);
+      renderBowlStones(bowlWhiteStones, counts.white, 1);
     }
     return changed;
   }
@@ -3148,6 +3205,7 @@
     syncMenuState();
     updateTitle();
     if (activeTab === 'comment') renderComment();
+    if (updateBowls()) resizeBoard();
     if (window.MultiGoEngine) window.MultiGoEngine.onPositionChanged();
   }
 
