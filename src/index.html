@@ -321,6 +321,9 @@
           <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-siblings" aria-checked="false">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Show Sibling Variations</span>
           </button>
+          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="toggle-bowls" aria-checked="true">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Show Go Bowls</span>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="zoom-in">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Zoom In</span>
@@ -373,6 +376,10 @@
           </button>
           <button type="button" class="menu-item" role="menuitem" data-action="copy-position-link">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Copy Position Link</span>
+          </button>
+          <div class="menu-separator" role="separator"></div>
+          <button type="button" class="menu-item" role="menuitemcheckbox" data-action="count-territory" aria-checked="false">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Count Territory</span><kbd data-accel="Ctrl+K">Ctrl+K</kbd>
           </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="clear-messages">
@@ -548,10 +555,87 @@
 
     <main class="workspace" id="workspace">
       <section class="pane pane-board" id="pane-board" aria-label="Go board">
+        <div class="bowl bowl-black" id="bowl-black" hidden aria-hidden="true">
+          <svg class="bowl-art" viewBox="0 0 100 92" focusable="false">
+            <defs>
+              <linearGradient id="bowl-wood-black" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#c99b62"/>
+                <stop offset="0.55" stop-color="#a9783f"/>
+                <stop offset="1" stop-color="#7c5127"/>
+              </linearGradient>
+              <clipPath id="bowl-clip-black"><path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z"/></clipPath>
+            </defs>
+            <path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z" fill="url(#bowl-wood-black)" stroke="rgba(60,35,10,.5)" stroke-width="1.5"/>
+            <ellipse cx="50" cy="36" rx="36" ry="10" fill="#6d4520"/>
+            <ellipse cx="50" cy="36" rx="31" ry="7.5" fill="#2b1a0c"/>
+            <g clip-path="url(#bowl-clip-black)">
+              <circle cx="34" cy="36" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
+              <circle cx="45" cy="38" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
+              <circle cx="56" cy="36" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
+              <circle cx="66" cy="38" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
+              <circle cx="50" cy="40" r="5.6" fill="#f4f2ea" stroke="#b9b6aa" stroke-width="1"/>
+            </g>
+            <text x="50" y="68" text-anchor="middle" class="bowl-number" id="bowl-black-count">0</text>
+          </svg>
+          <span class="bowl-label">Black</span>
+        </div>
         <div class="board-stage" id="board-stage">
           <canvas id="board" width="800" height="800" tabindex="0"
                   aria-label="Go board. Click an intersection to play a stone."></canvas>
           <canvas id="board-selection" aria-hidden="true"></canvas>
+        </div>
+        <div class="bowl bowl-white" id="bowl-white" hidden aria-hidden="true">
+          <svg class="bowl-art" viewBox="0 0 100 92" focusable="false">
+            <defs>
+              <linearGradient id="bowl-wood-white" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#d8b483"/>
+                <stop offset="0.55" stop-color="#bb8f57"/>
+                <stop offset="1" stop-color="#8d6134"/>
+              </linearGradient>
+              <clipPath id="bowl-clip-white"><path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z"/></clipPath>
+            </defs>
+            <path d="M14 36 C14 68 30 86 50 86 C70 86 86 68 86 36 Z" fill="url(#bowl-wood-white)" stroke="rgba(60,35,10,.45)" stroke-width="1.5"/>
+            <ellipse cx="50" cy="36" rx="36" ry="10" fill="#7d5327"/>
+            <ellipse cx="50" cy="36" rx="31" ry="7.5" fill="#2b1a0c"/>
+            <g clip-path="url(#bowl-clip-white)">
+              <circle cx="34" cy="36" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
+              <circle cx="45" cy="38" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
+              <circle cx="56" cy="36" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
+              <circle cx="66" cy="38" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
+              <circle cx="50" cy="40" r="5.6" fill="#1d1f23" stroke="#5b6068" stroke-width="1"/>
+            </g>
+            <text x="50" y="68" text-anchor="middle" class="bowl-number" id="bowl-white-count">0</text>
+          </svg>
+          <span class="bowl-label">White</span>
+        </div>
+
+        <div class="count-card" id="count-card" data-rules="japanese" hidden aria-live="polite">
+          <header class="count-head">
+            <span class="count-title">Count Territory</span>
+            <button type="button" class="icon-button" id="count-close" aria-label="Close counting">×</button>
+          </header>
+          <label class="count-rules-row" for="count-rules">Rules
+            <select id="count-rules">
+              <option value="japanese">Japanese</option>
+              <option value="chinese">Chinese</option>
+            </select>
+          </label>
+          <dl class="count-grid">
+            <div><dt>Black territory</dt><dd id="count-black-territory">0</dd></div>
+            <div><dt>White territory</dt><dd id="count-white-territory">0</dd></div>
+            <div class="count-jp"><dt>Black prisoners</dt><dd id="count-black-prisoners">0</dd></div>
+            <div class="count-jp"><dt>White prisoners</dt><dd id="count-white-prisoners">0</dd></div>
+            <div class="count-cn"><dt>Black stones</dt><dd id="count-black-stones">0</dd></div>
+            <div class="count-cn"><dt>White stones</dt><dd id="count-white-stones">0</dd></div>
+            <div><dt>Dame</dt><dd id="count-dame">0</dd></div>
+            <div><dt>Komi</dt><dd id="count-komi">0</dd></div>
+          </dl>
+          <div class="count-result" id="count-result">—</div>
+          <div class="count-actions">
+            <button type="button" class="btn" id="count-write">Write RE</button>
+            <button type="button" class="btn btn-primary" id="count-done">Done</button>
+          </div>
+          <p class="count-hint">Click stones to mark them dead.</p>
         </div>
       </section>
 
@@ -1064,6 +1148,7 @@
   <input type="file" id="import-sgf-files" accept=".sgf,application/x-go-sgf,text/plain" multiple hidden>
   <script src="sabaki-bundle.js"></script>
   <script src="path-spec.js"></script>
+  <script src="scoring.js"></script>
   <script src="engine-core.js"></script>
   <script src="engine.js"></script>
   <script src="renderer.js"></script>

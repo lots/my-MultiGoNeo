@@ -2350,3 +2350,173 @@ kbd {
     grid-column: 1 / -1;
   }
 }
+
+/* Counting ------------------------------------------------------------- */
+
+.bowl {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 86px;
+  pointer-events: none;
+}
+
+.bowl[hidden] {
+  display: none;
+}
+
+.bowl-black { left: 6px; }
+.bowl-white { right: 6px; }
+
+.bowl-art {
+  width: 86px;
+  height: 79px;
+  overflow: visible;
+  filter: drop-shadow(0 2px 4px rgba(40, 24, 8, 0.28));
+}
+
+.bowl-number {
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  fill: #fdf7ea;
+  paint-order: stroke;
+  stroke: rgba(40, 24, 8, 0.45);
+  stroke-width: 0.8px;
+}
+
+.bowl-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(48, 34, 18, 0.7);
+}
+
+.count-card {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 6;
+  width: 244px;
+  padding: 10px 12px 9px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  color: #232323;
+  font-size: 12px;
+  line-height: 1.35;
+  /* The card floats over the board, so only its controls take clicks; a click on
+     the read-only text still reaches the board underneath. */
+  pointer-events: none;
+}
+
+.count-card .icon-button,
+.count-card select,
+.count-card .btn {
+  pointer-events: auto;
+}
+
+.count-card[hidden] {
+  display: none;
+}
+
+.count-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.count-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.count-card .icon-button {
+  width: 20px;
+  height: 20px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.count-rules-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: #555;
+}
+
+.count-rules-row select {
+  font: inherit;
+  padding: 1px 4px;
+}
+
+.count-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1px 10px;
+  margin: 0 0 7px;
+  padding: 0;
+}
+
+.count-grid > div {
+  display: contents;
+}
+
+.count-grid dt {
+  color: #565656;
+}
+
+.count-grid dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.count-card[data-rules="chinese"] .count-jp,
+.count-card[data-rules="japanese"] .count-cn {
+  display: none;
+}
+
+.count-result {
+  margin: 0 0 8px;
+  padding: 3px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.count-result.is-black { color: #111; }
+.count-result.is-white { color: #7a4f1f; }
+
+.count-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.count-actions .btn {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+.count-hint {
+  margin: 7px 0 0;
+  color: #6a6a6a;
+  font-size: 11px;
+}

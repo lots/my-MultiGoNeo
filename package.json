@@ -10,8 +10,9 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "test": "node scripts/test-tree.js && node scripts/test-path.js && node scripts/test-gtp.js && node scripts/test-engine-config.js",
+    "test": "node scripts/test-tree.js && node scripts/test-path.js && node scripts/test-scoring.js && node scripts/test-gtp.js && node scripts/test-engine-config.js",
     "test:path": "node scripts/test-path.js",
+    "test:scoring": "node scripts/test-scoring.js",
     "test:gtp": "node scripts/test-gtp.js",
     "test:engines": "node scripts/test-engine-config.js",
     "test:legacy": "node scripts/test-engine.js",

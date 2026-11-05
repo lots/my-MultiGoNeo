@@ -179,6 +179,26 @@
   const confirmOk = $('#confirm-ok');
   const confirmCancel = $('#confirm-cancel');
   const confirmCancelIcon = $('#confirm-cancel-icon');
+  const countCard = $('#count-card');
+  const countRulesSelect = $('#count-rules');
+  const countResultLabel = $('#count-result');
+  const countWriteButton = $('#count-write');
+  const countDoneButton = $('#count-done');
+  const countCloseButton = $('#count-close');
+  const countFields = {
+    blackTerritory: $('#count-black-territory'),
+    whiteTerritory: $('#count-white-territory'),
+    blackPrisoners: $('#count-black-prisoners'),
+    whitePrisoners: $('#count-white-prisoners'),
+    blackStones: $('#count-black-stones'),
+    whiteStones: $('#count-white-stones'),
+    dame: $('#count-dame'),
+    komi: $('#count-komi'),
+  };
+  const bowlBlack = $('#bowl-black');
+  const bowlWhite = $('#bowl-white');
+  const bowlBlackCount = $('#bowl-black-count');
+  const bowlWhiteCount = $('#bowl-white-count');
   const labelDialog = $('#label-dialog');
   const labelInput = $('#label-input');
   const labelOk = $('#label-ok');
@@ -298,6 +318,8 @@
     selectedEngineId: null,
     engineAnalysis: false,
     engineColor: 'off',
+    countRules: 'japanese',
+    showBowls: true,
   };
   let settings = (() => {
     try {
@@ -379,6 +401,8 @@
         selectedEngineId: typeof parsed.selectedEngineId === 'string' ? parsed.selectedEngineId : null,
         engineAnalysis: parsed.engineAnalysis === true,
         engineColor: ['off', 'B', 'W'].includes(parsed.engineColor) ? parsed.engineColor : 'off',
+        countRules: parsed.countRules === 'chinese' ? 'chinese' : 'japanese',
+        showBowls: parsed.showBowls !== false,
       };
     } catch {
       return { ...DEFAULT_SETTINGS };
@@ -603,6 +627,15 @@
     'Remember Last Board Size': '记住上次棋盘尺寸',
     'Autoplay Delay': '自动播放间隔',
     'Reset All Settings': '重置所有设置', 'Keyboard Shortcuts': '快捷键', 'About MultiGo Neo': '关于 MultiGo Neo',
+    'Count Territory': '计算领地', 'Show Go Bowls': '显示棋钵', Rules: '规则',
+    Japanese: '日本规则', Chinese: '中国规则',
+    'Black territory': '黑方领地', 'White territory': '白方领地',
+    'Black prisoners': '黑方提子', 'White prisoners': '白方提子',
+    'Black stones': '黑方棋子', 'White stones': '白方棋子',
+    Dame: '单官', Komi: '贴目', 'Write RE': '写入结果', Done: '完成',
+    'Click stones to mark them dead.': '点击棋子标记为死子。',
+    'Both players passed, so the game is over. Count the result?': '双方连续停一手，对局结束。要计算胜负吗？',
+    'Count Result': '计算胜负', 'Keep Playing': '继续对局',
     Info: '信息', Comment: '注释', 'Game Tree': '棋谱树', Message: '消息', Clear: '清除',
     Black: '黑方', 'Black rank': '黑方段位', 'Black team': '黑方队伍',
     White: '白方', 'White rank': '白方段位', 'White team': '白方队伍',
@@ -784,6 +817,7 @@
   }
 
   function startGame(size, options = {}) {
+    if (countState.active) exitCount();
     stopAutoPlay();
     let width;
     let height;
@@ -918,6 +952,7 @@
   // Navigation -----------------------------------------------------------
   function selectNode(id, { stop = true } = {}) {
     if (!tree || !tree.get(id) || id === nodeId) return;
+    if (countState.active) exitCount();
     if (stop) stopAutoPlay();
     nodeId = id;
     pending = null;
@@ -1146,8 +1181,248 @@
       playMoveSound(true);
       logNodeProperties(currentNode());
       if (window.MultiGoEngine) window.MultiGoEngine.onMovePlayed(sign);
+      maybeOfferCountAfterPasses();
     }
     return Boolean(ok);
+  }
+
+  // Counting -------------------------------------------------------------
+  const COUNT_BOWL_SPACE = 104;
+  const COUNT_MIN_BOARD = 320;
+  const countState = {
+    active: false,
+    rules: 'japanese',
+    dead: new Set(),
+    result: null,
+    promptedNodeId: null,
+  };
+
+  function countKomi() {
+    const value = Number.parseFloat(rootProperty('KM', ''));
+    if (Number.isFinite(value)) return value;
+    return Number(settings.defaultKomi) || 0;
+  }
+
+  function isPassNode(node) {
+    if (!node || !node.data) return false;
+    const black = node.data.B;
+    const white = node.data.W;
+    return Boolean((Array.isArray(black) && black[0] === '')
+      || (Array.isArray(white) && white[0] === ''));
+  }
+
+  function precedesPasses(id = nodeId) {
+    const node = tree?.get?.(id);
+    if (!node || node.parentId == null) return false;
+    return isPassNode(node) && isPassNode(tree.get(node.parentId));
+  }
+
+  function recomputeCount() {
+    if (!countState.active || !currentBoard || !window.MultiGoScoring) {
+      countState.result = null;
+      return null;
+    }
+    countState.result = window.MultiGoScoring.compute({
+      signMap: currentBoard.signMap,
+      dead: [...countState.dead],
+      rules: countState.rules,
+      komi: countKomi(),
+      capturesBlack: currentBoard.getCaptures(1) || 0,
+      capturesWhite: currentBoard.getCaptures(-1) || 0,
+    });
+    return countState.result;
+  }
+
+  function bowlRoom() {
+    const rect = paneBoard.getBoundingClientRect();
+    return rect.width - 28 - COUNT_BOWL_SPACE * 2 >= COUNT_MIN_BOARD;
+  }
+
+  function updateBowls() {
+    const show = countState.active
+      && countState.rules === 'japanese'
+      && settings.showBowls !== false
+      && bowlRoom();
+    const changed = bowlBlack.hidden === show;
+    bowlBlack.hidden = !show;
+    bowlWhite.hidden = !show;
+    if (show && countState.result) {
+      bowlBlackCount.textContent = String(countState.result.blackPrisoners);
+      bowlWhiteCount.textContent = String(countState.result.whitePrisoners);
+    }
+    return changed;
+  }
+
+  function updateCountPanel() {
+    countCard.hidden = !countState.active;
+    if (!countState.active) return;
+    countCard.dataset.rules = countState.rules;
+    countRulesSelect.value = countState.rules;
+    const result = countState.result;
+    if (!result) return;
+    countFields.blackTerritory.textContent = String(result.blackTerritory);
+    countFields.whiteTerritory.textContent = String(result.whiteTerritory);
+    countFields.blackPrisoners.textContent = String(result.blackPrisoners);
+    countFields.whitePrisoners.textContent = String(result.whitePrisoners);
+    countFields.blackStones.textContent = String(result.blackStones);
+    countFields.whiteStones.textContent = String(result.whiteStones);
+    countFields.dame.textContent = String(result.dame);
+    countFields.komi.textContent = window.MultiGoScoring.formatPoints(result.komi);
+    countResultLabel.textContent = result.result;
+    countResultLabel.classList.toggle('is-black', result.diff > 0);
+    countResultLabel.classList.toggle('is-white', result.diff < 0);
+    countWriteButton.disabled = readOnly;
+  }
+
+  function refreshCountLayout() {
+    updateBowls();
+    resizeBoard();
+  }
+
+  function enterCount(rules = settings.countRules || 'japanese') {
+    if (!currentBoard) return false;
+    if (mode === 'edit') toggleEditMode();
+    if (autoPlayTimer) stopAutoPlay();
+    countState.active = true;
+    countState.rules = rules === 'chinese' ? 'chinese' : 'japanese';
+    settings.countRules = countState.rules;
+    saveSettings();
+    countState.dead.clear();
+    recomputeCount();
+    updateCountPanel();
+    refreshCountLayout();
+    syncMenuState();
+    log(`Count Territory (${countState.rules === 'chinese' ? 'Chinese area' : 'Japanese territory'}): click stones to mark them dead.`);
+    return true;
+  }
+
+  function exitCount() {
+    if (!countState.active) {
+      updateCountPanel();
+      return;
+    }
+    countState.active = false;
+    countState.dead.clear();
+    countState.result = null;
+    updateCountPanel();
+    refreshCountLayout();
+    syncMenuState();
+    log('Counting closed.');
+  }
+
+  function toggleCountTerritory() {
+    if (countState.active) exitCount();
+    else enterCount();
+  }
+
+  function toggleCountStone(x, y) {
+    if (!countState.active || !currentBoard || !window.MultiGoScoring) return false;
+    const sign = currentBoard.signMap?.[y]?.[x] ?? 0;
+    if (!sign) return false;
+    const points = window.MultiGoScoring.groupAt(currentBoard.signMap, x, y);
+    const ids = points.map(([px, py]) => `${px},${py}`);
+    const allDead = ids.every((id) => countState.dead.has(id));
+    for (const id of ids) {
+      if (allDead) countState.dead.delete(id);
+      else countState.dead.add(id);
+    }
+    recomputeCount();
+    updateCountPanel();
+    updateBowls();
+    scheduleBoardDraw();
+    return true;
+  }
+
+  function toggleGoBowls() {
+    settings.showBowls = settings.showBowls === false;
+    saveSettings();
+    refreshCountLayout();
+    syncMenuState();
+    log(settings.showBowls ? 'Go bowls shown while counting.' : 'Go bowls hidden.');
+  }
+
+  function writeCountResult() {
+    if (!countState.result) return false;
+    const label = countState.result.result;
+    const ok = mutateTree((draft) => {
+      draft.updateProperty(tree.root.id, 'RE', [label]);
+    }, { message: `Result written to RE: ${label}.` });
+    if (ok) updateTitle();
+    return ok;
+  }
+
+  function maybeOfferCountAfterPasses() {
+    if (countState.active || !tree) return;
+    if (!precedesPasses(nodeId)) return;
+    if (countState.promptedNodeId === nodeId) return;
+    countState.promptedNodeId = nodeId;
+    log('Two consecutive passes — the game is over.', 'warn');
+    askConfirm('Both players passed, so the game is over. Count the result?', 'Count Result', 'Keep Playing')
+      .then((proceed) => {
+        if (!proceed) return;
+        enterCount();
+      });
+  }
+
+  function drawCountOverlay() {
+    if (!countState.active || !countState.result || !currentBoard) return;
+    const result = countState.result;
+    const context = boardContext;
+    const cols = currentBoard.width;
+    const rows = currentBoard.height;
+    const half = boardView.spacing * 0.46;
+    for (let y = 0; y < rows; y += 1) {
+      for (let x = 0; x < cols; x += 1) {
+        if (currentBoard.signMap[y]?.[x]) continue;
+        const owner = result.ownership?.[y]?.[x] ?? 0;
+        const point = pointPosition(x, y);
+        if (owner > 0) {
+          context.fillStyle = 'rgba(18, 18, 18, 0.30)';
+          context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
+        } else if (owner < 0) {
+          context.fillStyle = 'rgba(255, 255, 255, 0.72)';
+          context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
+          context.strokeStyle = 'rgba(90, 70, 40, 0.28)';
+          context.lineWidth = 0.8;
+          context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
+        } else {
+          context.fillStyle = 'rgba(80, 80, 80, 0.45)';
+          context.beginPath();
+          context.arc(point.x, point.y, Math.max(1.6, boardView.spacing * 0.085), 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+    }
+  }
+
+  function drawDeadStones(stoneRadius) {
+    if (!countState.active) return;
+    const context = boardContext;
+    for (const id of countState.dead) {
+      const [x, y] = id.split(',').map(Number);
+      const point = pointPosition(x, y);
+      context.save();
+      context.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      context.beginPath();
+      context.arc(point.x, point.y, stoneRadius * 0.97, 0, Math.PI * 2);
+      context.fill();
+      context.strokeStyle = 'rgba(198, 40, 40, 0.92)';
+      context.lineWidth = Math.max(1.6, stoneRadius * 0.16);
+      context.lineCap = 'round';
+      const arm = stoneRadius * 0.5;
+      context.beginPath();
+      context.moveTo(point.x - arm, point.y - arm);
+      context.lineTo(point.x + arm, point.y + arm);
+      context.moveTo(point.x + arm, point.y - arm);
+      context.lineTo(point.x - arm, point.y + arm);
+      context.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+      context.lineWidth = Math.max(3.2, stoneRadius * 0.30);
+      context.stroke();
+      context.strokeStyle = 'rgba(198, 40, 40, 0.95)';
+      context.lineWidth = Math.max(1.8, stoneRadius * 0.17);
+      context.stroke();
+      context.restore();
+    }
   }
 
   // Markup ---------------------------------------------------------------
@@ -1526,7 +1801,9 @@
     const sourceCols = currentBoard?.width || gameSize().width;
     const sourceRows = currentBoard?.height || gameSize().height;
     const { cols, rows } = transformedBoardSize(sourceCols, sourceRows);
-    const fitWidth = Math.max(60, rect.width - 28);
+    const bowlReserve = (bowlBlack.hidden ? 0 : COUNT_BOWL_SPACE)
+      + (bowlWhite.hidden ? 0 : COUNT_BOWL_SPACE);
+    const fitWidth = Math.max(60, rect.width - 28 - bowlReserve);
     const fitHeight = Math.max(60, rect.height - 28);
     const zoom = settings.zoom || 1;
     const margin = Math.max(19, Math.round(Math.min(fitWidth, fitHeight) * 0.055)) * zoom;
@@ -2164,6 +2441,8 @@
       }
     }
 
+    drawCountOverlay();
+
     const stoneRadius = spacing * 0.465;
     const numberMap = buildMoveNumberMap(sourceCols);
     const totalMoves = numberMap.total || 0;
@@ -2174,6 +2453,8 @@
         drawStone(x, y, sign, stoneRadius);
       }
     }
+
+    drawDeadStones(stoneRadius);
 
     for (const range of currentBoard.dimmedRanges || []) {
       let vertices = [];
@@ -2811,6 +3092,8 @@
     const hasChild = Boolean(node && node.children.length);
     setMenuItemChecked('toggle-next-moves', settings.showNextMoves);
     setMenuItemChecked('toggle-siblings', settings.showSiblings);
+    setMenuItemChecked('count-territory', countState.active);
+    setMenuItemChecked('toggle-bowls', settings.showBowls !== false);
     setMenuItemChecked('toggle-auto-layout', settings.autoLayout !== false);
     setMenuItemChecked('toggle-tree', settings.showTree);
     setMenuItemChecked('toggle-remember-size', settings.rememberBoardSize !== false);
@@ -2910,7 +3193,7 @@
   }
 
   // Dialogs --------------------------------------------------------------
-  function askConfirm(message, okLabel = 'Continue') {
+  function askConfirm(message, okLabel = 'Continue', cancelLabel = 'Cancel') {
     return new Promise((resolve) => {
       let settled = false;
       const settle = (value) => {
@@ -2921,6 +3204,7 @@
       };
       confirmMessage.textContent = message;
       confirmOk.textContent = okLabel;
+      confirmCancel.textContent = cancelLabel;
       confirmOk.onclick = () => settle(true);
       confirmCancel.onclick = () => settle(false);
       confirmCancelIcon.onclick = () => settle(false);
@@ -4433,6 +4717,8 @@
     'toggle-coords': toggleCoordinates, 'toggle-numbers': toggleMoveNumbers,
     'toggle-next-moves': () => toggleSettingFlag('showNextMoves', (on) => `Next moves ${on ? 'shown' : 'hidden'}.`),
     'toggle-siblings': () => toggleSettingFlag('showSiblings', (on) => `Sibling variations ${on ? 'shown' : 'hidden'}.`),
+    'count-territory': toggleCountTerritory,
+    'toggle-bowls': toggleGoBowls,
     'toggle-auto-layout': toggleAutoLayout,
     'copy-position-link': copyPositionLink,
     'rotate-cw': rotateBoardView,
@@ -5088,6 +5374,11 @@
     const point = pointFromEvent(event);
     const same = (point && hover && point.x === hover.x && point.y === hover.y) || (!point && !hover);
     if (same) return;
+    if (countState.active) {
+      if (hover) { hover = null; scheduleBoardDraw(); }
+      updateCursor(point);
+      return;
+    }
     hover = point;
     updateCursor(point);
     scheduleBoardDraw();
@@ -5123,12 +5414,28 @@
     const point = pointFromEvent(event);
     if (!point) return;
     event.preventDefault();
-    if (mode === 'edit') editAt(point.x, point.y);
+    if (countState.active) toggleCountStone(point.x, point.y);
+    else if (mode === 'edit') editAt(point.x, point.y);
     else playAt(point.x, point.y);
   });
   boardCanvas.addEventListener('pointerup', finishPictureSelection);
   window.addEventListener('pointerup', finishPictureSelection);
   boardCanvas.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  // Counting UI ----------------------------------------------------------
+  countRulesSelect.addEventListener('change', () => {
+    countState.rules = countRulesSelect.value === 'chinese' ? 'chinese' : 'japanese';
+    settings.countRules = countState.rules;
+    saveSettings();
+    recomputeCount();
+    updateCountPanel();
+    refreshCountLayout();
+    syncMenuState();
+  });
+  countCloseButton.addEventListener('click', exitCount);
+  countDoneButton.addEventListener('click', exitCount);
+  countWriteButton.addEventListener('click', writeCountResult);
+  countCard.addEventListener('pointerdown', (event) => event.stopPropagation());
 
   // Toolbar / shortcuts --------------------------------------------------
   for (const button of $$('.tool[data-action]')) {
@@ -5203,6 +5510,17 @@
       if (menu) { event.preventDefault(); openMenu(menu, { focus: 'first' }); return; }
     }
     const modifier = isMac ? event.metaKey : event.ctrlKey;
+    if (countState.active) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        exitCount();
+        return;
+      }
+      if (!modifier && !event.altKey && ['p', 'P', 'g', 'G', ' '].includes(event.key)) {
+        event.preventDefault();
+        return;
+      }
+    }
     if (modifier && event.altKey) {
       const key = event.key.toLowerCase();
       if (key === 'c') { event.preventDefault(); runAction(copyVariation); }
@@ -5222,6 +5540,7 @@
       else if (key === 'z') { event.preventDefault(); runAction(event.shiftKey ? redo : undo); }
       else if (key === 'y') { event.preventDefault(); runAction(redo); }
       else if (key === 'e') { event.preventDefault(); runAction(toggleEditMode); }
+      else if (key === 'k') { event.preventDefault(); runAction(toggleCountTerritory); }
       else if (key === 'p' && event.shiftKey) { event.preventDefault(); runAction(toggleTurn); }
       else if (key === 'd' && event.shiftKey) { event.preventDefault(); runAction(() => selectTool('dim')); }
       else if (key === 'c' && event.shiftKey) { event.preventDefault(); runAction(copySgf); }
@@ -5419,7 +5738,7 @@
       invert: true,
       maxSize: () => rightColumn.clientHeight - paneInfo.getBoundingClientRect().height - splitterStackHeight() - treeMinimum(),
     });
-    new ResizeObserver(() => resizeBoard()).observe(paneBoard);
+    new ResizeObserver(() => { updateBowls(); resizeBoard(); }).observe(paneBoard);
     new ResizeObserver(() => scheduleResponsiveLayout()).observe(workspace);
     window.addEventListener('resize', scheduleResponsiveLayout);
     window.addEventListener('beforeunload', (event) => {
@@ -5498,6 +5817,16 @@
         };
       },
       hover: () => (hover ? { ...hover } : null),
+      count: () => ({
+        active: countState.active,
+        rules: countState.rules,
+        dead: [...countState.dead],
+        result: countState.result,
+        bowls: { shown: !bowlBlack.hidden, black: bowlBlackCount.textContent, white: bowlWhiteCount.textContent },
+      }),
+      enterCount: (rules) => enterCount(rules),
+      exitCount: () => exitCount(),
+      toggleCountStone: (x, y) => toggleCountStone(x, y),
       positionLink: () => {
         const spec = window.MultiGoPath ? window.MultiGoPath.build(tree, nodeId) : '';
         const sgf = S.sgf.stringify([tree.root], { linebreak: '', indent: '' });

@@ -9,8 +9,9 @@ This is the **core SGF editor milestone** of the migration: game tree and variat
 lossless SGF, comments, the full markup toolset, and the fork's coloured-line/dim extensions
 are implemented. A Sabaki-derived **GTP engine layer** now sits alongside them: attach GNU Go
 or KataGo, generate moves, stream analysis into the board overlay and Engine tab, and drive
-the engine from a GTP console. Scoring, alternate file formats, and the remaining MultiGo/
-Sabaki features are planned for later phases.
+the engine from a GTP console. **Counting territory** (Japanese or Chinese) marks dead stones,
+shades ownership and writes the result to `RE`. Alternate file formats and the remaining
+MultiGo/Sabaki features are planned for later phases.
 
 The renderer also ports seven interaction ideas from BesoGo: **variation badges**, **per-tool
 hover ghosts**, **deterministic stone textures**, **CSS-split board themes**, **responsive
@@ -66,6 +67,15 @@ Released 2026-11-04. The Windows artifacts are `MultiGo-Neo-1.1.2-setup.exe` and
 
 See [Reload, imports and picture export](#reload-imports-and-picture-export),
 [Board orientation](#board-orientation) and [Unsaved changes](#unsaved-changes).
+
+### After 1.1.2 (unreleased)
+
+- **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis and drive the
+  engine from the docked console. See [GTP engines](#gtp-engines).
+- **Count Territory** — MultiGo-style counting with dead-stone marking, Japanese and Chinese
+  rules, board shading and captured-stone bowls. See
+  [Counting territory](#counting-territory).
+- **Two consecutive passes** now end the game and offer to count the result.
 
 ### Game tree and SGF
 
@@ -129,7 +139,7 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   `12. AR[aa:ae:red]`. Comments stay in the Comment tab rather than flooding the log.
 - Setup stone tools are toggles: clicking the same colour removes the stone, clicking the
   opposite colour replaces it.
-- Board transformations and scoring are not in this milestone.
+- Counting is manual and lives in [Counting territory](#counting-territory).
 
 ![FF[4] move and non-move properties in the Message panel](preview/preview-property-log.png)
 
@@ -458,6 +468,8 @@ The View menu now covers the practical MultiGo-style display controls:
 - **Show Sibling Variations**: **all child variations of the current node**, labelled
   **A, B, C…** in child order, but **only when there is more than one child**. A single
   continuation is the main branch and gets no sibling marker.
+- **Show Go Bowls**: the captured-stone bowls used while counting in Japanese rules
+  (hidden automatically when the board pane is too narrow)
 - the last move keeps the **red triangle** marker in every mode
 - **Responsive Layout**
 - **Zoom In / Out / Reset**
@@ -509,6 +521,40 @@ line/arrow/dim preview.
 ![Triangle ghost in edit mode](preview/preview-hover-tool.png)
 
 ![Pass nodes use the compact p label](preview/preview-pass-tree.png)
+
+### Counting territory
+
+**Tools → Count Territory** (`Ctrl+K`) opens a MultiGo-style counting card and shades the
+board. It is the manual counting workflow: the player decides which stones are dead, and the
+editor does the arithmetic.
+
+- **Shading**: black-held points are dark, white-held points are light, and neutral **dame**
+  points get a small grey dot.
+- **Dead stones**: click a stone to mark its whole chain dead (and count it as a prisoner);
+  click again to revive it. A marked chain gets a red X. Empty points are left alone.
+- **Rules**: Japanese (territory + prisoners) or Chinese (stones + territory). Komi is read
+  from the root `KM` property and shown in the card.
+- **Card**: territory for both sides, prisoners (Japanese) or stones on the board (Chinese),
+  dame, komi and the result — `B+3.5`, `W+0.5` or `Jigo`.
+- **Write RE** stores the result in the root node (and the title updates); **Done** or `Esc`
+  closes counting. The card only takes clicks on its controls, so stones underneath it remain
+  clickable.
+- **Captured-stone bowls**: in Japanese counting a bowl sits on each side of the board — black
+  on the left, white on the right — showing that side's prisoner count. The bowls appear only
+  when Japanese rules are selected and there is enough horizontal space; when the board pane
+  is narrow they hide themselves. **View → Show Go Bowls** turns them off manually.
+
+Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
+alive, just like pressing count in MultiGo. There is no automatic dead-stone suggestion.
+
+![Japanese counting: shaded territory, dame dots and the two captured-stone bowls](preview/preview-count-japanese.png)
+
+![A dead stone marked with a red X; Black now holds one prisoner](preview/preview-count-dead.png)
+
+![Chinese area scoring: stones and territory, no prisoners, bowls hidden](preview/preview-count-chinese.png)
+
+When two passes are played consecutively the game is over: a prompt offers **Count Result** or
+**Keep Playing**, and accepting opens the same counting card.
 
 ### Board themes and responsive layout
 
@@ -626,8 +672,9 @@ architecture; the dialog notes these limitations.
 
 The suites behind `npm test` cover variations, unknown-property preservation, immutable tree
 mutation, captures, custom rectangular sizes, the 52-point alphabet, markup round-trips, the
-position-path parser/resolver (including build/resolve round-trips through every branch), the
-GTP session layer against a fake engine, and engine-configuration loading/saving.
+position-path parser/resolver (including build/resolve round-trips through every branch),
+territory/area scoring (dead stones, prisoners, komi, dame), the GTP session layer against a
+fake engine, and engine-configuration loading/saving.
 The legacy pure-Go helper tests remain available as `npm run test:legacy`.
 
 The UI was driven in Chromium at exactly 1440×1024, plus a 980×900 pass for the responsive
@@ -761,6 +808,16 @@ layout and a 1100×1700 pass for the embed page:
 - ran analysis and read the win rate and candidate list in the Engine tab, including at the
   root, with the overlay drawn on the board;
 - opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
+- opened **Count Territory** on a 13×13 position with a black and a white wall and confirmed
+  black/white territory **39/52**, 90 dame and `W+58.5`;
+- clicked the lone white stone inside Black's area and confirmed it became one prisoner, Black's
+  territory stayed 39, the result moved to `W+18.5` and the black bowl showed **1**;
+- switched to **Chinese** rules and confirmed stone counts replaced prisoners, the bowls hid and
+  the result became `W+19.5`;
+- wrote the result to `RE` and confirmed it round-tripped into the SGF; `Esc` closed counting;
+- shrank the board pane to 520 px and confirmed the bowls hid themselves;
+- played two consecutive passes, saw the **Count Result** prompt, and confirmed accepting it
+  opened the counting card;
 - no console exceptions.
 
 All screenshots live in the [`preview/`](preview/) subfolder.
@@ -790,7 +847,10 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [portrait layout](preview/preview-portrait.png),
 [engine analysis](preview/engine-analysis.png), [GTP console](preview/engine-console.png),
 [engine configuration](preview/engines-config.png), [GNU Go playing](preview/gnugo-game.png),
-[automatic engine play](preview/engine-auto.png)
+[automatic engine play](preview/engine-auto.png),
+[Japanese counting](preview/preview-count-japanese.png),
+[dead stone counted](preview/preview-count-dead.png),
+[Chinese counting](preview/preview-count-chinese.png)
 and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
@@ -948,6 +1008,9 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Generate Move | Engine → Generate Move (or the Engine tab button) |
 | Engine analysis | Engine → Analysis |
 | GTP console | Engine → GTP Console… |
+| Count territory | Tools → Count Territory or `Ctrl+K`; click stones to mark them dead |
+| Close counting | `Esc` or the **Done** button in the count card |
+| Captured-stone bowls | View → Show Go Bowls (Japanese counting, wide board panes only) |
 | Menus | `Alt+F / E / A / P / V / T / O / H / G` |
 | Help | `F1` |
 
@@ -980,7 +1043,8 @@ Known limitations of this milestone:
 
 - **Only the first game tree in a collection is loaded.** Saving writes that one tree.
 - **No NGF, GIB or UGF import.** SGF only for now.
-- **No find/hotspot mode, guess mode, scoring/estimator, or dead-stone marking.**
+- **No find/hotspot mode or guess mode.** Counting is manual: seki and life-and-death are the
+  player's judgement, with no automatic dead-stone suggestion.
 - **GTP engines are external programs**: GNU Go has no analysis command, analysis interval and
   win-rate graph are not configurable yet, and engine-vs-engine play is not implemented.
 - Markdown is a [safe subset](#supported-comment-markdown), not full Sabaki react-markdown; code blocks and images are not
@@ -1004,6 +1068,7 @@ src/vendor/linecolor.js   adapted from my-Sabaki (MIT): coloured AR/LN values
 src/vendor/dim.js         adapted from my-Sabaki (MIT): DD/SBKDD rectangles
 src/sabaki-bundle.js      esbuild IIFE bundle exposing window.SabakiLibs
 src/path-spec.js          position-path parser/resolver/builder, shared with the embed
+src/scoring.js            territory/area scoring, dead-stone lifting, dame and ownership
 src/engine-core.js        GTP vertex/analysis/sync helpers shared by renderer and tests
 src/engine.js             engine list, attach/detach, sync, analysis overlay, console
 src/index.html            menus, toolbars, tabs, board, graph, dialogs
@@ -1023,6 +1088,7 @@ engines/engines.json      hand-editable engine connection list shared with Manag
 engines/README.md         shim and configuration reference
 scripts/test-tree.js      5 tree/SGF/go-board tests
 scripts/test-path.js      5 position-path tests
+scripts/test-scoring.js   8 territory/area scoring tests
 scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
 scripts/test-engine-config.js  engine JSON load/save/path tests
 scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs
@@ -1043,6 +1109,7 @@ scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transf
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
 scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
+scripts/verify-count-ui.mjs CDP test for counting, dead stones, bowls, RE and double passes
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
@@ -1079,7 +1146,7 @@ canvas renderer, tabs and game graph presentation are this project's own work.
 
 ## Next phases
 
-1. Scoring/estimator, dead-stone marking and score drawer.
+1. Automatic dead-stone suggestion and score-drawer refinements for counting.
 2. Engine-vs-engine play, configurable analysis interval/visits, win-rate graph, engine presets and score-lead display refinements.
 3. NGF/GIB/UGF import, collections/game chooser.
 4. Find/hotspots, guess mode, board transformations, and full SGF property editing.
