@@ -199,6 +199,8 @@
   const bowlWhite = $('#bowl-white');
   const bowlBlackStones = $('#bowl-black-stones');
   const bowlWhiteStones = $('#bowl-white-stones');
+  const countTitle = countCard.querySelector('.count-title');
+  const countHint = countCard.querySelector('.count-hint');
   const labelDialog = $('#label-dialog');
   const labelInput = $('#label-input');
   const labelOk = $('#label-ok');
@@ -628,6 +630,8 @@
     'Autoplay Delay': '自动播放间隔',
     'Reset All Settings': '重置所有设置', 'Keyboard Shortcuts': '快捷键', 'About MultiGo Neo': '关于 MultiGo Neo',
     'Count Territory': '计算领地', 'Show Go Bowls': '显示棋钵', Rules: '规则',
+    Estimate: '形势判断', Score: '计算胜负',
+    'Estimated dead stones. Click a stone to adjust.': '已估算死子，点击棋子可调整。',
     Japanese: '日本规则', Chinese: '中国规则',
     'Black territory': '黑方领地', 'White territory': '白方领地',
     'Black prisoners': '黑方提子', 'White prisoners': '白方提子',
@@ -1187,10 +1191,11 @@
   }
 
   // Counting -------------------------------------------------------------
-  const COUNT_BOWL_SPACE = 114;
+  const COUNT_BOWL_SPACE = 122;
   const COUNT_MIN_BOARD = 320;
   const countState = {
     active: false,
+    mode: 'score',
     rules: 'japanese',
     dead: new Set(),
     result: null,
@@ -1280,7 +1285,7 @@
   function renderBowlStones(group, count, stoneSign) {
     if (!group) return;
     const shown = Math.max(0, Math.min(Number(count) || 0, BOWL_STONES.length));
-    if (group.children.length === shown * 2) return;
+    if (group.children.length === shown * 3) return;
     const isWhite = stoneSign < 0;
     group.replaceChildren();
     for (let index = 0; index < shown; index += 1) {
@@ -1290,7 +1295,7 @@
       shadow.setAttribute('cy', (cy + 0.9).toFixed(2));
       shadow.setAttribute('r', '6.6');
       shadow.setAttribute('class', 'bowl-stone-shadow');
-      shadow.setAttribute('fill', 'rgba(74, 48, 18, 0.28)');
+      shadow.setAttribute('fill', 'rgba(74, 48, 18, 0.3)');
       group.append(shadow);
 
       const stone = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1298,10 +1303,20 @@
       stone.setAttribute('cy', cy.toFixed(2));
       stone.setAttribute('class', 'bowl-stone');
       stone.setAttribute('r', '6.6');
-      stone.setAttribute('fill', isWhite ? '#fffdf4' : '#121418');
-      stone.setAttribute('stroke', isWhite ? '#5a421f' : '#f3e7cd');
-      stone.setAttribute('stroke-width', isWhite ? '1.25' : '1');
+      stone.setAttribute('fill', isWhite ? 'url(#bowl-stone-white-grad)' : 'url(#bowl-stone-black-grad)');
+      stone.setAttribute('stroke', isWhite ? 'rgba(96, 74, 42, 0.6)' : 'rgba(238, 230, 212, 0.35)');
+      stone.setAttribute('stroke-width', '0.6');
       group.append(stone);
+
+      // A small specular highlight sells the 3D look at bowl scale.
+      const glint = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      glint.setAttribute('cx', (cx - 1.9).toFixed(2));
+      glint.setAttribute('cy', (cy - 2.1).toFixed(2));
+      glint.setAttribute('rx', '2.6');
+      glint.setAttribute('ry', '1.7');
+      glint.setAttribute('class', 'bowl-stone-glint');
+      glint.setAttribute('fill', isWhite ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.38)');
+      group.append(glint);
     }
   }
 
@@ -1326,6 +1341,11 @@
     countCard.hidden = !countState.active;
     if (!countState.active) return;
     countCard.dataset.rules = countState.rules;
+    countCard.dataset.mode = countState.mode;
+    countTitle.textContent = t(countState.mode === 'estimate' ? 'Estimate' : 'Score');
+    countHint.textContent = t(countState.mode === 'estimate'
+      ? 'Estimated dead stones. Click a stone to adjust.'
+      : 'Click stones to mark them dead.');
     countRulesSelect.value = countState.rules;
     const result = countState.result;
     if (!result) return;
@@ -1348,20 +1368,27 @@
     resizeBoard();
   }
 
-  function enterCount(rules = settings.countRules || 'japanese') {
+  function enterCount(rules = settings.countRules || 'japanese', countMode = 'score') {
     if (!currentBoard) return false;
     if (mode === 'edit') toggleEditMode();
     if (autoPlayTimer) stopAutoPlay();
     countState.active = true;
+    countState.mode = countMode === 'estimate' ? 'estimate' : 'score';
     countState.rules = rules === 'chinese' ? 'chinese' : 'japanese';
     settings.countRules = countState.rules;
     saveSettings();
-    countState.dead.clear();
+    if (countState.mode === 'estimate' && window.MultiGoScoring) {
+      countState.dead = new Set(window.MultiGoScoring.estimateDead(currentBoard.signMap));
+    } else {
+      countState.dead.clear();
+    }
     recomputeCount();
     updateCountPanel();
     refreshCountLayout();
     syncMenuState();
-    log(`Count Territory (${countState.rules === 'chinese' ? 'Chinese area' : 'Japanese territory'}): click stones to mark them dead.`);
+    const label = countState.mode === 'estimate' ? 'Estimate' : 'Score';
+    log(`${label} (${countState.rules === 'chinese' ? 'Chinese area' : 'Japanese territory'}):`
+      + `${countState.mode === 'estimate' ? ' dead stones estimated, click to adjust.' : ' click stones to mark them dead.'}`);
     return true;
   }
 
@@ -1379,9 +1406,13 @@
     log('Counting closed.');
   }
 
+  function toggleCountMode(mode) {
+    if (countState.active && countState.mode === mode) exitCount();
+    else enterCount(settings.countRules, mode);
+  }
+
   function toggleCountTerritory() {
-    if (countState.active) exitCount();
-    else enterCount();
+    toggleCountMode('score');
   }
 
   function toggleCountStone(x, y) {
@@ -3162,6 +3193,8 @@
     setMenuItemChecked('toggle-next-moves', settings.showNextMoves);
     setMenuItemChecked('toggle-siblings', settings.showSiblings);
     setMenuItemChecked('count-territory', countState.active);
+    setMenuItemChecked('estimate', countState.active && countState.mode === 'estimate');
+    setMenuItemChecked('score', countState.active && countState.mode === 'score');
     setMenuItemChecked('toggle-bowls', settings.showBowls !== false);
     setMenuItemChecked('toggle-auto-layout', settings.autoLayout !== false);
     setMenuItemChecked('toggle-tree', settings.showTree);
@@ -4788,6 +4821,8 @@
     'toggle-next-moves': () => toggleSettingFlag('showNextMoves', (on) => `Next moves ${on ? 'shown' : 'hidden'}.`),
     'toggle-siblings': () => toggleSettingFlag('showSiblings', (on) => `Sibling variations ${on ? 'shown' : 'hidden'}.`),
     'count-territory': toggleCountTerritory,
+    estimate: () => toggleCountMode('estimate'),
+    score: () => toggleCountMode('score'),
     'toggle-bowls': toggleGoBowls,
     'toggle-auto-layout': toggleAutoLayout,
     'copy-position-link': copyPositionLink,
@@ -5609,6 +5644,8 @@
       else if (key === 'q') { event.preventDefault(); runAction(event.shiftKey ? quitApp : saveBoardPicture); }
       else if (key === 'z') { event.preventDefault(); runAction(event.shiftKey ? redo : undo); }
       else if (key === 'y') { event.preventDefault(); runAction(redo); }
+      else if (key === 'e' && event.shiftKey) { event.preventDefault(); runAction(() => toggleCountMode('estimate')); }
+      else if (key === 'r' && event.shiftKey) { event.preventDefault(); runAction(() => toggleCountMode('score')); }
       else if (key === 'e') { event.preventDefault(); runAction(toggleEditMode); }
       else if (key === 'k') { event.preventDefault(); runAction(toggleCountTerritory); }
       else if (key === 'p' && event.shiftKey) { event.preventDefault(); runAction(toggleTurn); }
@@ -5889,6 +5926,7 @@
       hover: () => (hover ? { ...hover } : null),
       count: () => ({
         active: countState.active,
+        mode: countState.mode,
         rules: countState.rules,
         dead: [...countState.dead],
         result: countState.result,
@@ -5897,7 +5935,7 @@
           return { shown: !bowlBlack.hidden, black: counts.black, white: counts.white };
         })(),
       }),
-      enterCount: (rules) => enterCount(rules),
+      enterCount: (rules, mode) => enterCount(rules, mode),
       exitCount: () => exitCount(),
       toggleCountStone: (x, y) => toggleCountStone(x, y),
       positionLink: () => {

@@ -195,12 +195,185 @@
     return rounded > 0 ? `B+${formatPoints(rounded)}` : `W+${formatPoints(-rounded)}`
   }
 
+  function ownerMap(grid) {
+    const rows = grid.length
+    const cols = rows ? grid[0].length : 0
+    const ownership = Array.from({ length: rows }, () => new Array(cols).fill(0))
+    const visited = Array.from({ length: rows }, () => new Array(cols).fill(false))
+    for (let y = 0; y < rows; y += 1) {
+      for (let x = 0; x < cols; x += 1) {
+        if (grid[y][x] !== EMPTY || visited[y][x]) continue
+        const points = []
+        const border = new Set()
+        const queue = [[x, y]]
+        visited[y][x] = true
+        while (queue.length) {
+          const [cx, cy] = queue.pop()
+          points.push([cx, cy])
+          for (const [dx, dy] of DIRECTIONS) {
+            const nx = cx + dx
+            const ny = cy + dy
+            if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
+            const sign = grid[ny][nx]
+            if (sign === EMPTY) {
+              if (!visited[ny][nx]) {
+                visited[ny][nx] = true
+                queue.push([nx, ny])
+              }
+            } else {
+              border.add(sign)
+            }
+          }
+        }
+        const owner = border.size === 1 ? (border.has(BLACK) ? BLACK : WHITE) : 0
+        for (const [px, py] of points) ownership[py][px] = owner
+      }
+    }
+    return ownership
+  }
+
+  function chainEyes(signMap, points, sign) {
+    const rows = signMap.length
+    const cols = rows ? signMap[0].length : 0
+    const chain = new Set(points.map(([x, y]) => key(x, y)))
+    const seen = new Set()
+    let eyes = 0
+    for (const [px, py] of points) {
+      for (const [dx, dy] of DIRECTIONS) {
+        const sx = px + dx
+        const sy = py + dy
+        if (sx < 0 || sy < 0 || sx >= cols || sy >= rows) continue
+        if (signMap[sy][sx] !== EMPTY) continue
+        const id = key(sx, sy)
+        if (seen.has(id)) continue
+        const queue = [[sx, sy]]
+        seen.add(id)
+        let enclosed = true
+        let touchesChain = 0
+        while (queue.length) {
+          const [cx, cy] = queue.pop()
+          for (const [ex, ey] of DIRECTIONS) {
+            const nx = cx + ex
+            const ny = cy + ey
+            if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
+            const neighbour = signMap[ny][nx]
+            if (neighbour === EMPTY) {
+              const next = key(nx, ny)
+              if (!seen.has(next)) {
+                seen.add(next)
+                queue.push([nx, ny])
+              }
+            } else if (neighbour === sign && chain.has(key(nx, ny))) {
+              touchesChain += 1
+            } else {
+              enclosed = false
+            }
+          }
+        }
+        if (enclosed && touchesChain > 0) eyes += 1
+      }
+    }
+    return eyes
+  }
+
+  /**
+   * Cheap dead-stone estimate for Play > Estimate: a chain with no eye whose
+   * liberties all fall inside enemy territory once the chain is lifted is
+   * treated as dead. Living shapes with at least one eye are left alone.
+   */
+  function estimateDead(signMap) {
+    const rows = Array.isArray(signMap) ? signMap.length : 0
+    const cols = rows ? signMap[0].length : 0
+    const dead = new Set()
+    const chains = []
+    const seen = new Set()
+    for (let y = 0; y < rows; y += 1) {
+      for (let x = 0; x < cols; x += 1) {
+        const sign = signMap[y][x]
+        if (!sign || seen.has(key(x, y))) continue
+        const points = groupAt(signMap, x, y)
+        for (const [px, py] of points) seen.add(key(px, py))
+        const liberties = []
+        for (const [px, py] of points) {
+          for (const [dx, dy] of DIRECTIONS) {
+            const nx = px + dx
+            const ny = py + dy
+            if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
+            if (signMap[ny][nx] === EMPTY) liberties.push([nx, ny])
+          }
+        }
+        chains.push({ sign, points, liberties, eyes: chainEyes(signMap, points, sign) })
+      }
+    }
+
+    for (let pass = 0; pass < 3; pass += 1) {
+      let changed = false
+      for (const chain of chains) {
+        if (chain.eyes > 0) continue
+        if (chain.points.every(([x, y]) => dead.has(key(x, y)))) continue
+        if (!chain.liberties.length) continue
+        const test = signMap.map((row) => row.slice())
+        for (const id of dead) {
+          const [x, y] = id.split(',').map(Number)
+          test[y][x] = EMPTY
+        }
+        for (const [x, y] of chain.points) test[y][x] = EMPTY
+        const ownership = ownerMap(test)
+
+        // Removing the chain must not open the surrounding region to the board
+        // edge; a wall that encloses a large area is not dead just because it
+        // has no eye.
+        const edgeCache = new Map()
+        const escapesToEdge = (sx, sy) => {
+          const id = key(sx, sy)
+          if (edgeCache.has(id)) return edgeCache.get(id)
+          const seenRegion = new Set([id])
+          const queue = [[sx, sy]]
+          let open = false
+          while (queue.length) {
+            const [cx, cy] = queue.pop()
+            if (cx === 0 || cy === 0 || cx === cols - 1 || cy === rows - 1) {
+              open = true
+              break
+            }
+            for (const [dx, dy] of DIRECTIONS) {
+              const nx = cx + dx
+              const ny = cy + dy
+              if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
+              if (test[ny][nx] !== EMPTY) continue
+              const next = key(nx, ny)
+              if (seenRegion.has(next)) continue
+              seenRegion.add(next)
+              queue.push([nx, ny])
+            }
+          }
+          edgeCache.set(id, open)
+          return open
+        }
+
+        const trapped = chain.liberties.every(([x, y]) => ownership[y][x] === -chain.sign)
+        const sealed = chain.liberties.every(([x, y]) => !escapesToEdge(x, y))
+        if (!trapped || !sealed) continue
+        for (const [x, y] of chain.points) {
+          const id = key(x, y)
+          if (!dead.has(id)) {
+            dead.add(id)
+            changed = true
+          }
+        }
+      }
+      if (!changed) break
+    }
+    return [...dead]
+  }
+
   const api = {
     EMPTY,
     BLACK,
     WHITE,
     compute,
     groupAt,
+    estimateDead,
     normaliseDead,
     formatPoints,
     resultLabel,

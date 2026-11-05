@@ -132,6 +132,28 @@ const playBowls = await evaluate(`(() => {
 })()`)
 await shot('preview/preview-bowls.png')
 
+// The bowls must hug the board, including after a pane resize.
+const bowlGapWide = await evaluate(`(() => {
+  const board = document.getElementById('board').getBoundingClientRect();
+  const left = document.getElementById('bowl-black').getBoundingClientRect();
+  const right = document.getElementById('bowl-white').getBoundingClientRect();
+  return { left: Math.round(board.left - left.right), right: Math.round(right.left - board.right) };
+})()`)
+await metrics(1200, 900)
+await sleep(350)
+const bowlGapResized = await evaluate(`(() => {
+  const board = document.getElementById('board').getBoundingClientRect();
+  const left = document.getElementById('bowl-black').getBoundingClientRect();
+  const right = document.getElementById('bowl-white').getBoundingClientRect();
+  return {
+    left: Math.round(board.left - left.right),
+    right: Math.round(right.left - board.right),
+    shown: !document.getElementById('bowl-black').hidden,
+  };
+})()`)
+await metrics(1440, 1024)
+await sleep(300)
+
 // The mirror case: White captures a Black stone, so the White bowl shows a
 // black stone (the contrast case that used to vanish on the dark bowl).
 const whiteCaptureSgf = '(;GM[1]FF[4]SZ[9]RU[Japanese]PB[Black]PW[White]KM[6.5]'
@@ -159,6 +181,57 @@ const chineseBowls = await evaluate(`({
   visible: !document.getElementById('bowl-black').hidden,
   white: __figdesk.count().bowls.white,
 })`)
+
+// Play > Estimate and Play > Score, driven through the real menus.
+const estimateSgf = '(;GM[1]FF[4]SZ[9]KM[6.5]RU[Japanese]PB[Black]PW[White]'
+  + 'AB' + [
+    'aa', 'ba', 'ca', 'da', 'ea', 'fa', 'ga', 'ha', 'ia',
+    'ab', 'ib', 'ac', 'ic', 'ad', 'id', 'ae', 'ie', 'af', 'if', 'ag', 'ig',
+    'ah', 'ih', 'ai', 'bi', 'ci', 'di', 'ei', 'fi', 'gi', 'hi', 'ii',
+  ].map((point) => `[${point}]`).join('')
+  + 'AW[ee])'
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(estimateSgf)}, 'estimate.sgf')`)
+await sleep(300)
+
+const menuEstimate = await evaluate(`(() => {
+  document.getElementById('menu-play').click();
+  document.querySelector('#popup-play [data-action="estimate"]').click();
+  const c = __figdesk.count();
+  return {
+    active: c.active,
+    mode: c.mode,
+    dead: c.dead,
+    result: document.getElementById('count-result').textContent,
+    title: document.querySelector('.count-title').textContent,
+  };
+})()`)
+await sleep(200)
+await shot('preview/preview-estimate.png')
+
+const menuScore = await evaluate(`(() => {
+  document.getElementById('menu-play').click();
+  document.querySelector('#popup-play [data-action="score"]').click();
+  const c = __figdesk.count();
+  return {
+    active: c.active,
+    mode: c.mode,
+    dead: c.dead,
+    result: document.getElementById('count-result').textContent,
+    title: document.querySelector('.count-title').textContent,
+  };
+})()`)
+await sleep(200)
+await shot('preview/preview-score.png')
+
+const toolsCount = await evaluate(`(() => {
+  __figdesk.exitCount();
+  document.getElementById('menu-tools').click();
+  document.querySelector('#popup-tools [data-action="count-territory"]').click();
+  const c = __figdesk.count();
+  const result = { active: c.active, mode: c.mode };
+  __figdesk.exitCount();
+  return result;
+})()`)
 
 const sgf = `(;GM[1]FF[4]SZ[13]KM[6.5]RU[Japanese]PB[Black]PW[White]`
   + `AB${column(3)}AW${column(8)}[bh])`
@@ -267,6 +340,6 @@ const doublePass = await evaluate(`(async () => {
   return { open, message, counting };
 })()`)
 
-console.log(JSON.stringify({ playBowls, whiteBowls, chineseBowls, initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, toolsCount, initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

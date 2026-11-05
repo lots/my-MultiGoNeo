@@ -73,8 +73,8 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis and drive the
   engine from the docked console. See [GTP engines](#gtp-engines).
 - **Count Territory** — MultiGo-style counting with dead-stone marking, Japanese and Chinese
-  rules, board shading and captured-stone bowls. See
-  [Counting territory](#counting-territory).
+  rules, board shading and captured-stone bowls. **Play → Estimate** pre-marks dead stones,
+  **Play → Score** starts manual. See [Counting territory](#counting-territory).
 - **Two consecutive passes** now end the game and offer to count the result.
 
 ### Game tree and SGF
@@ -524,10 +524,15 @@ line/arrow/dim preview.
 
 ### Counting territory
 
-**Tools → Count Territory** (`Ctrl+K`) opens a MultiGo-style counting card and shades the
-board. It is the manual counting workflow: the player decides which stones are dead, and the
-editor does the arithmetic.
+**Play → Score** (`Ctrl+Shift+R`) and **Tools → Count Territory** (`Ctrl+K`) open the manual
+counting card; **Play → Estimate** (`Ctrl+Shift+E`) opens the same card with the dead stones
+already estimated, ready to adjust. The board is shaded either way, and the editor does the
+arithmetic.
 
+- **Estimate vs Score**: Estimate runs a heuristic over the position — a chain with no eye whose
+  liberties are sealed inside enemy territory is marked dead — then you can click to correct it.
+  Score starts with no dead stones and waits for you to select them. Both use the same card and
+  the same rules switch.
 - **Shading**: black-held points are dark, white-held points are light, and neutral **dame**
   points get a small grey dot.
 - **Dead stones**: click a stone to mark its whole chain dead (and count it as a prisoner);
@@ -539,23 +544,30 @@ editor does the arithmetic.
 - **Write RE** stores the result in the root node (and the title updates); **Done** or `Esc`
   closes counting. The card only takes clicks on its controls, so stones underneath it remain
   clickable.
-- **Captured-stone bowls**: two light-wood bowls sit beside the board for the whole
-  Japanese-rules game — black on the left, white on the right. They are drawn **top-down**:
-  the captured stones themselves are stacked in the bowl (White's stones in the black bowl,
-  Black's in the white one), with a shadow and a rim so both colours stay legible on the light
-  wood. No number is printed in the bowl — the status bar already shows
-  `Captures: B n · W n`. They update live as captures are played, and again while counting
-  (dead stones join the prisoner total). In Chinese rules they stay hidden, they disappear when
-  the board pane is too narrow, and **View → Show Go Bowls** turns them off manually.
+- **Captured-stone bowls**: two light-wood bowls flank the goban for the whole Japanese-rules
+  game and stay glued to it when the pane resizes — they are laid out beside the board, not
+  pinned to the pane edges, so the gap stays constant. They are drawn **top-down**: the captured
+  stones themselves are stacked in the bowl (White's stones in the black bowl, Black's in the
+  white one), each with 3D radial shading, a specular highlight and a drop shadow so both
+  colours stay legible on the light wood. No number is printed in the bowl — the status bar
+  already shows `Captures: B n · W n`. They update live as captures are played, and again while
+  counting (dead stones join the prisoner total). In Chinese rules they stay hidden, they
+  disappear when the board pane is too narrow, and **View → Show Go Bowls** turns them off
+  manually.
 
 Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
-alive, just like pressing count in MultiGo. There is no automatic dead-stone suggestion.
+alive, just like pressing count in MultiGo. Estimate is only a heuristic, so correct it by hand
+when it gets a group wrong.
 
 ![Japanese counting: shaded territory, dame dots and the two captured-stone bowls](preview/preview-count-japanese.png)
 
 ![A dead stone marked with a red X; Black now holds one prisoner](preview/preview-count-dead.png)
 
 ![Chinese area scoring: stones and territory, no prisoners, bowls hidden](preview/preview-count-chinese.png)
+
+![Play > Estimate: the sealed white stone is estimated dead and counted](preview/preview-estimate.png)
+
+![Play > Score: the same position with no dead stones selected](preview/preview-score.png)
 
 The bowls are live during play as well, not only while counting — here Black has captured one
 White stone and the bowl shows it:
@@ -684,7 +696,8 @@ architecture; the dialog notes these limitations.
 The suites behind `npm test` cover variations, unknown-property preservation, immutable tree
 mutation, captures, custom rectangular sizes, the 52-point alphabet, markup round-trips, the
 position-path parser/resolver (including build/resolve round-trips through every branch),
-territory/area scoring (dead stones, prisoners, komi, dame), the GTP session layer against a
+territory/area scoring (dead stones, prisoners, komi, dame, automatic dead-stone estimation),
+the GTP session layer against a
 fake engine, and engine-configuration loading/saving.
 The legacy pure-Go helper tests remain available as `npm run test:legacy`.
 
@@ -826,7 +839,13 @@ layout and a 1100×1700 pass for the embed page:
   `Captures: B 1 · W 0`;
 - mirrored the sequence so White captured a Black stone and confirmed the white bowl shows the
   dark stone clearly on the light wood;
+- measured the gap between each bowl and the goban at **8 px**, resized the viewport to 1200 px
+  and confirmed the gap is still **8 px** with the bowls still visible;
 - loaded the same position with `RU[Chinese]` and confirmed the bowls stay hidden;
+- chose **Play → Estimate** and confirmed it entered Estimate mode with the sealed white stone
+  already marked dead and `B+43.5` shown, then **Play → Score** on the same position and
+  confirmed no dead stones and `W+6.5`;
+- confirmed **Tools → Count Territory** still opens manual Score mode;
 - clicked the lone white stone inside Black's area and confirmed it became one prisoner, Black's
   territory stayed 39, the result moved to `W+18.5` and the black bowl showed **1**;
 - switched to **Chinese** rules and confirmed stone counts replaced prisoners, the bowls hid and
@@ -869,7 +888,8 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [dead stone counted](preview/preview-count-dead.png),
 [Chinese counting](preview/preview-count-chinese.png),
 [play-time captured-stone bowls](preview/preview-bowls.png),
-[captured black stone in the white bowl](preview/preview-bowls-white.png)
+[captured black stone in the white bowl](preview/preview-bowls-white.png),
+[Play > Estimate](preview/preview-estimate.png), [Play > Score](preview/preview-score.png)
 and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
@@ -1027,7 +1047,8 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Generate Move | Engine → Generate Move (or the Engine tab button) |
 | Engine analysis | Engine → Analysis |
 | GTP console | Engine → GTP Console… |
-| Count territory | Tools → Count Territory or `Ctrl+K`; click stones to mark them dead |
+| Count territory | Play → Score (`Ctrl+Shift+R`) or Tools → Count Territory (`Ctrl+K`); click stones to mark them dead |
+| Estimate score | Play → Estimate (`Ctrl+Shift+E`) — opens the same card with dead stones estimated |
 | Close counting | `Esc` or the **Done** button in the count card |
 | Captured-stone bowls | View → Show Go Bowls (Japanese games, wide board panes only) |
 | Menus | `Alt+F / E / A / P / V / T / O / H / G` |
@@ -1107,7 +1128,7 @@ engines/engines.json      hand-editable engine connection list shared with Manag
 engines/README.md         shim and configuration reference
 scripts/test-tree.js      5 tree/SGF/go-board tests
 scripts/test-path.js      5 position-path tests
-scripts/test-scoring.js   8 territory/area scoring tests
+scripts/test-scoring.js   11 territory/area scoring and estimator tests
 scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
 scripts/test-engine-config.js  engine JSON load/save/path tests
 scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs

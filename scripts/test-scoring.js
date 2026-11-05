@@ -158,4 +158,38 @@ test('out-of-range dead keys are ignored', () => {
   assert.equal(result.result, 'Jigo');
 });
 
+test('estimateDead finds a lone stone sealed inside enemy territory', () => {
+  const grid = board(5, 5);
+  for (let i = 0; i < 5; i += 1) {
+    grid[0][i] = 1;
+    grid[4][i] = 1;
+    grid[i][0] = 1;
+    grid[i][4] = 1;
+  }
+  grid[2][2] = -1;
+  assert.deepEqual(scoring.estimateDead(grid), ['2,2']);
+});
+
+test('estimateDead leaves a group with an eye alive', () => {
+  const grid = board(5, 5);
+  for (let i = 0; i < 5; i += 1) {
+    grid[0][i] = 1;
+    grid[4][i] = 1;
+    grid[i][0] = 1;
+    grid[i][4] = 1;
+  }
+  // White ring with a single eye at (2,2).
+  for (let x = 1; x <= 3; x += 1) {
+    for (let y = 1; y <= 3; y += 1) {
+      if (x === 2 && y === 2) continue;
+      grid[y][x] = -1;
+    }
+  }
+  assert.deepEqual(scoring.estimateDead(grid), []);
+});
+
+test('estimateDead returns nothing on an empty board', () => {
+  assert.deepEqual(scoring.estimateDead(board(5, 5)), []);
+});
+
 console.log(`\n${count} scoring tests passed.`);
