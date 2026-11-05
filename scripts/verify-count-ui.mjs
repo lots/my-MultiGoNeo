@@ -340,6 +340,28 @@ const doublePass = await evaluate(`(async () => {
   return { open, message, counting };
 })()`)
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, toolsCount, initial, afterDead, chinese, written, escaped, narrow, doublePass, errors }, null, 2))
+// Small boards must keep edge stones inside the canvas.
+const smallBoards = await evaluate(`(async () => {
+  const results = {};
+  for (const size of [8, 4, 2]) {
+    __figdesk.startGame({ width: size, height: size });
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    const view = __figdesk.boardView;
+    const radius = view.spacing * 0.465;
+    results[size] = {
+      margin: Math.round(view.margin),
+      radius: Math.round(radius * 10) / 10,
+      clearance: Math.round((view.margin - radius) * 10) / 10,
+      labelClearance: Math.round((view.labelOffset - radius) * 10) / 10,
+    };
+  }
+  return results;
+})()`)
+await evaluate(`__figdesk.startGame({ width: 8, height: 8 })`)
+await evaluate(`__figdesk.applySgfText('(;GM[1]FF[4]SZ[8]AB[aa][ah][ha][hh])', 'edges.sgf')`)
+await sleep(350)
+await shot('preview/preview-8x8.png')
+
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, toolsCount, initial, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

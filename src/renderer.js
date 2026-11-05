@@ -1906,14 +1906,33 @@
     const fitWidth = Math.max(60, rect.width - 28 - bowlReserve);
     const fitHeight = Math.max(60, rect.height - 28);
     const zoom = settings.zoom || 1;
-    const margin = Math.max(19, Math.round(Math.min(fitWidth, fitHeight) * 0.055)) * zoom;
-    const spacing = Math.max(
-      4,
-      Math.min(
-        (fitWidth - margin * 2) / Math.max(1, cols - 1),
-        (fitHeight - margin * 2) / Math.max(1, rows - 1),
-      ) * zoom,
-    );
+    const baseMargin = Math.max(19, Math.round(Math.min(fitWidth, fitHeight) * 0.055)) * zoom;
+    // Small boards get very large spacing, and a stone radius that overflows the
+    // margin would be clipped by the canvas edge. Grow the margin until the edge
+    // stones and their labels fit, capped so tiny boards stay compact.
+    const maxMargin = baseMargin * 1.8;
+    let margin = baseMargin;
+    let spacing = 4;
+    let stoneRadius = margin * 0.465;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      spacing = Math.max(
+        4,
+        Math.min(
+          (fitWidth - margin * 2) / Math.max(1, cols - 1),
+          (fitHeight - margin * 2) / Math.max(1, rows - 1),
+        ) * zoom,
+      );
+      stoneRadius = spacing * 0.465;
+      if (stoneRadius + 14 <= margin) break;
+      const nextMargin = Math.min(maxMargin, Math.ceil(stoneRadius + 14));
+      if (nextMargin <= margin + 0.5) {
+        spacing = Math.min(spacing, (margin - 14) / 0.465);
+        stoneRadius = spacing * 0.465;
+        break;
+      }
+      margin = nextMargin;
+    }
+    const labelOffset = Math.min(margin - 6, Math.max(stoneRadius + 8, margin * 0.5));
     const cssWidth = Math.max(80, Math.round((cols - 1) * spacing + margin * 2));
     const cssHeight = Math.max(80, Math.round((rows - 1) * spacing + margin * 2));
     paneBoard.classList.toggle('is-zoomed', zoom > 1.001);
@@ -1926,6 +1945,7 @@
     boardView.cols = cols;
     boardView.rows = rows;
     boardView.margin = margin;
+    boardView.labelOffset = labelOffset;
     boardView.spacing = spacing;
     boardView.originX = margin;
     boardView.originY = margin;
@@ -2509,10 +2529,10 @@
       context.fillStyle = palette.label;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      const topY = boardView.originY - boardView.margin * 0.5;
-      const bottomY = boardView.originY + (rows - 1) * spacing + boardView.margin * 0.5;
-      const leftX = boardView.originX - boardView.margin * 0.5;
-      const rightX = boardView.originX + (cols - 1) * spacing + boardView.margin * 0.5;
+      const topY = boardView.originY - boardView.labelOffset;
+      const bottomY = boardView.originY + (rows - 1) * spacing + boardView.labelOffset;
+      const leftX = boardView.originX - boardView.labelOffset;
+      const rightX = boardView.originX + (cols - 1) * spacing + boardView.labelOffset;
       const originLogical = inverseBoardPoint(0, 0);
       const horizontalNext = inverseBoardPoint(Math.min(1, cols - 1), 0);
       const verticalNext = inverseBoardPoint(0, Math.min(1, rows - 1));

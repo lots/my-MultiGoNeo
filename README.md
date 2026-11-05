@@ -435,6 +435,9 @@ The View menu now provides display-only orientation controls:
 ### Workspace
 
 - 13×13 default, with 9×9/19×19 presets and **custom boards from 2×2 to 52×52**.
+- Small boards (8×8 and below) keep their **edge stones inside the canvas**: the board margin
+  grows with the stone radius so nothing is clipped, and the coordinate labels stay outside
+  the stones.
 - Custom size syntax is `width*height`, e.g. `5*9` (five columns, nine rows). The wood
   surface and grid are genuinely rectangular, and `SZ[5:9]` is written to the SGF.
 - Invalid custom sizes keep the dialog open and show an inline error such as
@@ -854,6 +857,8 @@ layout and a 1100×1700 pass for the embed page:
 - shrank the board pane to 520 px and confirmed the bowls hid themselves;
 - played two consecutive passes, saw the **Count Result** prompt, and confirmed accepting it
   opened the counting card;
+- rendered **8×8, 4×4 and 2×2** boards and confirmed the edge stones stay inside the canvas
+  (14–17 px clearance) with the coordinate labels 8 px clear of the stones;
 - no console exceptions.
 
 All screenshots live in the [`preview/`](preview/) subfolder.
@@ -889,7 +894,8 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [Chinese counting](preview/preview-count-chinese.png),
 [play-time captured-stone bowls](preview/preview-bowls.png),
 [captured black stone in the white bowl](preview/preview-bowls-white.png),
-[Play > Estimate](preview/preview-estimate.png), [Play > Score](preview/preview-score.png)
+[Play > Estimate](preview/preview-estimate.png), [Play > Score](preview/preview-score.png),
+[8×8 board with edge stones](preview/preview-8x8.png)
 and [embeds](preview/preview-embed.png).
 
 The four theme images are the same 13×13 position captured at 1440×1024 by
