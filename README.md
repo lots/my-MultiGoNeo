@@ -21,12 +21,11 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The 1.1.2 build adds **Reload-in-place**, **multi-file branch import**, **PNG board export**,
-a prominent **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**, and
-one shared lighter icon for the app, installer and portable build.
-
-The **GTP engine layer** described below landed after the 1.1.2 release, so the published
-1.1.2 binaries do not include it; build from this tree to use it.
+The **1.1.3 build** adds the Sabaki-derived **GTP engine layer**, MultiGo-style **counting
+territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board edge
+fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**, **PNG board
+export**, the **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**
+and one shared lighter icon.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
@@ -36,6 +35,23 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.3
+
+Released 2026-11-05. The Windows artifacts are `MultiGo-Neo-1.1.3-setup.exe` and
+`MultiGo-Neo-1.1.3-portable.exe`.
+
+- **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
+  overlay and Engine tab, and drive the engine from the docked GTP console. See
+  [GTP engines](#gtp-engines).
+- **Counting territory** — MultiGo-style counting with dead-stone marking, Japanese and Chinese
+  rules, board shading, dame dots, captured-stone bowls and **Write RE**. **Play → Estimate**
+  pre-marks dead stones; **Play → Score** starts manual. See
+  [Counting territory](#counting-territory).
+- **Two consecutive passes** end the game and offer to count the result.
+- **Captured-stone bowls** stay visible during Japanese-rules play, drawn top-down on light wood
+  beside the goban and glued to it when the pane resizes.
+- **Small boards (8×8 and below)** keep edge stones and coordinate labels inside the canvas.
 
 ### Version 1.1.2
 
@@ -67,15 +83,6 @@ Released 2026-11-04. The Windows artifacts are `MultiGo-Neo-1.1.2-setup.exe` and
 
 See [Reload, imports and picture export](#reload-imports-and-picture-export),
 [Board orientation](#board-orientation) and [Unsaved changes](#unsaved-changes).
-
-### After 1.1.2 (unreleased)
-
-- **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis and drive the
-  engine from the docked console. See [GTP engines](#gtp-engines).
-- **Count Territory** — MultiGo-style counting with dead-stone marking, Japanese and Chinese
-  rules, board shading and captured-stone bowls. **Play → Estimate** pre-marks dead stones,
-  **Play → Score** starts manual. See [Counting territory](#counting-territory).
-- **Two consecutive passes** now end the game and offer to count the result.
 
 ### Game tree and SGF
 
@@ -212,7 +219,7 @@ The Edit menu now covers variation editing as well as display edits:
 
 ### GTP engines
 
-**Status:** new in this tree, after the 1.1.2 release — the 1.1.2 installers predate it.
+**Status:** new in **1.1.3**.
 
 The **Engine** tab (next to Info and Comment) attaches an external GTP engine. The engine
 layer is ported from my-Sabaki/Sabaki: `electron/gtp.js` speaks the protocol, `src/engine.js`
@@ -911,7 +918,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.2-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.3-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -919,7 +926,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.2-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.3-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -983,8 +990,8 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.2-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.2-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.3-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.3-portable.exe` — single-file portable build.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
