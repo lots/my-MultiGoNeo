@@ -259,8 +259,36 @@ const initial = await evaluate(`(() => {
     scoreTabVisible: !document.getElementById('tab-score').hidden,
     cardBackground: getComputedStyle(document.getElementById('count-card')).backgroundColor,
     cardOpacity: getComputedStyle(document.getElementById('count-card')).opacity,
+    scoreFont: document.getElementById('score-font-size').textContent,
     bowls: c.bowls,
   };
+})()`)
+await evaluate(`document.getElementById('score-font-inc').click(); document.getElementById('score-font-inc').click()`)
+await sleep(150)
+const scoreFontChanged = await evaluate(`({
+  size: __figdesk.settings().scoreFontSize,
+  css: getComputedStyle(document.getElementById('count-card')).fontSize,
+  output: document.getElementById('score-font-size').textContent,
+  dirty: __figdesk.dirty,
+})`)
+const seats = await evaluate(`(() => {
+  const read = () => {
+    const board = document.getElementById('board').getBoundingClientRect();
+    const black = document.getElementById('bowl-black').getBoundingClientRect();
+    const white = document.getElementById('bowl-white').getBoundingClientRect();
+    return {
+      blackBelow: black.top > board.top + board.height / 2,
+      whiteAbove: white.top < board.top + board.height / 2,
+      blackRight: black.left > board.left + board.width / 2,
+      whiteLeft: white.left < board.left + board.width / 2,
+      setting: __figdesk.settings().blackAtBottom,
+    };
+  };
+  const before = read();
+  document.querySelector('[data-action="swap-seats"]').click();
+  const after = read();
+  document.querySelector('[data-action="swap-seats"]').click();
+  return { before, after, restored: __figdesk.settings().blackAtBottom };
 })()`)
 await shot('preview/preview-count-japanese.png')
 
@@ -392,6 +420,6 @@ const referenceAfter = await evaluate(`({
 await shot('preview/preview-scoring-reference-dead.png')
 await evaluate(`__figdesk.exitCount()`)
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, errors }, null, 2))
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, seats, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

@@ -354,6 +354,9 @@
           <button type="button" class="menu-item" role="menuitem" data-action="reset-board">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reset Board</span><kbd>G</kbd>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="swap-seats">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Swap Player Sides</span>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="toggle-fullscreen">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Toggle Full Screen</span><kbd>F11</kbd>
@@ -733,6 +736,11 @@
             <div class="count-card" id="count-card" hidden aria-live="polite">
               <header class="count-head">
                 <span class="count-title">Score Result</span>
+                <span class="comment-font-controls" aria-label="Score display font size">
+                  <button type="button" class="comment-font-button" id="score-font-dec" title="Decrease score font size">A−</button>
+                  <output class="comment-font-value" id="score-font-size" aria-live="polite">12</output>
+                  <button type="button" class="comment-font-button" id="score-font-inc" title="Increase score font size">A+</button>
+                </span>
                 <button type="button" class="icon-button" id="count-close" aria-label="Close scoring">×</button>
               </header>
               <p class="count-hint" id="count-hint">Now you can mark dead stones on the board; the result updates automatically.</p>

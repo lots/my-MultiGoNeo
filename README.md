@@ -44,13 +44,15 @@ Released 2026-11-05. The Windows artifacts are `MultiGo-Neo-1.1.3-setup.exe` and
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
   overlay and Engine tab, and drive the engine from the docked GTP console. See
   [GTP engines](#gtp-engines).
-- **Estimate and Score** — Sabaki-style dead-stone marking with **Chinese and Japanese results
-  shown together**. Black/white squares mark territory, red squares mark shared points, and
-  green squares mark dead stones. **Play → Estimate** pre-marks dead stones; **Play → Score**
-  starts manual. See [Estimate and Score](#estimate-and-score).
+- **Estimate and Score** — a docked **Score** tab beside Info/Comment/Engine shows Chinese and
+  Japanese results together. Compact black/white bordered squares mark ownership, red squares
+  mark shared points, and green squares mark dead stones. The Score text has its own 12–36 px
+  A−/A+ control. **Play → Estimate** pre-marks dead stones; **Play → Score** starts manual.
+  See [Estimate and Score](#estimate-and-score).
 - **Two consecutive passes** end the game and offer to count the result.
-- **Captured-stone bowls** stay visible during Japanese-rules play, drawn top-down on light wood
-  beside the goban and glued to it when the pane resizes.
+- **Captured-stone bowls** stay visible during Japanese-rules play: Black sits at the bottom by
+  default, so the black bowl is lower-right and White's is upper-left. **View → Swap Player
+  Sides** reverses the seating.
 - **Small boards (8×8 and below)** keep edge stones and coordinate labels inside the canvas.
 
 ### Version 1.1.2
@@ -118,9 +120,11 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   height is remembered across launches. The same comment is rendered below the editor using
   the Markdown subset, so formatted text can be checked while editing. In Read Only mode the
   editor is hidden and only the rendered comment is shown.
-- The rendered comment has **A− / A+** display-size controls in its header (9–24 px). The size
-  is stored only in the app’s `localStorage` preference; it is not written to the SGF and
+- The rendered comment has **A− / A+** display-size controls in its header (**12–36 px**). The
+  size is stored only in the app’s `localStorage` preference; it is not written to the SGF and
   survives both page reloads and loading a different SGF.
+- The docked **Score** tab has the same independent **A− / A+** control, also **12–36 px** and
+  persisted only in app preferences.
 
 ![Comment display font-size controls and rendered Markdown](preview/preview-comment-font.png)
 - Edit tool strip: black/white stones, eraser, cross, triangle, square, circle, line, arrow,
@@ -556,16 +560,15 @@ way, and the editor does the arithmetic.
   scored. The card labels the prisoner terms **Black's Dead** / **White's Dead**.
 - **Write RE** stores the result for the SGF's `RU` rule in the root node (and the title
   updates); **Done** or `Esc` closes scoring.
-- **Captured-stone bowls**: two light-wood bowls flank the goban for the whole Japanese-rules
-  game and stay glued to it when the pane resizes — they are laid out beside the board, not
-  pinned to the pane edges, so the gap stays constant. They are drawn **top-down**: the captured
-  stones themselves are stacked in the bowl (White's stones in the black bowl, Black's in the
-  white one), each with 3D radial shading, a specular highlight and a drop shadow so both
-  colours stay legible on the light wood. No number is printed in the bowl — the status bar
-  already shows `Captures: B n · W n`. They update live as captures are played, and again while
-  scoring (dead stones join the prisoner total). In Chinese rules they stay hidden, they
-  disappear when the board pane is too narrow, and **View → Show Go Bowls** turns them off
-  manually.
+- **Captured-stone bowls**: by default Black sits at the bottom, so the black bowl is at the
+  **lower right** of the goban and the white bowl at the **upper left**. **View → Swap Player
+  Sides** flips the seating and therefore the bowls. Bowls stay beside the board when the pane
+  resizes and fall back to the board corners when there is no outer room. They are drawn
+  **top-down**: captured stones are stacked in the bowl (White's stones in the black bowl,
+  Black's in the white one), with 3D shading and shadows. No number is printed in the bowl — the
+  status bar shows `Captures: B n · W n`. They update live during play and scoring. In Chinese
+  rules they stay hidden, they disappear when the board pane is too narrow, and
+  **View → Show Go Bowls** turns them off manually.
 
 Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
 alive, just like Sabaki's score mode. Estimate is only a heuristic, so correct it by hand when
@@ -843,21 +846,23 @@ layout and a 1100×1700 pass for the embed page:
   root, with the overlay drawn on the board;
 - opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
 - chose **Play → Score** on a 13×13 position with a black and a white wall and confirmed the
-  card showed **both Chinese and Japanese** results at the same time;
+  docked **Score** tab showed both Chinese and Japanese results;
 - confirmed the captured-stone bowls are already visible **during play** on a Japanese-rules
   game, showing exactly one white stone (no duplicated number) with the status bar reading
   `Captures: B 1 · W 0`;
 - mirrored the sequence so White captured a Black stone and confirmed the white bowl shows the
   dark stone clearly on the light wood;
-- measured the gap between each bowl and the goban at **8 px**, resized the viewport to 1200 px
-  and confirmed the gap is still **8 px** with the bowls still visible;
+- confirmed the default seats place Black lower-right and White upper-left, then used
+  **View → Swap Player Sides** and confirmed the bowls swapped corners and the setting restored;
 - loaded the same position with `RU[Chinese]` and confirmed the bowls stay hidden;
 - chose **Play → Estimate** and confirmed it entered Estimate mode with the sealed white stone
   already marked dead and both rule results shown; **Play → Score** opened with no dead stones;
 - clicked the lone white stone inside Black's area and confirmed its green dead marker, the
   score updates in both rule blocks, and the black bowl showed **1**;
-- confirmed the score card showed black/white/red ownership squares and green dead-stone markers
-  in the reference layout;
+- confirmed the compact scoring markers: black squares with white borders, white squares with
+  black borders, borderless red shared points and green dead stones;
+- changed the Score tab display font from 12 px to 14 px, confirmed the app stayed clean, and
+  confirmed the Comment and Score font preferences are independent;
 - scoring unit tests reproduce the MultiGo reference exactly: Chinese **30.75 / 18.25**
   before dead marking, **23.75 / 25.25** after; Japanese **17 / 6.5** before and
   **17 / 20.5** after, with results `B+6.25`, `W+0.75`, `B+10.5`, `W+3.5`;
@@ -1018,7 +1023,8 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Preferences | Options → Preferences…; OK applies, Cancel discards |
 | Read Only | Edit → Read Only; navigation only, save disabled |
 | Comment editor | Comment tab; three-line editor, vertically resizable, height remembered; rendered Markdown below |
-| Comment display size | A− / A+ in the Comment header; 9–24 px, persisted per app and never written to the SGF |
+| Comment display size | A− / A+ in the Comment header; 12–36 px, persisted per app and never written to the SGF |
+| Score display size | A− / A+ in the Score tab header; 12–36 px, independent app preference |
 | Edit Game Info | Edit → Edit Game Info; maximizes the Info panel and focuses Black; **Done** restores the previous layout |
 | Responsive layout | View → Responsive Layout (auto below 1120 px) |
 | Copy position link | Tools → Copy Position Link |
@@ -1065,6 +1071,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Estimate / Score | Play → Estimate (`Ctrl+Shift+E`) or Play → Score (`Ctrl+Shift+R`); click stones to mark them dead |
 | Close scoring | `Esc` or the **Done** button in the scoring card |
 | Captured-stone bowls | View → Show Go Bowls (Japanese games, wide board panes only) |
+| Swap player seats | View → Swap Player Sides |
 | Menus | `Alt+F / E / A / P / V / T / O / H / G` |
 | Help | `F1` |
 

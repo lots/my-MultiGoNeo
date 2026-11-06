@@ -175,6 +175,9 @@
   const commentFontDec = $('#comment-font-dec');
   const commentFontInc = $('#comment-font-inc');
   const commentFontSize = $('#comment-font-size');
+  const scoreFontDec = $('#score-font-dec');
+  const scoreFontInc = $('#score-font-inc');
+  const scoreFontSize = $('#score-font-size');
   const sgfFileInput = $('#sgf-file');
   const importSgfInput = $('#import-sgf-files');
   const confirmDialog = $('#confirm-dialog');
@@ -299,10 +302,12 @@
     fastStep: 20,
     commentHeight: null,
     commentFontSize: 12,
+    scoreFontSize: 12,
     defaultSize: 13,
     boardRotation: 0,
     boardFlipH: false,
     boardFlipV: false,
+    blackAtBottom: true,
     boardBrightness: 1,
     stoneTexture: true,
     focusMarker: 'triangle',
@@ -362,11 +367,13 @@
         commentHeight: Number.isFinite(Number(parsed.commentHeight)) && Number(parsed.commentHeight) >= 40
           ? Number(parsed.commentHeight)
           : null,
-        commentFontSize: clamp(Number(parsed.commentFontSize) || 12, 9, 24),
+        commentFontSize: clamp(Number(parsed.commentFontSize) || 12, 12, 36),
+        scoreFontSize: clamp(Number(parsed.scoreFontSize) || 12, 12, 36),
         defaultSize: [9, 13, 19].includes(Number(parsed.defaultSize)) ? Number(parsed.defaultSize) : 13,
         boardRotation: [0, 90, 180, 270].includes(Number(parsed.boardRotation)) ? Number(parsed.boardRotation) : 0,
         boardFlipH: parsed.boardFlipH === true,
         boardFlipV: parsed.boardFlipV === true,
+        blackAtBottom: parsed.blackAtBottom !== false,
         boardBrightness: clamp(Number(parsed.boardBrightness) || 1, 0.5, 1.5),
         stoneTexture: parsed.stoneTexture !== false,
         focusMarker: ['triangle', 'dot', 'none'].includes(parsed.focusMarker) ? parsed.focusMarker : 'triangle',
@@ -601,6 +608,7 @@
     'Fast forward/rewind steps': '快进/快退步数',
     'Rotate Clockwise': '顺时针旋转', 'Flip Horizontally': '水平翻转',
     'Flip Vertically': '垂直翻转', 'Reset Board': '重置棋盘',
+    'Swap Player Sides': '交换棋手方位',
     'UNSAVED': '未保存',
     '9 × 9 Board': '9×9 棋盘', '13 × 13 Board': '13×13 棋盘', '19 × 19 Board': '19×19 棋盘',
     'Board Size': '棋盘尺寸', Coordinates: '坐标', 'Move Numbers': '手数', Numbering: '编号起始',
@@ -1345,7 +1353,43 @@
       renderBowlStones(bowlBlackStones, counts.black, -1);
       renderBowlStones(bowlWhiteStones, counts.white, 1);
     }
+    positionBowls();
     return changed;
+  }
+
+  function positionBowls() {
+    if (!boardCanvas.width || bowlBlack.hidden) return;
+    const paneRect = paneBoard.getBoundingClientRect();
+    const boardRect = boardCanvas.getBoundingClientRect();
+    if (!paneRect.width || !boardRect.width) return;
+    const bottomBowl = settings.blackAtBottom === false ? bowlWhite : bowlBlack;
+    const topBowl = settings.blackAtBottom === false ? bowlBlack : bowlWhite;
+    const bowlWidth = bottomBowl.offsetWidth || 92;
+    const bowlHeight = bottomBowl.offsetHeight || 112;
+    const gap = 8;
+    const left = boardRect.left - paneRect.left;
+    const top = boardRect.top - paneRect.top;
+    const right = boardRect.right - paneRect.left;
+    const bottom = boardRect.bottom - paneRect.top;
+    let bottomLeft = right + gap;
+    let bottomTop = bottom - bowlHeight;
+    if (bottomLeft + bowlWidth > paneRect.width - 4) bottomLeft = right - bowlWidth - gap;
+    if (bottomTop < 4) bottomTop = 4;
+    let topLeft = left - bowlWidth - gap;
+    let topTop = top;
+    if (topLeft < 4) topLeft = left + gap;
+    if (topTop + bowlHeight > paneRect.height - 4) topTop = paneRect.height - bowlHeight - 4;
+    bottomBowl.style.left = `${Math.round(bottomLeft)}px`;
+    bottomBowl.style.top = `${Math.round(bottomTop)}px`;
+    topBowl.style.left = `${Math.round(topLeft)}px`;
+    topBowl.style.top = `${Math.round(topTop)}px`;
+  }
+
+  function togglePlayerSeats() {
+    settings.blackAtBottom = settings.blackAtBottom === false;
+    saveSettings();
+    updateBowls();
+    log(settings.blackAtBottom ? 'Player seats: Black at bottom, White at top.' : 'Player seats: White at bottom, Black at top.');
   }
 
   function spacedResult(result) {
@@ -1982,6 +2026,7 @@
     boardContext.setTransform(dpr, 0, 0, dpr, 0, 0);
     boardSelectionContext.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawBoard();
+    positionBowls();
   }
 
   function scheduleBoardDraw() {
@@ -3060,21 +3105,39 @@
   }
 
   function applyCommentFontSize() {
-    const size = clamp(Number(settings.commentFontSize) || 12, 9, 24);
+    const size = clamp(Number(settings.commentFontSize) || 12, 12, 36);
     settings.commentFontSize = size;
     commentPreview.style.fontSize = `${size}px`;
     if (commentFontSize) commentFontSize.textContent = String(size);
-    if (commentFontDec) commentFontDec.disabled = size <= 9;
-    if (commentFontInc) commentFontInc.disabled = size >= 24;
+    if (commentFontDec) commentFontDec.disabled = size <= 12;
+    if (commentFontInc) commentFontInc.disabled = size >= 36;
   }
 
   function changeCommentFontSize(delta) {
-    const next = clamp((Number(settings.commentFontSize) || 12) + delta, 9, 24);
+    const next = clamp((Number(settings.commentFontSize) || 12) + delta, 12, 36);
     if (next === settings.commentFontSize) return;
     settings.commentFontSize = next;
     saveSettings();
     applyCommentFontSize();
     log(`Comment display size: ${next}px.`);
+  }
+
+  function applyScoreFontSize() {
+    const size = clamp(Number(settings.scoreFontSize) || 12, 12, 36);
+    settings.scoreFontSize = size;
+    countCard.style.fontSize = `${size}px`;
+    if (scoreFontSize) scoreFontSize.textContent = String(size);
+    if (scoreFontDec) scoreFontDec.disabled = size <= 12;
+    if (scoreFontInc) scoreFontInc.disabled = size >= 36;
+  }
+
+  function changeScoreFontSize(delta) {
+    const next = clamp((Number(settings.scoreFontSize) || 12) + delta, 12, 36);
+    if (next === settings.scoreFontSize) return;
+    settings.scoreFontSize = next;
+    saveSettings();
+    applyScoreFontSize();
+    log(`Score display size: ${next}px.`);
   }
 
   function renderCommentPreview(text) {
@@ -4866,6 +4929,7 @@
     'flip-h': () => flipBoardView('h'),
     'flip-v': () => flipBoardView('v'),
     'reset-board': resetBoardView,
+    'swap-seats': togglePlayerSeats,
     'zoom-in': () => setZoom(settings.zoom * 1.15),
     'zoom-out': () => setZoom(settings.zoom / 1.15),
     'zoom-reset': () => setZoom(1),
@@ -4912,6 +4976,7 @@
 
   applyCommentHeight();
   applyCommentFontSize();
+  applyScoreFontSize();
   if (window.ResizeObserver) {
     let commentResizeFrame = 0;
     const commentResizeObserver = new ResizeObserver(() => {
@@ -4932,6 +4997,8 @@
   commentInput.addEventListener('input', () => renderCommentPreview(commentInput.value));
   commentFontDec.addEventListener('click', () => changeCommentFontSize(-1));
   commentFontInc.addEventListener('click', () => changeCommentFontSize(1));
+  scoreFontDec.addEventListener('click', () => changeScoreFontSize(-1));
+  scoreFontInc.addEventListener('click', () => changeScoreFontSize(1));
   commentInput.addEventListener('change', () => {
     const value = commentInput.value;
     const node = currentNode();
