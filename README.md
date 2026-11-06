@@ -21,7 +21,7 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.3 build** adds the Sabaki-derived **GTP engine layer**, Sabaki-style **scoring
+The **1.1.4 build** adds the Sabaki-derived **GTP engine layer**, Sabaki-style **scoring
 territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board edge
 fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**, **PNG board
 export**, the **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**
@@ -36,10 +36,10 @@ boards [below](#board-themes-and-responsive-layout).
 
 ## What is implemented
 
-### Version 1.1.3
+### Version 1.1.4
 
-Released 2026-11-05. The Windows artifacts are `MultiGo-Neo-1.1.3-setup.exe` and
-`MultiGo-Neo-1.1.3-portable.exe`.
+Released 2026-11-06. The Windows artifacts are `MultiGo-Neo-1.1.4-setup.exe` and
+`MultiGo-Neo-1.1.4-portable.exe`.
 
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
   overlay and Engine tab, and drive the engine from the docked GTP console. See
@@ -925,7 +925,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.3-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.4-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -933,7 +933,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.3-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.4-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -997,8 +997,8 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.3-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.3-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.4-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.4-portable.exe` — single-file portable build.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
