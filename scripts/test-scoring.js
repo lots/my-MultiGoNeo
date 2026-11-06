@@ -36,8 +36,10 @@ test('splits territory and dame between two walls', () => {
   assert.equal(japanese.result, 'Jigo');
 
   const chinese = scoring.compute({ signMap: walls, rules: 'chinese', komi: 0 });
-  assert.equal(chinese.blackScore, 10);
-  assert.equal(chinese.whiteScore, 10);
+  assert.equal(chinese.blackPoints, 10);
+  assert.equal(chinese.whitePoints, 10);
+  assert.equal(chinese.blackScore, 12.5);
+  assert.equal(chinese.whiteScore, 12.5);
   assert.equal(chinese.result, 'Jigo');
 });
 
@@ -80,8 +82,8 @@ test('marked dead stones are lifted, counted as prisoners and turn their points 
   });
   assert.equal(chinese.blackStones, 5);
   assert.equal(chinese.whiteStones, 5);
-  assert.equal(chinese.blackScore, 10);
-  assert.equal(chinese.whiteScore, 10);
+  assert.equal(chinese.blackScore, 12.5);
+  assert.equal(chinese.whiteScore, 12.5);
   assert.equal(chinese.result, 'Jigo');
 });
 
@@ -113,9 +115,9 @@ test('komi and game captures feed the Japanese total but not the Chinese one', (
     capturesBlack: 2,
     capturesWhite: 1,
   });
-  assert.equal(chinese.blackScore, 10);
-  assert.equal(chinese.whiteScore, 16.5);
-  assert.equal(chinese.result, 'W+6.5');
+  assert.equal(chinese.blackScore, 9.25);
+  assert.equal(chinese.whiteScore, 15.75);
+  assert.equal(chinese.result, 'W+3.25');
 });
 
 test('an empty board is all dame', () => {
@@ -144,7 +146,8 @@ test('labels and rounding', () => {
   assert.equal(scoring.resultLabel(1), 'B+1');
   assert.equal(scoring.resultLabel(-1.5), 'W+1.5');
   assert.equal(scoring.formatPoints(3), '3');
-  assert.equal(scoring.formatPoints(3.25), '3.3');
+  assert.equal(scoring.formatPoints(3.25), '3.25');
+  assert.equal(scoring.formatPoints(6.5), '6.5');
 });
 
 test('out-of-range dead keys are ignored', () => {
@@ -190,6 +193,50 @@ test('estimateDead leaves a group with an eye alive', () => {
 
 test('estimateDead returns nothing on an empty board', () => {
   assert.deepEqual(scoring.estimateDead(board(5, 5)), []);
+});
+
+test('matches the MultiGo Chinese and Japanese reference scores', () => {
+  const reference = board(7, 7, {
+    '1,0': 1, '3,0': 1, '3,1': 1, '3,2': 1, '4,2': 1,
+    '3,3': 1, '5,3': 1, '3,4': 1, '4,4': 1, '4,5': 1,
+    '1,6': 1, '4,6': 1,
+    '2,0': -1, '1,1': -1, '2,1': -1, '2,2': -1,
+    '2,3': -1, '2,4': -1, '1,5': -1, '2,5': -1, '2,6': -1,
+  });
+  const before = scoring.computeBoth({
+    signMap: reference,
+    komi: 6.5,
+    capturesBlack: 1,
+  });
+  assert.equal(before.chinese.blackPoints, 28);
+  assert.equal(before.chinese.whitePoints, 9);
+  assert.equal(before.chinese.dame, 12);
+  assert.equal(before.chinese.blackScore, 30.75);
+  assert.equal(before.chinese.whiteScore, 18.25);
+  assert.equal(before.chinese.result, 'B+6.25');
+  assert.equal(before.japanese.blackTerritory, 16);
+  assert.equal(before.japanese.whiteTerritory, 0);
+  assert.equal(before.japanese.blackScore, 17);
+  assert.equal(before.japanese.whiteScore, 6.5);
+  assert.equal(before.japanese.result, 'B+10.5');
+
+  const after = scoring.computeBoth({
+    signMap: reference,
+    dead: ['1,0', '1,6'],
+    komi: 6.5,
+    capturesBlack: 1,
+  });
+  assert.equal(after.chinese.blackPoints, 26);
+  assert.equal(after.chinese.whitePoints, 21);
+  assert.equal(after.chinese.dame, 2);
+  assert.equal(after.chinese.blackScore, 23.75);
+  assert.equal(after.chinese.whiteScore, 25.25);
+  assert.equal(after.chinese.result, 'W+0.75');
+  assert.equal(after.japanese.blackTerritory, 16);
+  assert.equal(after.japanese.whiteTerritory, 12);
+  assert.equal(after.japanese.blackScore, 17);
+  assert.equal(after.japanese.whiteScore, 20.5);
+  assert.equal(after.japanese.result, 'W+3.5');
 });
 
 console.log(`\n${count} scoring tests passed.`);

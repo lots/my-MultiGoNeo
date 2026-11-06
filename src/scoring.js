@@ -7,8 +7,10 @@
  * stone touching it has that colour; a region touching both colours (or none) is
  * dame.
  *
- *   Japanese: territory + prisoners (captures made plus dead stones) + komi
- *   Chinese:  stones on the board + territory + komi (captures are not counted)
+ *   Japanese: territory + prisoners (captures made plus dead stones) + komi,
+ *             with shared/dame points not scored
+ *   Chinese:  alive stones + territory + shared/2 -/+ komi/2 (captures are not counted;
+ *             the displayed result halves the area difference to match MultiGo)
  *
  * Seki and life-and-death are the player's judgement: whatever is not marked dead
  * is treated as alive, exactly like pressing "count" in MultiGo.
@@ -21,7 +23,7 @@
   const WHITE = -1
   const DIRECTIONS = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
-  const round1 = (value) => Math.round(value * 10) / 10
+  const round2 = (value) => Math.round(value * 100) / 100
   const key = (x, y) => `${x},${y}`
 
   function normaliseDead(dead) {
@@ -153,44 +155,71 @@
       }
     }
 
-    const blackPrisoners = (Number(options.capturesBlack) || 0) + deadWhite
-    const whitePrisoners = (Number(options.capturesWhite) || 0) + deadBlack
+    const capturesBlack = Number(options.capturesBlack) || 0
+    const capturesWhite = Number(options.capturesWhite) || 0
+    const blackPrisoners = capturesBlack + deadWhite
+    const whitePrisoners = capturesWhite + deadBlack
+    const blackPoints = blackStones + blackTerritory
+    const whitePoints = whiteStones + whiteTerritory
 
-    const blackScore = round1(rules === 'chinese'
-      ? blackStones + blackTerritory
+    // MultiGo's Chinese display splits shared points and komi between the
+    // players; Japanese counts territory plus prisoners/dead stones and does
+    // not use shared points at all.
+    const blackScore = round2(rules === 'chinese'
+      ? blackPoints + dame / 2 - komi / 2
       : blackTerritory + blackPrisoners)
-    const whiteScore = round1((rules === 'chinese'
-      ? whiteStones + whiteTerritory
-      : whiteTerritory + whitePrisoners) + komi)
-    const diff = round1(blackScore - whiteScore)
+    const whiteScore = round2(rules === 'chinese'
+      ? whitePoints + dame / 2 + komi / 2
+      : whiteTerritory + whitePrisoners + komi)
+    const diff = round2(blackScore - whiteScore)
+    // MultiGo's Chinese result display halves the area difference (the
+    // reference shows B+6.25 for a 30.75–18.25 score). Japanese keeps the
+    // normal territory difference.
+    const resultDiff = rules === 'chinese' ? round2(diff / 2) : diff
 
     return {
       rules,
       komi,
       dead: [...dead],
+      deadBlack,
+      deadWhite,
+      capturesBlack,
+      capturesWhite,
       ownership,
       blackTerritory,
       whiteTerritory,
       dame,
       blackStones,
       whiteStones,
+      blackPoints,
+      whitePoints,
       blackPrisoners,
       whitePrisoners,
       blackScore,
       whiteScore,
       diff,
+      resultDiff,
       leader: diff > 0 ? BLACK : diff < 0 ? WHITE : 0,
-      result: resultLabel(diff),
+      result: resultLabel(resultDiff),
+    }
+  }
+
+  function computeBoth(options = {}) {
+    return {
+      chinese: compute({ ...options, rules: 'chinese' }),
+      japanese: compute({ ...options, rules: 'japanese' }),
     }
   }
 
   function formatPoints(value) {
-    const rounded = round1(Number(value) || 0)
-    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)
+    const rounded = round2(Number(value) || 0)
+    if (Number.isInteger(rounded)) return String(rounded)
+    if (Number.isInteger(rounded * 10)) return rounded.toFixed(1)
+    return rounded.toFixed(2)
   }
 
   function resultLabel(diff) {
-    const rounded = round1(Number(diff) || 0)
+    const rounded = round2(Number(diff) || 0)
     if (rounded === 0) return 'Jigo'
     return rounded > 0 ? `B+${formatPoints(rounded)}` : `W+${formatPoints(-rounded)}`
   }
@@ -372,6 +401,7 @@
     BLACK,
     WHITE,
     compute,
+    computeBoth,
     groupAt,
     estimateDead,
     normaliseDead,

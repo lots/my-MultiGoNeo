@@ -618,33 +618,45 @@
           <span class="bowl-label">White</span>
         </div>
 
-        <div class="count-card" id="count-card" data-rules="japanese" hidden aria-live="polite">
+        <div class="count-card" id="count-card" hidden aria-live="polite">
           <header class="count-head">
-            <span class="count-title">Score</span>
+            <span class="count-title">Score Result</span>
             <button type="button" class="icon-button" id="count-close" aria-label="Close scoring">×</button>
           </header>
-          <label class="count-rules-row" for="count-rules">Rules
-            <select id="count-rules">
-              <option value="japanese">Japanese</option>
-              <option value="chinese">Chinese</option>
-            </select>
-          </label>
-          <dl class="count-grid">
-            <div><dt>Black territory</dt><dd id="count-black-territory">0</dd></div>
-            <div><dt>White territory</dt><dd id="count-white-territory">0</dd></div>
-            <div class="count-jp"><dt>Black prisoners</dt><dd id="count-black-prisoners">0</dd></div>
-            <div class="count-jp"><dt>White prisoners</dt><dd id="count-white-prisoners">0</dd></div>
-            <div class="count-cn"><dt>Black stones</dt><dd id="count-black-stones">0</dd></div>
-            <div class="count-cn"><dt>White stones</dt><dd id="count-white-stones">0</dd></div>
-            <div><dt>Dame</dt><dd id="count-dame">0</dd></div>
-            <div><dt>Komi</dt><dd id="count-komi">0</dd></div>
-          </dl>
-          <div class="count-result" id="count-result">—</div>
+          <p class="count-hint" id="count-hint">Now you can mark dead stones on the board; the result updates automatically.</p>
+          <section class="count-rule" data-rule="chinese">
+            <div class="count-rule-title">Chinese Rule</div>
+            <div class="count-score-line">
+              <span class="count-side">White:</span>
+              <strong class="count-total" id="count-cn-white-total">—</strong>
+              <span class="count-equation" id="count-cn-white-formula"></span>
+            </div>
+            <div class="count-score-line">
+              <span class="count-side">Black:</span>
+              <strong class="count-total" id="count-cn-black-total">—</strong>
+              <span class="count-equation" id="count-cn-black-formula"></span>
+            </div>
+            <div class="count-rule-result" id="count-cn-result">—</div>
+          </section>
+          <section class="count-rule" data-rule="japanese">
+            <div class="count-rule-title">Japanese Rule</div>
+            <div class="count-score-line">
+              <span class="count-side">White:</span>
+              <strong class="count-total" id="count-jp-white-total">—</strong>
+              <span class="count-equation" id="count-jp-white-formula"></span>
+            </div>
+            <div class="count-score-line">
+              <span class="count-side">Black:</span>
+              <strong class="count-total" id="count-jp-black-total">—</strong>
+              <span class="count-equation" id="count-jp-black-formula"></span>
+            </div>
+            <div class="count-rule-result" id="count-jp-result">—</div>
+          </section>
+          <div class="count-dead-summary" id="count-dead-summary"></div>
           <div class="count-actions">
             <button type="button" class="btn" id="count-write">Write RE</button>
             <button type="button" class="btn btn-primary" id="count-done">Done</button>
           </div>
-          <p class="count-hint">Please select dead stones.</p>
         </div>
       </section>
 

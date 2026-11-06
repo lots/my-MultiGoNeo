@@ -201,7 +201,7 @@ const menuEstimate = await evaluate(`(() => {
     active: c.active,
     mode: c.mode,
     dead: c.dead,
-    result: document.getElementById('count-result').textContent,
+    result: document.getElementById('count-cn-result').textContent,
     title: document.querySelector('.count-title').textContent,
     hint: document.querySelector('.count-hint').textContent,
   };
@@ -217,7 +217,7 @@ const menuScore = await evaluate(`(() => {
     active: c.active,
     mode: c.mode,
     dead: c.dead,
-    result: document.getElementById('count-result').textContent,
+    result: document.getElementById('count-cn-result').textContent,
     title: document.querySelector('.count-title').textContent,
     hint: document.querySelector('.count-hint').textContent,
   };
@@ -246,12 +246,17 @@ const initial = await evaluate(`(() => {
   const c = __figdesk.count();
   return {
     rules: c.rules,
-    result: document.getElementById('count-result').textContent,
-    blackTerritory: document.getElementById('count-black-territory').textContent,
-    whiteTerritory: document.getElementById('count-white-territory').textContent,
-    dame: document.getElementById('count-dame').textContent,
-    prisoners: [document.getElementById('count-black-prisoners').textContent, document.getElementById('count-white-prisoners').textContent],
+    chineseWhite: document.getElementById('count-cn-white-total').textContent,
+    chineseBlack: document.getElementById('count-cn-black-total').textContent,
+    chineseResult: document.getElementById('count-cn-result').textContent,
+    japaneseWhite: document.getElementById('count-jp-white-total').textContent,
+    japaneseBlack: document.getElementById('count-jp-black-total').textContent,
+    japaneseResult: document.getElementById('count-jp-result').textContent,
+    chineseVisible: Boolean(document.querySelector('.count-rule[data-rule="chinese"]')),
+    japaneseVisible: Boolean(document.querySelector('.count-rule[data-rule="japanese"]')),
     panelOpen: !document.getElementById('count-card').hidden,
+    cardBackground: getComputedStyle(document.getElementById('count-card')).backgroundColor,
+    cardOpacity: getComputedStyle(document.getElementById('count-card')).opacity,
     bowls: c.bowls,
   };
 })()`)
@@ -265,9 +270,10 @@ const afterDead = await evaluate(`(() => {
   const c = __figdesk.count();
   return {
     dead: c.dead,
-    blackTerritory: document.getElementById('count-black-territory').textContent,
-    blackPrisoners: document.getElementById('count-black-prisoners').textContent,
-    result: document.getElementById('count-result').textContent,
+    chineseResult: document.getElementById('count-cn-result').textContent,
+    japaneseResult: document.getElementById('count-jp-result').textContent,
+    chineseBlack: document.getElementById('count-cn-black-total').textContent,
+    japaneseBlack: document.getElementById('count-jp-black-total').textContent,
     bowlBlack: c.bowls.black,
     bowlWhite: c.bowls.white,
     bowlBlackStones: document.querySelectorAll('#bowl-black-stones .bowl-stone').length,
@@ -277,14 +283,11 @@ const afterDead = await evaluate(`(() => {
 await shot('preview/preview-count-dead.png')
 
 const chinese = await evaluate(`(() => {
-  const select = document.getElementById('count-rules');
-  select.value = 'chinese';
-  select.dispatchEvent(new Event('change', { bubbles: true }));
   const c = __figdesk.count();
   return {
-    result: document.getElementById('count-result').textContent,
-    prisonersHidden: getComputedStyle(document.querySelector('.count-jp')).display === 'none',
-    stonesShown: getComputedStyle(document.querySelector('.count-cn')).display !== 'none',
+    chineseResult: document.getElementById('count-cn-result').textContent,
+    japaneseResult: document.getElementById('count-jp-result').textContent,
+    bothRulesShown: Boolean(document.querySelector('.count-rule[data-rule="chinese"]') && document.querySelector('.count-rule[data-rule="japanese"]')),
     bowlsHidden: document.getElementById('bowl-black').hidden,
     rules: c.rules,
   };
@@ -319,7 +322,7 @@ const narrow = await evaluate(`(() => {
   return {
     paneWidth: Math.round(document.getElementById('pane-board').getBoundingClientRect().width),
     shown: !document.getElementById('bowl-black').hidden,
-    result: document.getElementById('count-result').textContent,
+    result: document.getElementById('count-cn-result').textContent,
   };
 })()`)
 await evaluate(`__figdesk.exitCount()`)
@@ -364,6 +367,29 @@ await evaluate(`__figdesk.applySgfText('(;GM[1]FF[4]SZ[8]AB[aa][ah][ha][hh])', '
 await sleep(350)
 await shot('preview/preview-8x8.png')
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, errors }, null, 2))
+// Reference 7x7 scoring layout from the MultiGo screenshots.
+const referenceSgf = '(;GM[1]FF[4]SZ[7]KM[6.5]RU[Japanese]'
+  + 'AB[ba][da][db][dc][ec][dd][fd][de][ee][ef][bg][eg]'
+  + 'AW[ca][bb][cb][cc][cd][ce][bf][cf][cg])'
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(referenceSgf)}, 'scoring-reference.sgf')`)
+await evaluate(`__figdesk.enterCount('japanese')`)
+await sleep(350)
+const referenceBefore = await evaluate(`({
+  chinese: document.getElementById('count-cn-result').textContent,
+  japanese: document.getElementById('count-jp-result').textContent,
+  dead: window.__figdesk.count().dead,
+})`)
+await shot('preview/preview-scoring-reference.png')
+await evaluate(`__figdesk.toggleCountStone(1, 0); __figdesk.toggleCountStone(1, 6)`)
+await sleep(250)
+const referenceAfter = await evaluate(`({
+  chinese: document.getElementById('count-cn-result').textContent,
+  japanese: document.getElementById('count-jp-result').textContent,
+  dead: window.__figdesk.count().dead,
+})`)
+await shot('preview/preview-scoring-reference-dead.png')
+await evaluate(`__figdesk.exitCount()`)
+
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

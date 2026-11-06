@@ -44,10 +44,10 @@ Released 2026-11-05. The Windows artifacts are `MultiGo-Neo-1.1.3-setup.exe` and
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
   overlay and Engine tab, and drive the engine from the docked GTP console. See
   [GTP engines](#gtp-engines).
-- **Estimate and Score** — Sabaki-style scoring with dead-stone marking, Japanese and Chinese
-  rules, board shading, dame dots, captured-stone bowls and **Write RE**. **Play → Estimate**
-  pre-marks dead stones; **Play → Score** starts manual. See
-  [Estimate and Score](#estimate-and-score).
+- **Estimate and Score** — Sabaki-style dead-stone marking with **Chinese and Japanese results
+  shown together**. Black/white squares mark territory, red squares mark shared points, and
+  green squares mark dead stones. **Play → Estimate** pre-marks dead stones; **Play → Score**
+  starts manual. See [Estimate and Score](#estimate-and-score).
 - **Two consecutive passes** end the game and offer to count the result.
 - **Captured-stone bowls** stay visible during Japanese-rules play, drawn top-down on light wood
   beside the goban and glued to it when the pane resizes.
@@ -541,17 +541,19 @@ way, and the editor does the arithmetic.
 
 - **Estimate**: runs a heuristic over the position — a chain with no eye whose liberties are
   sealed inside enemy territory is marked dead — and then lets you toggle groups to correct it.
-- **Score**: starts clean; clicking a stone marks its whole chain dead (and counts it as a
-  prisoner), clicking again revives it. A marked chain gets a red X.
-- **Shading**: black-held points are dark, white-held points are light, and neutral **dame**
-  points get a small grey dot.
-- **Rules**: Japanese (territory + prisoners) or Chinese (stones + territory). Komi is read
-  from the root `KM` property and shown in the card.
-- **Card**: territory for both sides, prisoners (Japanese) or stones on the board (Chinese),
-  dame, komi and the result — `B+3.5`, `W+0.5` or `Jigo`.
-- **Write RE** stores the result in the root node (and the title updates); **Done** or `Esc`
-  closes scoring. The card only takes clicks on its controls, so stones underneath it remain
-  clickable.
+- **Score**: starts clean; clicking a stone marks its whole chain dead, clicking again revives
+  it. Dead stones get a **green square** marker.
+- **Markers**: black-owned points are black squares, white-owned points are white squares,
+  **shared/dame** points are red squares, and dead stones are green.
+- **Both rules at once**: the right-hand card shows the Chinese and Japanese results
+  simultaneously; there is no rule selector.
+- **Chinese** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to White
+  and `−komi/2` to Black. Captures are not counted. The displayed result halves the area
+  difference, matching MultiGo (`B+6.25` for a 30.75–18.25 total).
+- **Japanese** counts territory + prisoners/dead stones + komi for White; shared points are not
+  scored. The card labels the prisoner terms **Black's Dead** / **White's Dead**.
+- **Write RE** stores the result for the SGF's `RU` rule in the root node (and the title
+  updates); **Done** or `Esc` closes scoring.
 - **Captured-stone bowls**: two light-wood bowls flank the goban for the whole Japanese-rules
   game and stay glued to it when the pane resizes — they are laid out beside the board, not
   pinned to the pane edges, so the gap stays constant. They are drawn **top-down**: the captured
@@ -567,15 +569,13 @@ Seki and life-and-death are the player's judgement: whatever is not marked dead 
 alive, just like Sabaki's score mode. Estimate is only a heuristic, so correct it by hand when
 it gets a group wrong.
 
-![Japanese scoring: shaded territory, dame dots and the two captured-stone bowls](preview/preview-count-japanese.png)
+![Reference 7×7 scoring before dead stones: black and white ownership squares, red shared points, and both rule totals](preview/preview-scoring-reference.png)
 
-![A dead stone marked with a red X; Black now holds one prisoner](preview/preview-count-dead.png)
-
-![Chinese area scoring: stones and territory, no prisoners, bowls hidden](preview/preview-count-chinese.png)
+![After marking B7 and B1 dead: green dead-stone squares, white control of the vacated region, and both scores updated](preview/preview-scoring-reference-dead.png)
 
 ![Play > Estimate: the sealed white stone is estimated dead and counted](preview/preview-estimate.png)
 
-![Play > Score: the same position with no dead stones selected](preview/preview-score.png)
+![Play > Score: both rule results, shared red points and the captured-stone bowls](preview/preview-score.png)
 
 The bowls are live during play as well, not only while scoring — here Black has captured one
 White stone and the bowl shows it:
@@ -840,8 +840,8 @@ layout and a 1100×1700 pass for the embed page:
 - ran analysis and read the win rate and candidate list in the Engine tab, including at the
   root, with the overlay drawn on the board;
 - opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
-- chose **Play → Score** on a 13×13 position with a black and a white wall and confirmed
-  black/white territory **39/52**, 90 dame and `W+58.5`;
+- chose **Play → Score** on a 13×13 position with a black and a white wall and confirmed the
+  card showed **both Chinese and Japanese** results at the same time;
 - confirmed the captured-stone bowls are already visible **during play** on a Japanese-rules
   game, showing exactly one white stone (no duplicated number) with the status bar reading
   `Captures: B 1 · W 0`;
@@ -851,13 +851,16 @@ layout and a 1100×1700 pass for the embed page:
   and confirmed the gap is still **8 px** with the bowls still visible;
 - loaded the same position with `RU[Chinese]` and confirmed the bowls stay hidden;
 - chose **Play → Estimate** and confirmed it entered Estimate mode with the sealed white stone
-  already marked dead and `B+43.5` shown, then **Play → Score** on the same position and
-  confirmed no dead stones and `W+6.5`;
-- clicked the lone white stone inside Black's area and confirmed it became one prisoner, Black's
-  territory stayed 39, the result moved to `W+18.5` and the black bowl showed **1**;
-- switched to **Chinese** rules and confirmed stone counts replaced prisoners, the bowls hid and
-  the result became `W+19.5`;
-- wrote the result to `RE` and confirmed it round-tripped into the SGF; `Esc` closed scoring;
+  already marked dead and both rule results shown; **Play → Score** opened with no dead stones;
+- clicked the lone white stone inside Black's area and confirmed its green dead marker, the
+  score updates in both rule blocks, and the black bowl showed **1**;
+- confirmed the score card showed black/white/red ownership squares and green dead-stone markers
+  in the reference layout;
+- scoring unit tests reproduce the MultiGo reference exactly: Chinese **30.75 / 18.25**
+  before dead marking, **23.75 / 25.25** after; Japanese **17 / 6.5** before and
+  **17 / 20.5** after, with results `B+6.25`, `W+0.75`, `B+10.5`, `W+3.5`;
+- wrote the Japanese result to `RE` and confirmed it round-tripped into the SGF; `Esc` closed
+  scoring;
 - shrank the board pane to 520 px and confirmed the bowls hid themselves;
 - played two consecutive passes, saw the **Count Result** prompt, and confirmed accepting it
   opened the scoring card;
@@ -893,9 +896,9 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [engine analysis](preview/engine-analysis.png), [GTP console](preview/engine-console.png),
 [engine configuration](preview/engines-config.png), [GNU Go playing](preview/gnugo-game.png),
 [automatic engine play](preview/engine-auto.png),
-[Japanese scoring](preview/preview-count-japanese.png),
-[dead stone counted](preview/preview-count-dead.png),
-[Chinese scoring](preview/preview-count-chinese.png),
+[reference scoring before dead stones](preview/preview-scoring-reference.png),
+[reference scoring after dead stones](preview/preview-scoring-reference-dead.png),
+[dual-rule score card](preview/preview-score.png),
 [play-time captured-stone bowls](preview/preview-bowls.png),
 [captured black stone in the white bowl](preview/preview-bowls-white.png),
 [Play > Estimate](preview/preview-estimate.png), [Play > Score](preview/preview-score.png),
@@ -1137,7 +1140,7 @@ engines/engines.json      hand-editable engine connection list shared with Manag
 engines/README.md         shim and configuration reference
 scripts/test-tree.js      5 tree/SGF/go-board tests
 scripts/test-path.js      5 position-path tests
-scripts/test-scoring.js   11 territory/area scoring and estimator tests
+scripts/test-scoring.js   12 territory/area scoring and estimator tests, including the MultiGo 7×7 reference
 scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
 scripts/test-engine-config.js  engine JSON load/save/path tests
 scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs
@@ -1158,7 +1161,7 @@ scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transf
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
 scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
-scripts/verify-count-ui.mjs CDP test for Estimate/Score, dead stones, bowls, RE and double passes
+scripts/verify-count-ui.mjs CDP test for dual-rule Estimate/Score, dead stones, markers, bowls, RE and double passes
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js

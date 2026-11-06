@@ -180,27 +180,32 @@
   const confirmCancel = $('#confirm-cancel');
   const confirmCancelIcon = $('#confirm-cancel-icon');
   const countCard = $('#count-card');
-  const countRulesSelect = $('#count-rules');
-  const countResultLabel = $('#count-result');
   const countWriteButton = $('#count-write');
   const countDoneButton = $('#count-done');
   const countCloseButton = $('#count-close');
-  const countFields = {
-    blackTerritory: $('#count-black-territory'),
-    whiteTerritory: $('#count-white-territory'),
-    blackPrisoners: $('#count-black-prisoners'),
-    whitePrisoners: $('#count-white-prisoners'),
-    blackStones: $('#count-black-stones'),
-    whiteStones: $('#count-white-stones'),
-    dame: $('#count-dame'),
-    komi: $('#count-komi'),
+  const countTitle = countCard.querySelector('.count-title');
+  const countHint = $('#count-hint');
+  const countDeadSummary = $('#count-dead-summary');
+  const countScores = {
+    chinese: {
+      whiteTotal: $('#count-cn-white-total'),
+      whiteFormula: $('#count-cn-white-formula'),
+      blackTotal: $('#count-cn-black-total'),
+      blackFormula: $('#count-cn-black-formula'),
+      result: $('#count-cn-result'),
+    },
+    japanese: {
+      whiteTotal: $('#count-jp-white-total'),
+      whiteFormula: $('#count-jp-white-formula'),
+      blackTotal: $('#count-jp-black-total'),
+      blackFormula: $('#count-jp-black-formula'),
+      result: $('#count-jp-result'),
+    },
   };
   const bowlBlack = $('#bowl-black');
   const bowlWhite = $('#bowl-white');
   const bowlBlackStones = $('#bowl-black-stones');
   const bowlWhiteStones = $('#bowl-white-stones');
-  const countTitle = countCard.querySelector('.count-title');
-  const countHint = countCard.querySelector('.count-hint');
   const labelDialog = $('#label-dialog');
   const labelInput = $('#label-input');
   const labelOk = $('#label-ok');
@@ -630,13 +635,17 @@
     'Autoplay Delay': '自动播放间隔',
     'Reset All Settings': '重置所有设置', 'Keyboard Shortcuts': '快捷键', 'About MultiGo Neo': '关于 MultiGo Neo',
     'Show Go Bowls': '显示棋钵', Rules: '规则',
-    Estimate: '形势判断', Score: '计算胜负',
+    Estimate: '形势判断', Score: '计算胜负', 'Score Result': '计算胜负',
     'Toggle group status.': '点击切换棋块状态。',
     'Please select dead stones.': '请选择死子。',
+    'Now you can mark dead stones on the board; the result updates automatically.': '现在可以在棋盘上标记死子，结果会自动更新。',
     Japanese: '日本规则', Chinese: '中国规则',
+    'Chinese Rule': '中国规则', 'Japanese Rule': '日本规则',
     'Black territory': '黑方领地', 'White territory': '白方领地',
     'Black prisoners': '黑方提子', 'White prisoners': '白方提子',
     'Black stones': '黑方棋子', 'White stones': '白方棋子',
+    Points: '点数', Shared: '共有', Territory: '目',
+    "Black's Dead": '黑方死子', "White's Dead": '白方死子', Dead: '死子',
     Dame: '单官', Komi: '贴目', 'Write RE': '写入结果', Done: '完成',
     'Both players passed, so the game is over. Count the result?': '双方连续停一手，对局结束。要计算胜负吗？',
     'Count Result': '计算胜负', 'Keep Playing': '继续对局',
@@ -1227,10 +1236,9 @@
       countState.result = null;
       return null;
     }
-    countState.result = window.MultiGoScoring.compute({
+    countState.result = window.MultiGoScoring.computeBoth({
       signMap: currentBoard.signMap,
       dead: [...countState.dead],
-      rules: countState.rules,
       komi: countKomi(),
       capturesBlack: currentBoard.getCaptures(1) || 0,
       capturesWhite: currentBoard.getCaptures(-1) || 0,
@@ -1271,8 +1279,8 @@
   function bowlCounts() {
     if (countState.active && countState.result) {
       return {
-        black: countState.result.blackPrisoners,
-        white: countState.result.whitePrisoners,
+        black: countState.result.japanese.blackPrisoners,
+        white: countState.result.japanese.whitePrisoners,
       };
     }
     if (!currentBoard) return { black: 0, white: 0 };
@@ -1337,29 +1345,46 @@
     return changed;
   }
 
+  function spacedResult(result) {
+    return result.result.replace(/^([BW])\+/, '$1 + ');
+  }
+
+  function updateScoreBlock(rule, result) {
+    const block = countScores[rule];
+    if (!block || !result) return;
+    const points = window.MultiGoScoring.formatPoints;
+    if (rule === 'chinese') {
+      block.whiteTotal.textContent = points(result.whiteScore);
+      block.blackTotal.textContent = points(result.blackScore);
+      block.whiteFormula.textContent = `= ${points(result.whitePoints)} (${t('Points')}) + ${points(result.dame)} (${t('Shared')}) / 2 + ${points(result.komi)} (${t('Komi')}) / 2`;
+      block.blackFormula.textContent = `= ${points(result.blackPoints)} (${t('Points')}) + ${points(result.dame)} (${t('Shared')}) / 2 - ${points(result.komi)} (${t('Komi')}) / 2`;
+    } else {
+      block.whiteTotal.textContent = points(result.whiteScore);
+      block.blackTotal.textContent = points(result.blackScore);
+      block.whiteFormula.textContent = `= ${points(result.whiteTerritory)} (${t('Territory')}) + ${points(result.whitePrisoners)} (${t("Black's Dead")}) + ${points(result.komi)} (${t('Komi')})`;
+      block.blackFormula.textContent = `= ${points(result.blackTerritory)} (${t('Territory')}) + ${points(result.blackPrisoners)} (${t("White's Dead")})`;
+    }
+    block.result.textContent = spacedResult(result);
+    block.result.classList.toggle('is-black', result.diff > 0);
+    block.result.classList.toggle('is-white', result.diff < 0);
+  }
+
   function updateCountPanel() {
     countCard.hidden = !countState.active;
     if (!countState.active) return;
-    countCard.dataset.rules = countState.rules;
     countCard.dataset.mode = countState.mode;
-    countTitle.textContent = t(countState.mode === 'estimate' ? 'Estimate' : 'Score');
+    countTitle.textContent = t(countState.mode === 'estimate' ? 'Estimate' : 'Score Result');
     countHint.textContent = t(countState.mode === 'estimate'
       ? 'Toggle group status.'
-      : 'Please select dead stones.');
-    countRulesSelect.value = countState.rules;
+      : 'Now you can mark dead stones on the board; the result updates automatically.');
     const result = countState.result;
     if (!result) return;
-    countFields.blackTerritory.textContent = String(result.blackTerritory);
-    countFields.whiteTerritory.textContent = String(result.whiteTerritory);
-    countFields.blackPrisoners.textContent = String(result.blackPrisoners);
-    countFields.whitePrisoners.textContent = String(result.whitePrisoners);
-    countFields.blackStones.textContent = String(result.blackStones);
-    countFields.whiteStones.textContent = String(result.whiteStones);
-    countFields.dame.textContent = String(result.dame);
-    countFields.komi.textContent = window.MultiGoScoring.formatPoints(result.komi);
-    countResultLabel.textContent = result.result;
-    countResultLabel.classList.toggle('is-black', result.diff > 0);
-    countResultLabel.classList.toggle('is-white', result.diff < 0);
+    updateScoreBlock('chinese', result.chinese);
+    updateScoreBlock('japanese', result.japanese);
+    const japanese = result.japanese;
+    if (countDeadSummary) {
+      countDeadSummary.textContent = `${t('Dead')}: ${t('Black')} ${japanese.deadBlack} · ${t('White')} ${japanese.deadWhite}`;
+    }
     countWriteButton.disabled = readOnly;
   }
 
@@ -1387,7 +1412,7 @@
     refreshCountLayout();
     syncMenuState();
     const label = countState.mode === 'estimate' ? 'Estimate' : 'Score';
-    log(`${label} (${countState.rules === 'chinese' ? 'Chinese area' : 'Japanese territory'}):`
+    log(`${label} (Chinese + Japanese):`
       + `${countState.mode === 'estimate' ? ' toggle group status.' : ' please select dead stones.'}`);
     return true;
   }
@@ -1408,7 +1433,7 @@
 
   function toggleCountMode(mode) {
     if (countState.active && countState.mode === mode) exitCount();
-    else enterCount(settings.countRules, mode);
+    else enterCount(gameRules(), mode);
   }
 
   function toggleCountStone(x, y) {
@@ -1438,11 +1463,13 @@
   }
 
   function writeCountResult() {
-    if (!countState.result) return false;
-    const label = countState.result.result;
+    const rule = gameRules();
+    const result = countState.result?.[rule];
+    if (!result) return false;
+    const label = result.result;
     const ok = mutateTree((draft) => {
       draft.updateProperty(tree.root.id, 'RE', [label]);
-    }, { message: `Result written to RE: ${label}.` });
+    }, { message: `${rule === 'chinese' ? 'Chinese' : 'Japanese'} result written to RE: ${label}.` });
     if (ok) updateTitle();
     return ok;
   }
@@ -1462,30 +1489,34 @@
 
   function drawCountOverlay() {
     if (!countState.active || !countState.result || !currentBoard) return;
-    const result = countState.result;
+    const result = countState.result.chinese;
     const context = boardContext;
     const cols = currentBoard.width;
     const rows = currentBoard.height;
-    const half = boardView.spacing * 0.46;
+    const half = boardView.spacing * 0.42;
     for (let y = 0; y < rows; y += 1) {
       for (let x = 0; x < cols; x += 1) {
         if (currentBoard.signMap[y]?.[x]) continue;
         const owner = result.ownership?.[y]?.[x] ?? 0;
         const point = pointPosition(x, y);
         if (owner > 0) {
-          context.fillStyle = 'rgba(18, 18, 18, 0.30)';
+          context.fillStyle = 'rgba(15, 15, 15, 0.82)';
           context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
+          context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+          context.lineWidth = 0.8;
+          context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
         } else if (owner < 0) {
-          context.fillStyle = 'rgba(255, 255, 255, 0.72)';
+          context.fillStyle = 'rgba(252, 249, 241, 0.94)';
           context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
-          context.strokeStyle = 'rgba(90, 70, 40, 0.28)';
+          context.strokeStyle = 'rgba(80, 60, 32, 0.35)';
           context.lineWidth = 0.8;
           context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
         } else {
-          context.fillStyle = 'rgba(80, 80, 80, 0.45)';
-          context.beginPath();
-          context.arc(point.x, point.y, Math.max(1.6, boardView.spacing * 0.085), 0, Math.PI * 2);
-          context.fill();
+          context.fillStyle = 'rgba(215, 42, 42, 0.85)';
+          context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
+          context.strokeStyle = 'rgba(255, 245, 240, 0.8)';
+          context.lineWidth = 0.8;
+          context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
         }
       }
     }
@@ -1497,26 +1528,13 @@
     for (const id of countState.dead) {
       const [x, y] = id.split(',').map(Number);
       const point = pointPosition(x, y);
+      const half = stoneRadius * 0.62;
       context.save();
-      context.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      context.beginPath();
-      context.arc(point.x, point.y, stoneRadius * 0.97, 0, Math.PI * 2);
-      context.fill();
-      context.strokeStyle = 'rgba(198, 40, 40, 0.92)';
-      context.lineWidth = Math.max(1.6, stoneRadius * 0.16);
-      context.lineCap = 'round';
-      const arm = stoneRadius * 0.5;
-      context.beginPath();
-      context.moveTo(point.x - arm, point.y - arm);
-      context.lineTo(point.x + arm, point.y + arm);
-      context.moveTo(point.x + arm, point.y - arm);
-      context.lineTo(point.x - arm, point.y + arm);
-      context.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-      context.lineWidth = Math.max(3.2, stoneRadius * 0.30);
-      context.stroke();
-      context.strokeStyle = 'rgba(198, 40, 40, 0.95)';
-      context.lineWidth = Math.max(1.8, stoneRadius * 0.17);
-      context.stroke();
+      context.fillStyle = 'rgba(42, 185, 82, 0.94)';
+      context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
+      context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      context.lineWidth = Math.max(1.4, stoneRadius * 0.12);
+      context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
       context.restore();
     }
   }
@@ -5542,15 +5560,6 @@
   boardCanvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
   // Counting UI ----------------------------------------------------------
-  countRulesSelect.addEventListener('change', () => {
-    countState.rules = countRulesSelect.value === 'chinese' ? 'chinese' : 'japanese';
-    settings.countRules = countState.rules;
-    saveSettings();
-    recomputeCount();
-    updateCountPanel();
-    refreshCountLayout();
-    syncMenuState();
-  });
   countCloseButton.addEventListener('click', exitCount);
   countDoneButton.addEventListener('click', exitCount);
   countWriteButton.addEventListener('click', writeCountResult);
