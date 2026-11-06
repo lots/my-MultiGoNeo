@@ -543,8 +543,9 @@ way, and the editor does the arithmetic.
   sealed inside enemy territory is marked dead — and then lets you toggle groups to correct it.
 - **Score**: starts clean; clicking a stone marks its whole chain dead, clicking again revives
   it. Dead stones get a **green square** marker.
-- **Markers**: black-owned points are black squares, white-owned points are white squares,
-  **shared/dame** points are red squares, and dead stones are green.
+- **Markers**: compact black-owned squares with a white border, white-owned squares with a
+  black border, borderless red **shared/dame** squares, and green dead-stone squares — all
+  the same size so they fit inside a stone.
 - **Docked Score tab**: the Score panel lives beside **Info / Comment / Engine** in the right
   column, not as a floating board popup. It shows the Chinese and Japanese results
   simultaneously, with no rule selector.
