@@ -2387,6 +2387,29 @@ kbd {
   color: rgba(48, 34, 18, 0.7);
 }
 
+.score-tab {
+  padding: 8px 10px 12px;
+  overflow-y: auto;
+}
+
+.score-tab .count-card {
+  position: static;
+  width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: auto;
+}
+
+.score-empty {
+  margin: 10px 4px;
+  color: #8a8a8a;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
 .count-card {
   position: absolute;
   top: 14px;

@@ -545,8 +545,9 @@ way, and the editor does the arithmetic.
   it. Dead stones get a **green square** marker.
 - **Markers**: black-owned points are black squares, white-owned points are white squares,
   **shared/dame** points are red squares, and dead stones are green.
-- **Both rules at once**: the right-hand card shows the Chinese and Japanese results
-  simultaneously; there is no rule selector.
+- **Docked Score tab**: the Score panel lives beside **Info / Comment / Engine** in the right
+  column, not as a floating board popup. It shows the Chinese and Japanese results
+  simultaneously, with no rule selector.
 - **Chinese** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to White
   and `−komi/2` to Black. Captures are not counted. The displayed result halves the area
   difference, matching MultiGo (`B+6.25` for a 30.75–18.25 total).

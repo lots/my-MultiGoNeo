@@ -255,6 +255,8 @@ const initial = await evaluate(`(() => {
     chineseVisible: Boolean(document.querySelector('.count-rule[data-rule="chinese"]')),
     japaneseVisible: Boolean(document.querySelector('.count-rule[data-rule="japanese"]')),
     panelOpen: !document.getElementById('count-card').hidden,
+    scoreTabActive: document.getElementById('tab-score').classList.contains('is-active'),
+    scoreTabVisible: !document.getElementById('tab-score').hidden,
     cardBackground: getComputedStyle(document.getElementById('count-card')).backgroundColor,
     cardOpacity: getComputedStyle(document.getElementById('count-card')).opacity,
     bowls: c.bowls,

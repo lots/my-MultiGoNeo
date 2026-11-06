@@ -163,9 +163,12 @@
   const tabInfo = $('#tab-info');
   const tabComment = $('#tab-comment');
   const tabEngine = $('#tab-engine');
+  const tabScore = $('#tab-score');
   const panelInfo = $('#panel-info');
   const panelComment = $('#panel-comment');
   const panelEngine = $('#panel-engine');
+  const panelScore = $('#panel-score');
+  const scoreEmpty = $('#score-empty');
   const commentTitle = $('#comment-title');
   const commentInput = $('#comment-input');
   const commentPreview = $('#comment-preview');
@@ -1371,6 +1374,7 @@
 
   function updateCountPanel() {
     countCard.hidden = !countState.active;
+    if (scoreEmpty) scoreEmpty.hidden = countState.active;
     if (!countState.active) return;
     countCard.dataset.mode = countState.mode;
     countTitle.textContent = t(countState.mode === 'estimate' ? 'Estimate' : 'Score Result');
@@ -1409,6 +1413,7 @@
     }
     recomputeCount();
     updateCountPanel();
+    setTab('score');
     refreshCountLayout();
     syncMenuState();
     const label = countState.mode === 'estimate' ? 'Estimate' : 'Score';
@@ -1493,30 +1498,27 @@
     const context = boardContext;
     const cols = currentBoard.width;
     const rows = currentBoard.height;
-    const half = boardView.spacing * 0.42;
+    const half = boardView.spacing * 0.29;
     for (let y = 0; y < rows; y += 1) {
       for (let x = 0; x < cols; x += 1) {
         if (currentBoard.signMap[y]?.[x]) continue;
         const owner = result.ownership?.[y]?.[x] ?? 0;
         const point = pointPosition(x, y);
         if (owner > 0) {
-          context.fillStyle = 'rgba(15, 15, 15, 0.82)';
+          context.fillStyle = 'rgba(15, 15, 15, 0.9)';
           context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
-          context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-          context.lineWidth = 0.8;
+          context.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+          context.lineWidth = 1.4;
           context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
         } else if (owner < 0) {
-          context.fillStyle = 'rgba(252, 249, 241, 0.94)';
+          context.fillStyle = 'rgba(252, 249, 241, 0.97)';
           context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
-          context.strokeStyle = 'rgba(80, 60, 32, 0.35)';
-          context.lineWidth = 0.8;
+          context.strokeStyle = 'rgba(30, 30, 30, 0.9)';
+          context.lineWidth = 1.4;
           context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
         } else {
-          context.fillStyle = 'rgba(215, 42, 42, 0.85)';
+          context.fillStyle = 'rgba(215, 42, 42, 0.88)';
           context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
-          context.strokeStyle = 'rgba(255, 245, 240, 0.8)';
-          context.lineWidth = 0.8;
-          context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
         }
       }
     }
@@ -3106,6 +3108,7 @@
     ['info', tabInfo, panelInfo],
     ['comment', tabComment, panelComment],
     ['engine', tabEngine, panelEngine],
+    ['score', tabScore, panelScore],
   ];
 
   function setTab(tab) {
@@ -3122,6 +3125,7 @@
     if (tab === 'info') syncInfoForm();
     else if (tab === 'comment') renderComment();
     else if (tab === 'engine' && window.MultiGoEngine) window.MultiGoEngine.refreshPanel();
+    else if (tab === 'score') updateCountPanel();
   }
 
   // Toolbar and menus ----------------------------------------------------

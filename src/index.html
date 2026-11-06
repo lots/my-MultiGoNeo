@@ -618,46 +618,6 @@
           <span class="bowl-label">White</span>
         </div>
 
-        <div class="count-card" id="count-card" hidden aria-live="polite">
-          <header class="count-head">
-            <span class="count-title">Score Result</span>
-            <button type="button" class="icon-button" id="count-close" aria-label="Close scoring">×</button>
-          </header>
-          <p class="count-hint" id="count-hint">Now you can mark dead stones on the board; the result updates automatically.</p>
-          <section class="count-rule" data-rule="chinese">
-            <div class="count-rule-title">Chinese Rule</div>
-            <div class="count-score-line">
-              <span class="count-side">White:</span>
-              <strong class="count-total" id="count-cn-white-total">—</strong>
-              <span class="count-equation" id="count-cn-white-formula"></span>
-            </div>
-            <div class="count-score-line">
-              <span class="count-side">Black:</span>
-              <strong class="count-total" id="count-cn-black-total">—</strong>
-              <span class="count-equation" id="count-cn-black-formula"></span>
-            </div>
-            <div class="count-rule-result" id="count-cn-result">—</div>
-          </section>
-          <section class="count-rule" data-rule="japanese">
-            <div class="count-rule-title">Japanese Rule</div>
-            <div class="count-score-line">
-              <span class="count-side">White:</span>
-              <strong class="count-total" id="count-jp-white-total">—</strong>
-              <span class="count-equation" id="count-jp-white-formula"></span>
-            </div>
-            <div class="count-score-line">
-              <span class="count-side">Black:</span>
-              <strong class="count-total" id="count-jp-black-total">—</strong>
-              <span class="count-equation" id="count-jp-black-formula"></span>
-            </div>
-            <div class="count-rule-result" id="count-jp-result">—</div>
-          </section>
-          <div class="count-dead-summary" id="count-dead-summary"></div>
-          <div class="count-actions">
-            <button type="button" class="btn" id="count-write">Write RE</button>
-            <button type="button" class="btn btn-primary" id="count-done">Done</button>
-          </div>
-        </div>
       </section>
 
       <div class="splitter splitter-v" id="splitter-v" role="separator"
@@ -671,6 +631,7 @@
               <button type="button" class="tab is-active" id="tab-info" role="tab" aria-selected="true" aria-controls="panel-info" data-tab="info">Info</button>
               <button type="button" class="tab" id="tab-comment" role="tab" aria-selected="false" aria-controls="panel-comment" data-tab="comment">Comment</button>
               <button type="button" class="tab" id="tab-engine" role="tab" aria-selected="false" aria-controls="panel-engine" data-tab="engine">Engine</button>
+              <button type="button" class="tab" id="tab-score" role="tab" aria-selected="false" aria-controls="panel-score" data-tab="score">Score</button>
             </div>
             <div class="info-head-actions">
               <span class="panel-meta" id="file-label">Untitled</span>
@@ -766,6 +727,50 @@
               </div>
               <p class="engine-note" id="engine-note"></p>
             </div>
+          </div>
+
+          <div class="tab-panel score-tab" id="panel-score" role="tabpanel" aria-labelledby="tab-score" hidden>
+            <div class="count-card" id="count-card" hidden aria-live="polite">
+              <header class="count-head">
+                <span class="count-title">Score Result</span>
+                <button type="button" class="icon-button" id="count-close" aria-label="Close scoring">×</button>
+              </header>
+              <p class="count-hint" id="count-hint">Now you can mark dead stones on the board; the result updates automatically.</p>
+              <section class="count-rule" data-rule="chinese">
+                <div class="count-rule-title">Chinese Rule</div>
+                <div class="count-score-line">
+                  <span class="count-side">White:</span>
+                  <strong class="count-total" id="count-cn-white-total">—</strong>
+                  <span class="count-equation" id="count-cn-white-formula"></span>
+                </div>
+                <div class="count-score-line">
+                  <span class="count-side">Black:</span>
+                  <strong class="count-total" id="count-cn-black-total">—</strong>
+                  <span class="count-equation" id="count-cn-black-formula"></span>
+                </div>
+                <div class="count-rule-result" id="count-cn-result">—</div>
+              </section>
+              <section class="count-rule" data-rule="japanese">
+                <div class="count-rule-title">Japanese Rule</div>
+                <div class="count-score-line">
+                  <span class="count-side">White:</span>
+                  <strong class="count-total" id="count-jp-white-total">—</strong>
+                  <span class="count-equation" id="count-jp-white-formula"></span>
+                </div>
+                <div class="count-score-line">
+                  <span class="count-side">Black:</span>
+                  <strong class="count-total" id="count-jp-black-total">—</strong>
+                  <span class="count-equation" id="count-jp-black-formula"></span>
+                </div>
+                <div class="count-rule-result" id="count-jp-result">—</div>
+              </section>
+              <div class="count-dead-summary" id="count-dead-summary"></div>
+              <div class="count-actions">
+                <button type="button" class="btn" id="count-write">Write RE</button>
+                <button type="button" class="btn btn-primary" id="count-done">Done</button>
+              </div>
+            </div>
+            <p class="score-empty" id="score-empty">Start scoring with Play → Score or Play → Estimate.</p>
           </div>
         </section>
 
