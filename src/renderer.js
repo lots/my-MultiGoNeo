@@ -636,7 +636,7 @@
     Branching: '分支', 'Show next moves': '显示下一手', 'Show sibling variations': '显示同父变化',
     'Move numbers': '手数', Numbering: '编号方式', 'Label start character': '标签起始字符',
     Title: '标题', 'Show game result in title': '在标题显示对局结果', Sound: '声音',
-    'Play sound on moves': '落子时播放声音', 'Auto-play interval': '自动播放间隔', Variations: '变化',
+    'Play sound on moves and captures': '落子及提子时播放声音', 'Auto-play interval': '自动播放间隔', Variations: '变化',
     'Visit variation branch first when traversing next': '前进时优先访问变化分支',
     'Default Komi': '默认贴目', 'New games': '新对局', 'White move first': '白方先行',
     'Play mode': '对局模式', 'Right-click board removes the current move': '右键移除当前着法',
@@ -915,6 +915,7 @@
     if (readOnly) { log('Read Only: the game tree is locked.', 'warn'); return false; }
     const previousTree = tree;
     const previousNode = nodeId;
+    const beforeStones = boardStoneCounts(currentBoard);
     let nextTree;
     try {
       nextTree = tree.mutate(mutator);
@@ -934,6 +935,10 @@
     dirty = true;
     S.clearBoardCache();
     refreshBoard();
+    const afterStones = boardStoneCounts(currentBoard);
+    const removed = Math.max(0, beforeStones.black - afterStones.black)
+      + Math.max(0, beforeStones.white - afterStones.white);
+    if (removed > 0) playCaptureSound(removed);
     renderAll();
     if (message) log(message);
     return true;
@@ -944,6 +949,7 @@
     if (!undoStack.length) { log('Nothing to undo.', 'warn'); return; }
     stopAutoPlay();
     redoStack.push({ tree, nodeId });
+    const beforeStones = boardStoneCounts(currentBoard);
     const snapshot = undoStack.pop();
     tree = snapshot.tree;
     nodeId = snapshot.nodeId;
@@ -951,6 +957,10 @@
     dirty = true;
     S.clearBoardCache();
     refreshBoard();
+    const afterStones = boardStoneCounts(currentBoard);
+    const removed = Math.max(0, beforeStones.black - afterStones.black)
+      + Math.max(0, beforeStones.white - afterStones.white);
+    if (removed > 0) playCaptureSound(removed);
     renderAll();
     syncInfoForm();
     log('Undo.');
@@ -961,6 +971,7 @@
     if (!redoStack.length) { log('Nothing to redo.', 'warn'); return; }
     stopAutoPlay();
     undoStack.push({ tree, nodeId });
+    const beforeStones = boardStoneCounts(currentBoard);
     const snapshot = redoStack.pop();
     tree = snapshot.tree;
     nodeId = snapshot.nodeId;
@@ -968,6 +979,10 @@
     dirty = true;
     S.clearBoardCache();
     refreshBoard();
+    const afterStones = boardStoneCounts(currentBoard);
+    const removed = Math.max(0, beforeStones.black - afterStones.black)
+      + Math.max(0, beforeStones.white - afterStones.white);
+    if (removed > 0) playCaptureSound(removed);
     renderAll();
     syncInfoForm();
     log('Redo.');
@@ -1157,6 +1172,58 @@
       oscillator.connect(gain).connect(moveAudioContext.destination);
       oscillator.start();
       oscillator.stop(moveAudioContext.currentTime + 0.06);
+    } catch { /* sound is best-effort */ }
+  }
+
+  function boardStoneCounts(board) {
+    let black = 0;
+    let white = 0;
+    for (const row of board?.signMap || []) {
+      for (const sign of row) {
+        if (sign > 0) black += 1;
+        else if (sign < 0) white += 1;
+      }
+    }
+    return { black, white };
+  }
+
+  function playCaptureSound(count = 1) {
+    if (!settings.soundEnabled || count <= 0) return;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      moveAudioContext ||= new AudioContextClass();
+      const context = moveAudioContext;
+      if (context.state === 'suspended') void context.resume();
+      const stones = Math.min(8, Math.max(1, count));
+      const start = context.currentTime;
+      for (let index = 0; index < stones; index += 1) {
+        const at = start + index * 0.035;
+        // Low wooden body of a stone landing in a bowl.
+        const body = context.createOscillator();
+        const bodyGain = context.createGain();
+        body.type = 'triangle';
+        body.frequency.setValueAtTime(220 - index * 11, at);
+        body.frequency.exponentialRampToValueAtTime(105, at + 0.1);
+        bodyGain.gain.setValueAtTime(0.0001, at);
+        bodyGain.gain.exponentialRampToValueAtTime(0.055, at + 0.006);
+        bodyGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.12);
+        body.connect(bodyGain).connect(context.destination);
+        body.start(at);
+        body.stop(at + 0.13);
+
+        // A brief high click suggests the stone knocking the bowl/cover.
+        const click = context.createOscillator();
+        const clickGain = context.createGain();
+        click.type = 'square';
+        click.frequency.setValueAtTime(1350 - index * 40, at);
+        clickGain.gain.setValueAtTime(0.0001, at);
+        clickGain.gain.exponentialRampToValueAtTime(0.012, at + 0.002);
+        clickGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.028);
+        click.connect(clickGain).connect(context.destination);
+        click.start(at);
+        click.stop(at + 0.03);
+      }
     } catch { /* sound is best-effort */ }
   }
 

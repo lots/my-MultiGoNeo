@@ -569,6 +569,10 @@ way, and the editor does the arithmetic.
   status bar shows `Captures: B n · W n`. They update live during play and scoring. In Chinese
   rules they stay hidden, they disappear when the board pane is too narrow, and
   **View → Show Go Bowls** turns them off manually.
+- **Capture sound**: when a move captures one or more stones (or an edit/undo removes
+  stones), a short wooden body plus high bowl/cover click is generated with Web Audio. Multiple
+  stones are staggered. Enable **Preferences → Traverse → Play sound on moves and captures** to
+  hear it.
 
 Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
 alive, just like Sabaki's score mode. Estimate is only a heuristic, so correct it by hand when
@@ -690,7 +694,7 @@ Preferences dialog follows the MultiGo Options categories:
   hide markup, show next moves, show sibling variations, move-number range, numbering mode,
   and label start character.
 - **Other** — show the game result in the window/file title.
-- **Traverse** — move sound, auto-play interval, and “visit variation branch first”.
+- **Traverse** — move and capture sounds, auto-play interval, and “visit variation branch first”.
 - **Edit** — default Komi, White moves first in new games, right-click board removes the
   current move, and open existing files as Read Only.
 
@@ -1171,6 +1175,7 @@ scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG 
 scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-count-ui.mjs CDP test for dual-rule Estimate/Score, dead stones, markers, bowls, RE and double passes
+scripts/verify-capture-sound-ui.mjs CDP test that a real capture creates the bowl sound
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
