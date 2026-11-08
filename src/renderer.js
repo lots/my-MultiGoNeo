@@ -1836,10 +1836,12 @@
       const [x, y] = id.split(',').map(Number);
       const point = pointPosition(x, y);
       const half = stoneRadius * 0.62;
+      const sign = currentBoard?.signMap?.[y]?.[x] ?? 0;
       context.save();
       context.fillStyle = 'rgba(42, 185, 82, 0.94)';
       context.fillRect(point.x - half, point.y - half, half * 2, half * 2);
-      context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      // A black dead stone gets a white edge; a white dead stone gets black.
+      context.strokeStyle = sign > 0 ? 'rgba(255, 255, 255, 0.96)' : 'rgba(20, 20, 20, 0.94)';
       context.lineWidth = Math.max(1.4, stoneRadius * 0.12);
       context.strokeRect(point.x - half, point.y - half, half * 2, half * 2);
       context.restore();
@@ -3444,7 +3446,11 @@
     if (tab === 'info') syncInfoForm();
     else if (tab === 'comment') renderComment();
     else if (tab === 'engine' && window.MultiGoEngine) window.MultiGoEngine.refreshPanel();
-    else if (tab === 'score') updateCountPanel();
+    else if (tab === 'score') {
+      // Recalculate komi/handicap changes when the panel is re-displayed.
+      if (countState.active) recomputeCount();
+      updateCountPanel();
+    }
   }
 
   // Toolbar and menus ----------------------------------------------------
@@ -5227,7 +5233,13 @@
 
   for (const [key, element] of Object.entries(infoFields)) {
     if (!element) continue;
-    element.addEventListener('change', () => setRootProperty(INFO_BINDINGS[key], element.value));
+    element.addEventListener('change', () => {
+      setRootProperty(INFO_BINDINGS[key], element.value);
+      if (countState.active && (key === 'komi' || key === 'handicap')) {
+        recomputeCount();
+        updateCountPanel();
+      }
+    });
   }
   $('#game-info').addEventListener('submit', (event) => event.preventDefault());
 
@@ -5271,6 +5283,11 @@
   tabInfo.addEventListener('click', () => setTab('info'));
   tabComment.addEventListener('click', () => setTab('comment'));
   tabEngine.addEventListener('click', () => setTab('engine'));
+  tabScore.addEventListener('click', () => {
+    // Pressing the Score tab is equivalent to Play → Score / Ctrl+Shift+R.
+    if (!countState.active || countState.mode !== 'score') enterCount(gameRules(), 'score');
+    else setTab('score');
+  });
   infoDone.addEventListener('click', restoreInfoPanel);
 
   function toggleCoordinates() {

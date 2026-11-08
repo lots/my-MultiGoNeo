@@ -555,11 +555,15 @@ way, and the editor does the arithmetic.
   it. Dead stones get a **green square** marker.
 - **Markers**: compact black-owned squares with a white border, white-owned squares with a
   black border, borderless red **shared/dame** squares, and green dead-stone squares — all
-  the same size so they fit inside a stone.
+  the same size so they fit inside a stone. A dead black stone has a white edge; a dead white
+  stone has a black edge.
 - **Docked Score tab**: the Score panel lives beside **Info / Comment / Engine** in the right
   column, not as a floating board popup. It shows Chinese, standard Area Scoring, Japanese and
-  Territory Scoring results simultaneously, with no rule selector. While a scoring session is
-  open the Score panel takes the full right column; the Game Tree returns when scoring closes.
+  Territory Scoring results simultaneously, with no rule selector. Clicking the **Score** tab
+  when it is not active behaves like **Play → Score** / `Ctrl+Shift+R`. Komi or handicap edits
+  made in Info recalculate both scoring and the audit tables when the panel is re-displayed.
+  While a scoring session is open the Score panel takes the full right column; the Game Tree
+  returns when scoring closes.
 - **Chinese Rule** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to
   White and `−komi/2` to Black. Captures are not counted. This is MultiGo's half-count
   convention: the displayed result halves the area difference (`B+6.25` for a 30.75–18.25
@@ -908,11 +912,16 @@ layout and a 1100×1700 pass for the embed page:
 - confirmed **Territory Scoring** is shown below Japanese Rule and the Territory table sits
   directly below the Area table, with White totals **6.5** before dead stones and **20.5** after;
 - confirmed the compact scoring markers: black squares with white borders, white squares with
-  black borders, borderless red shared points and green dead stones;
+  black borders, borderless red shared points and green dead stones; dead black stones carry a
+  white marker edge and dead white stones a black edge;
 - changed the Score tab display font from 12 px to 14 px, then 16 px, and confirmed the A−/A+
   boxes stayed 20×18 px with no overlap; the Comment and Score font preferences are independent;
 - confirmed new games and opened SGFs reset rotation/flip to zero and seating to Black at the
   bottom, with **BLACK**/**WHITE** labels at the bottom/top of the board pane;
+- changed komi from 6.5 to 0 while scoring, returned to the Score tab and confirmed the Area
+  result recalculated from `B+12.5` to `B+19`;
+- pressed the inactive **Score** tab and confirmed it started a score session just like
+  **Play → Score**;
 - switched to **Dark** and confirmed the bowl wood stop colour is the goban rosewood
   `rgb(74, 45, 31)` and the bowl labels use the light gold board-label colour;
 - scoring unit tests reproduce the MultiGo reference exactly: Chinese **30.75 / 18.25**

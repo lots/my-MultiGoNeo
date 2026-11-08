@@ -549,6 +549,26 @@ await evaluate(`(() => {
   __figdesk.exitCount();
 })()`)
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, scoreFontLayout, seats, flips, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, newGameReset, darkTheme, errors }, null, 2))
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(referenceSgf)}, 'scoring-recalc.sgf')`)
+await evaluate(`__figdesk.enterCount('japanese', 'score')`)
+const komiRecalc = await evaluate(`(() => {
+  const before = document.getElementById('count-area-result').textContent;
+  __figdesk.setTab('info');
+  const komi = document.getElementById('info-komi');
+  komi.value = '0';
+  komi.dispatchEvent(new Event('change', { bubbles: true }));
+  __figdesk.setTab('score');
+  const after = document.getElementById('count-area-result').textContent;
+  __figdesk.exitCount();
+  return { before, after };
+})()`)
+const scoreTabEntry = await evaluate(`(() => {
+  document.getElementById('tab-score').click();
+  const state = { active: __figdesk.count().active, mode: __figdesk.count().mode };
+  __figdesk.exitCount();
+  return state;
+})()`)
+
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, scoreFontLayout, seats, flips, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, newGameReset, darkTheme, komiRecalc, scoreTabEntry, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)
