@@ -45,15 +45,16 @@ Released 2026-11-06. The Windows artifacts are `MultiGo-Neo-1.1.4-setup.exe` and
   overlay and Engine tab, and drive the engine from the docked GTP console. See
   [GTP engines](#gtp-engines).
 - **Estimate and Score** — a docked **Score** tab beside Info/Comment/Engine shows Chinese,
-  standard **Area Scoring** and Japanese results together, plus an Area/Territory/Captures/
-  Komi/Handicap table. Compact black/white bordered squares mark ownership, red squares mark
-  shared points, and green squares mark dead stones. The Score text has its own 12–36 px
-  A−/A+ control. **Play → Estimate** pre-marks dead stones; **Play → Score** starts manual.
-  See [Estimate and Score](#estimate-and-score).
+  standard **Area Scoring**, Japanese and **Territory Scoring**, plus Area and Territory audit
+  tables. Compact black/white bordered squares mark ownership, red squares mark shared points,
+  and green squares mark dead stones. Shell stones are clean, with no grey texture dot. The
+  Score text has its own 12–36 px A−/A+ control. **Play → Estimate** pre-marks dead stones;
+  **Play → Score** starts manual. See [Estimate and Score](#estimate-and-score).
 - **Two consecutive passes** end the game and offer to count the result.
 - **Captured-stone bowls** stay visible during Japanese-rules play: Black sits at the bottom by
-  default, so the black bowl is lower-right and White's is upper-left. **View → Swap Player
-  Sides** reverses the seating.
+  default, so the black bowl is lower-right and White's is upper-left. **BLACK** and **WHITE**
+  seat labels are always shown, and the dark theme gives the bowls the same rosewood palette as
+  the goban. **View → Swap Player Sides** reverses the seating.
 - **Small boards (8×8 and below)** keep edge stones and coordinate labels inside the canvas.
 
 ### Version 1.1.2
@@ -556,9 +557,9 @@ way, and the editor does the arithmetic.
   black border, borderless red **shared/dame** squares, and green dead-stone squares — all
   the same size so they fit inside a stone.
 - **Docked Score tab**: the Score panel lives beside **Info / Comment / Engine** in the right
-  column, not as a floating board popup. It shows Chinese, standard Area Scoring and Japanese
-  results simultaneously, with no rule selector. While a scoring session is open the Score
-  panel takes the full right column; the Game Tree returns when scoring closes.
+  column, not as a floating board popup. It shows Chinese, standard Area Scoring, Japanese and
+  Territory Scoring results simultaneously, with no rule selector. While a scoring session is
+  open the Score panel takes the full right column; the Game Tree returns when scoring closes.
 - **Chinese Rule** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to
   White and `−komi/2` to Black. Captures are not counted. This is MultiGo's half-count
   convention: the displayed result halves the area difference (`B+6.25` for a 30.75–18.25
@@ -569,16 +570,23 @@ way, and the editor does the arithmetic.
   and `W+1.5` after.
 - **Japanese** counts territory + prisoners/dead stones + komi for White; shared points are not
   scored. The card labels the prisoner terms **Black's Dead** / **White's Dead**.
-- **Area table** shows Area, Territory, Captures, Komi, Handicap and area Total for both sides.
-  `HA` is read into the handicap term for Area Scoring only (territory scoring, like Sabaki,
-  does not add it).
+- **Territory Scoring** repeats the territory calculation below Japanese Rule with its own total
+  and result, making a side-by-side study layout.
+
+- **Area table** and **Territory table** show Area, Territory, Captures, Komi, Handicap and the
+  respective total for both sides. `HA` is read into the handicap term for Area Scoring only
+  (territory scoring, like Sabaki, does not add it).
 - **Write RE** writes the **standard area result** for `RU[Chinese]` and the normal territory
   result for `RU[Japanese]` into the SGF’s `RE` (game result) property on the root node. It
   updates the in-memory game/title but does **not** save the file; use File → Save afterwards.
   **Done** or `Esc` closes scoring. The panel shows this explanation next to the button.
 - **Captured-stone bowls**: by default Black sits at the bottom, so the black bowl is at the
   **lower right** of the goban and the white bowl at the **upper left**. **View → Swap Player
-  Sides** flips the seating and therefore the bowls. Bowls stay beside the board when the pane
+  Sides** flips the seating and therefore the bowls. The words **BLACK** and **WHITE** are
+  shown at the bottom and top of the board pane so the seating is always legible, even when the
+  bowls are hidden. New games and opened SGFs reset to Black at the bottom and the default
+  unrotated, unflipped orientation; the bowls follow later horizontal/vertical flips but not
+  rotation. Bowls stay beside the board when the pane
   resizes and fall back to the board corners when there is no outer room. They are drawn
   **top-down**: captured stones are stacked in the bowl (White's stones in the black bowl,
   Black's in the white one), with 3D shading and shadows. No number is printed in the bowl — the
@@ -604,6 +612,8 @@ it gets a group wrong.
 ![Reference 7×7 scoring before dead stones: Chinese half-count, Area Scoring, Japanese territory and the Area table](preview/preview-scoring-reference.png)
 
 ![After marking B7 and B1 dead: green dead-stone squares, white control of the vacated region, and all scores updated](preview/preview-scoring-reference-dead.png)
+
+![Dark theme: the bowls and seat labels use the goban's rosewood/gold palette](preview/preview-scoring-dark.png)
 
 ![Play > Estimate: the sealed white stone is estimated dead and counted](preview/preview-estimate.png)
 
@@ -638,7 +648,8 @@ images below show the same **13×13** position at 1440×1024.
 - **Flat** — a solid board colour with no grain.
 - **Dark** — old rosewood with a golden-brown grid and warm stone highlights, based on the
   old-board photographs in `study/design/old-board/`; the stones get a glassy top-left
-  specular cap and a warm lower rim so black stones separate from the dark wood.
+  specular cap and a warm lower rim so black stones separate from the dark wood. Captured-stone
+  bowls and their labels use the same rosewood/gold palette.
 - **Paper** — light diagram paper, thin ink lines and flat printed stones (no gradient,
   drop shadow or highlight), for print-like review diagrams.
 
@@ -887,17 +898,23 @@ layout and a 1100×1700 pass for the embed page:
   (body, bowl click and noise); repeated with three and eight stones and confirmed 24
   oscillators, eight stones in the bowl, and randomised 28–46 ms gaps with varying pitches;
 - chose **Play → Estimate** and confirmed it entered Estimate mode with the sealed white stone
-  already marked dead and all three results shown; **Play → Score** opened with no dead stones;
+  already marked dead and all four results shown; **Play → Score** opened with no dead stones;
 - clicked the lone white stone inside Black's area and confirmed its green dead marker, the
   score updates in all rule blocks, and the black bowl showed **1**;
 - confirmed the 7×7 Area Scoring result moves from `B+12.5` before dead stones to `W+1.5`
   after, while the Chinese half-count stays `B+6.25` / `W+0.75`;
 - loaded the same position with `HA[2]` and `KM[0.5]` and confirmed the Area table shows
   handicap **2**, White total **11.5** and Area result `B+16.5`;
+- confirmed **Territory Scoring** is shown below Japanese Rule and the Territory table sits
+  directly below the Area table, with White totals **6.5** before dead stones and **20.5** after;
 - confirmed the compact scoring markers: black squares with white borders, white squares with
   black borders, borderless red shared points and green dead stones;
-- changed the Score tab display font from 12 px to 14 px, confirmed the app stayed clean, and
-  confirmed the Comment and Score font preferences are independent;
+- changed the Score tab display font from 12 px to 14 px, then 16 px, and confirmed the A−/A+
+  boxes stayed 20×18 px with no overlap; the Comment and Score font preferences are independent;
+- confirmed new games and opened SGFs reset rotation/flip to zero and seating to Black at the
+  bottom, with **BLACK**/**WHITE** labels at the bottom/top of the board pane;
+- switched to **Dark** and confirmed the bowl wood stop colour is the goban rosewood
+  `rgb(74, 45, 31)` and the bowl labels use the light gold board-label colour;
 - scoring unit tests reproduce the MultiGo reference exactly: Chinese **30.75 / 18.25**
   before dead marking, **23.75 / 25.25** after; Japanese **17 / 6.5** before and
   **17 / 20.5** after, with results `B+6.25`, `W+0.75`, `B+10.5`, `W+3.5`;

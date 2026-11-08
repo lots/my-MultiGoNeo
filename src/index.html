@@ -562,6 +562,8 @@
 
     <main class="workspace" id="workspace">
       <section class="pane pane-board" id="pane-board" aria-label="Go board">
+        <div class="seat-label seat-top" id="seat-top">WHITE</div>
+        <div class="seat-label seat-bottom" id="seat-bottom">BLACK</div>
         <div class="bowl bowl-black" id="bowl-black" hidden aria-hidden="true">
           <svg class="bowl-art" viewBox="0 0 100 100" focusable="false">
             <defs>
@@ -788,6 +790,20 @@
                 </div>
                 <div class="count-rule-result" id="count-jp-result">—</div>
               </section>
+              <section class="count-rule count-territory-rule" data-rule="territory">
+                <div class="count-rule-title">Territory Scoring</div>
+                <div class="count-score-line">
+                  <span class="count-side">White:</span>
+                  <strong class="count-total" id="count-territory-white-total">—</strong>
+                  <span class="count-equation" id="count-territory-white-formula"></span>
+                </div>
+                <div class="count-score-line">
+                  <span class="count-side">Black:</span>
+                  <strong class="count-total" id="count-territory-black-total">—</strong>
+                  <span class="count-equation" id="count-territory-black-formula"></span>
+                </div>
+                <div class="count-rule-result" id="count-territory-result">—</div>
+              </section>
               <div class="count-table-title">Area table</div>
               <table class="count-table">
                 <thead>
@@ -811,6 +827,32 @@
                     <td id="count-table-white-komi">—</td>
                     <td id="count-table-white-handicap">—</td>
                     <td id="count-table-white-total">—</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="count-table-title">Territory table</div>
+              <table class="count-table">
+                <thead>
+                  <tr><th></th><th>Area</th><th>Territory</th><th>Captures</th><th>Komi</th><th>Handicap</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Black</th>
+                    <td id="count-territory-table-black-area">—</td>
+                    <td id="count-territory-table-black-territory">—</td>
+                    <td id="count-territory-table-black-captures">—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td id="count-territory-table-black-total">—</td>
+                  </tr>
+                  <tr>
+                    <th>White</th>
+                    <td id="count-territory-table-white-area">—</td>
+                    <td id="count-territory-table-white-territory">—</td>
+                    <td id="count-territory-table-white-captures">—</td>
+                    <td id="count-territory-table-white-komi">—</td>
+                    <td>—</td>
+                    <td id="count-territory-table-white-total">—</td>
                   </tr>
                 </tbody>
               </table>

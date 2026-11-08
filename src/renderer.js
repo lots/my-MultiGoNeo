@@ -214,6 +214,13 @@
       blackFormula: $('#count-jp-black-formula'),
       result: $('#count-jp-result'),
     },
+    territory: {
+      whiteTotal: $('#count-territory-white-total'),
+      whiteFormula: $('#count-territory-white-formula'),
+      blackTotal: $('#count-territory-black-total'),
+      blackFormula: $('#count-territory-black-formula'),
+      result: $('#count-territory-result'),
+    },
   };
   const countTable = {
     blackArea: $('#count-table-black-area'),
@@ -227,6 +234,19 @@
     whiteHandicap: $('#count-table-white-handicap'),
     whiteTotal: $('#count-table-white-total'),
   };
+  const countTerritoryTable = {
+    blackArea: $('#count-territory-table-black-area'),
+    blackTerritory: $('#count-territory-table-black-territory'),
+    blackCaptures: $('#count-territory-table-black-captures'),
+    blackTotal: $('#count-territory-table-black-total'),
+    whiteArea: $('#count-territory-table-white-area'),
+    whiteTerritory: $('#count-territory-table-white-territory'),
+    whiteCaptures: $('#count-territory-table-white-captures'),
+    whiteKomi: $('#count-territory-table-white-komi'),
+    whiteTotal: $('#count-territory-table-white-total'),
+  };
+  const seatTop = $('#seat-top');
+  const seatBottom = $('#seat-bottom');
   const bowlBlack = $('#bowl-black');
   const bowlWhite = $('#bowl-white');
   const bowlBlackStones = $('#bowl-black-stones');
@@ -671,8 +691,9 @@
     'Now you can mark dead stones on the board; the result updates automatically.': '现在可以在棋盘上标记死子，结果会自动更新。',
     Japanese: '日本规则', Chinese: '中国规则',
     'Chinese Rule': '中国规则', 'Japanese Rule': '日本规则',
-    'Area Scoring': '面积计分', 'MultiGo half-count convention': 'MultiGo 半计分制',
-    'Area table': '面积表', Area: '面积', Total: '总计',
+    'Area Scoring': '面积计分', 'Territory Scoring': '目数计分',
+    'MultiGo half-count convention': 'MultiGo 半计分制',
+    'Area table': '面积表', 'Territory table': '目数表', Area: '面积', Total: '总计',
     'Black territory': '黑方领地', 'White territory': '白方领地',
     'Black prisoners': '黑方提子', 'White prisoners': '白方提子',
     'Black stones': '黑方棋子', 'White stones': '白方棋子',
@@ -861,9 +882,18 @@
     };
   }
 
+  function resetPlayerViewForNewGame() {
+    settings.boardRotation = 0;
+    settings.boardFlipH = false;
+    settings.boardFlipV = false;
+    settings.blackAtBottom = true;
+    saveSettings();
+  }
+
   function startGame(size, options = {}) {
     if (countState.active) exitCount();
     stopAutoPlay();
+    resetPlayerViewForNewGame();
     let width;
     let height;
     if (size && typeof size === 'object') {
@@ -1511,7 +1541,14 @@
     }
   }
 
+  function updateSeatLabels() {
+    const blackAtBottom = settings.blackAtBottom !== false;
+    if (seatBottom) seatBottom.textContent = (blackAtBottom ? t('Black') : t('White')).toUpperCase();
+    if (seatTop) seatTop.textContent = (blackAtBottom ? t('White') : t('Black')).toUpperCase();
+  }
+
   function updateBowls() {
+    updateSeatLabels();
     // Bowls are live during play (Japanese rules) and while counting; the
     // scoring card only adds dead stones to the prisoner totals.
     const rules = countState.active ? countState.rules : gameRules();
@@ -1621,6 +1658,16 @@
     if (countTable.whiteHandicap) countTable.whiteHandicap.textContent = points(result.handicap);
     if (countTable.blackTotal) countTable.blackTotal.textContent = points(result.areaBlackScore);
     if (countTable.whiteTotal) countTable.whiteTotal.textContent = points(result.areaWhiteScore);
+
+    if (countTerritoryTable.blackArea) countTerritoryTable.blackArea.textContent = points(result.blackPoints);
+    if (countTerritoryTable.whiteArea) countTerritoryTable.whiteArea.textContent = points(result.whitePoints);
+    if (countTerritoryTable.blackTerritory) countTerritoryTable.blackTerritory.textContent = points(result.blackTerritory);
+    if (countTerritoryTable.whiteTerritory) countTerritoryTable.whiteTerritory.textContent = points(result.whiteTerritory);
+    if (countTerritoryTable.blackCaptures) countTerritoryTable.blackCaptures.textContent = points(result.blackPrisoners);
+    if (countTerritoryTable.whiteCaptures) countTerritoryTable.whiteCaptures.textContent = points(result.whitePrisoners);
+    if (countTerritoryTable.whiteKomi) countTerritoryTable.whiteKomi.textContent = points(result.komi);
+    if (countTerritoryTable.blackTotal) countTerritoryTable.blackTotal.textContent = points(result.blackTerritory + result.blackPrisoners);
+    if (countTerritoryTable.whiteTotal) countTerritoryTable.whiteTotal.textContent = points(result.whiteTerritory + result.whitePrisoners + result.komi);
   }
 
   function updateCountPanel() {
@@ -1637,6 +1684,7 @@
     updateScoreBlock('chinese', result.chinese);
     updateScoreBlock('area', result.chinese);
     updateScoreBlock('japanese', result.japanese);
+    updateScoreBlock('territory', result.japanese);
     updateCountTable(result.chinese);
     const japanese = result.japanese;
     if (countDeadSummary) {
@@ -2240,6 +2288,7 @@
     boardSelectionContext.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawBoard();
     positionBowls();
+    updateSeatLabels();
   }
 
   function scheduleBoardDraw() {
@@ -4593,6 +4642,7 @@
     catch (error) { log(`Could not parse ${source}: ${error.message}`, 'error'); return false; }
     if (!roots.length) { log('The SGF contains no games.', 'error'); return false; }
     if (roots.length > 1) log('Only the first game in the SGF collection was loaded.', 'warn');
+    resetPlayerViewForNewGame();
     stopAutoPlay();
     browserSaveHandle = null;
     try { tree = new S.GameTree({ root: roots[0], getId, merger: S.nodeMerger }); }

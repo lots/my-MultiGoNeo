@@ -2364,6 +2364,34 @@ kbd {
 
 /* Counting ------------------------------------------------------------- */
 
+.seat-label {
+  position: absolute;
+  left: 50%;
+  z-index: 5;
+  padding: 2px 8px;
+  border-radius: 9px;
+  background: rgba(255, 250, 240, 0.78);
+  color: rgba(58, 40, 20, 0.78);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.seat-top {
+  top: 5px;
+}
+
+.seat-bottom {
+  bottom: 5px;
+}
+
+.theme-dark .seat-label {
+  background: rgba(30, 18, 12, 0.78);
+  color: rgba(238, 205, 160, 0.85);
+}
+
 .bowl {
   /* Positioned by renderer.js relative to the board: the player sitting at the
      bottom gets the lower-right bowl, the other player gets the upper-left one. */
@@ -2506,6 +2534,10 @@ kbd {
 
 .count-area-rule {
   border-top-color: rgba(46, 112, 72, 0.28);
+}
+
+.count-territory-rule {
+  border-top-color: rgba(99, 88, 138, 0.28);
 }
 
 .count-table-title {

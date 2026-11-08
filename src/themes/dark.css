@@ -26,3 +26,47 @@
   --overlay-backer: rgba(28, 17, 12, 0.82);
   --overlay-halo: rgba(20, 12, 8, 0.86);
 }
+
+/* The captured-stone bowls use the same old-rosewood family as the dark goban
+   instead of the light kaya bowls. */
+.theme-dark #bowl-wood-black stop:nth-child(1),
+.theme-dark #bowl-wood-white stop:nth-child(1) {
+  stop-color: #4a2d1f;
+}
+
+.theme-dark #bowl-wood-black stop:nth-child(2),
+.theme-dark #bowl-wood-white stop:nth-child(2) {
+  stop-color: #38231a;
+}
+
+.theme-dark #bowl-wood-black stop:nth-child(3),
+.theme-dark #bowl-wood-white stop:nth-child(3) {
+  stop-color: #25140e;
+}
+
+.theme-dark #bowl-cavity-black stop:nth-child(1),
+.theme-dark #bowl-cavity-white stop:nth-child(1) {
+  stop-color: #2f1c13;
+}
+
+.theme-dark #bowl-cavity-black stop:nth-child(2),
+.theme-dark #bowl-cavity-white stop:nth-child(2) {
+  stop-color: #26150e;
+}
+
+.theme-dark #bowl-cavity-black stop:nth-child(3),
+.theme-dark #bowl-cavity-white stop:nth-child(3) {
+  stop-color: #1b0e08;
+}
+
+.theme-dark .bowl-art > circle {
+  stroke: rgba(235, 181, 103, 0.42);
+}
+
+.theme-dark .bowl-art > circle:nth-of-type(2) {
+  stroke: rgba(238, 205, 160, 0.25);
+}
+
+.theme-dark .bowl-label {
+  color: rgba(238, 205, 160, 0.82);
+}

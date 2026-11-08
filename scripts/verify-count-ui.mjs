@@ -255,10 +255,15 @@ const initial = await evaluate(`(() => {
     japaneseWhite: document.getElementById('count-jp-white-total').textContent,
     japaneseBlack: document.getElementById('count-jp-black-total').textContent,
     japaneseResult: document.getElementById('count-jp-result').textContent,
+    territoryWhite: document.getElementById('count-territory-white-total').textContent,
+    territoryBlack: document.getElementById('count-territory-black-total').textContent,
+    territoryResult: document.getElementById('count-territory-result').textContent,
     chineseVisible: Boolean(document.querySelector('.count-rule[data-rule="chinese"]')),
     areaVisible: Boolean(document.querySelector('.count-rule[data-rule="area"]')),
     japaneseVisible: Boolean(document.querySelector('.count-rule[data-rule="japanese"]')),
+    territoryVisible: Boolean(document.querySelector('.count-rule[data-rule="territory"]')),
     tableTotal: document.getElementById('count-table-white-total').textContent,
+    territoryTableTotal: document.getElementById('count-territory-table-white-total').textContent,
     panelOpen: !document.getElementById('count-card').hidden,
     scoreTabActive: document.getElementById('tab-score').classList.contains('is-active'),
     scoreTabVisible: !document.getElementById('tab-score').hidden,
@@ -306,6 +311,8 @@ const seats = await evaluate(`(() => {
       whiteAbove: white.top < board.top + board.height / 2,
       blackRight: black.left > board.left + board.width / 2,
       whiteLeft: white.left < board.left + board.width / 2,
+      topLabel: document.getElementById('seat-top').textContent,
+      bottomLabel: document.getElementById('seat-bottom').textContent,
       setting: __figdesk.settings().blackAtBottom,
     };
   };
@@ -458,6 +465,8 @@ const referenceBefore = await evaluate(`({
   area: document.getElementById('count-area-result').textContent,
   areaTotal: document.getElementById('count-table-white-total').textContent,
   japanese: document.getElementById('count-jp-result').textContent,
+  territory: document.getElementById('count-territory-result').textContent,
+  territoryTotal: document.getElementById('count-territory-table-white-total').textContent,
   dead: window.__figdesk.count().dead,
 })`)
 await shot('preview/preview-scoring-reference.png')
@@ -468,6 +477,8 @@ const referenceAfter = await evaluate(`({
   area: document.getElementById('count-area-result').textContent,
   areaTotal: document.getElementById('count-table-white-total').textContent,
   japanese: document.getElementById('count-jp-result').textContent,
+  territory: document.getElementById('count-territory-result').textContent,
+  territoryTotal: document.getElementById('count-territory-table-white-total').textContent,
   dead: window.__figdesk.count().dead,
 })`)
 await shot('preview/preview-scoring-reference-dead.png')
@@ -497,6 +508,47 @@ const chineseWritten = await evaluate(`(() => {
   return { re, areaResult };
 })()`)
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, scoreFontLayout, seats, flips, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, errors }, null, 2))
+const newGameReset = await evaluate(`(() => {
+  document.querySelector('[data-action="flip-h"]').click();
+  document.querySelector('[data-action="flip-v"]').click();
+  document.querySelector('[data-action="swap-seats"]').click();
+  document.querySelector('[data-action="rotate-cw"]').click();
+  __figdesk.startGame({ width: 7, height: 7 });
+  const settings = __figdesk.settings();
+  return {
+    rotation: settings.boardRotation,
+    flipH: settings.boardFlipH,
+    flipV: settings.boardFlipV,
+    blackAtBottom: settings.blackAtBottom,
+    topLabel: document.getElementById('seat-top').textContent,
+    bottomLabel: document.getElementById('seat-bottom').textContent,
+  };
+})()`)
+
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(referenceSgf)}, 'scoring-dark.sgf')`)
+await evaluate(`__figdesk.enterCount('japanese')`)
+await sleep(200)
+const darkTheme = await evaluate(`(() => {
+  const select = document.getElementById('options-theme');
+  select.value = 'dark';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+  const stop = document.querySelector('#bowl-wood-black stop');
+  const label = document.querySelector('#bowl-black .bowl-label');
+  return {
+    theme: __figdesk.settings().theme,
+    bowlStop: getComputedStyle(stop).stopColor,
+    bowlLabel: getComputedStyle(label).color,
+  };
+})()`)
+await sleep(250)
+await shot('preview/preview-scoring-dark.png')
+await evaluate(`(() => {
+  const select = document.getElementById('options-theme');
+  select.value = 'classic';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+  __figdesk.exitCount();
+})()`)
+
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, scoreFontLayout, seats, flips, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, newGameReset, darkTheme, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)
