@@ -439,6 +439,8 @@ The View menu now provides display-only orientation controls:
 - **Reset Board** (shortcut **G**) restores the identity orientation.
 - The transforms also apply to hit testing, stone/marker positions, coordinates, dim rectangles,
   arrows and move numbers. They do not modify the SGF or mark it dirty.
+- Bowl covers follow a **horizontal or vertical flip**. Rotation does not move them: the players
+  stay seated at the same screen edges.
 
 ![A 5×9 board rotated clockwise to 9×5](preview/preview-board-rotate.png)
 
@@ -456,7 +458,9 @@ The View menu now provides display-only orientation controls:
   “Each side must be an integer from 2 to 52 (60*2).”
 - **The last board size is remembered across launches**, including rectangular sizes; the
   Options menu can disable or re-enable this.
-- Coordinates, move numbers, last-move marker, star points, textured board.
+- Coordinates, move numbers, last-move marker, star points, textured board. Shell stones are
+  clean: the old grey texture dot/arcs were removed, while black stones keep their faint mineral
+  flecks.
 - Coordinate systems: **A1**, **1–1**, and **四4** (Arabic column numbers with Chinese
   numerals down the rows).
 - **Four CSS board themes** — Classic, Flat, Dark and Paper — with the surface, grid colours
@@ -569,7 +573,9 @@ way, and the editor does the arithmetic.
   `HA` is read into the handicap term for Area Scoring only (territory scoring, like Sabaki,
   does not add it).
 - **Write RE** writes the **standard area result** for `RU[Chinese]` and the normal territory
-  result for `RU[Japanese]`; **Done** or `Esc` closes scoring.
+  result for `RU[Japanese]` into the SGF’s `RE` (game result) property on the root node. It
+  updates the in-memory game/title but does **not** save the file; use File → Save afterwards.
+  **Done** or `Esc` closes scoring. The panel shows this explanation next to the button.
 - **Captured-stone bowls**: by default Black sits at the bottom, so the black bowl is at the
   **lower right** of the goban and the white bowl at the **upper left**. **View → Swap Player
   Sides** flips the seating and therefore the bowls. Bowls stay beside the board when the pane

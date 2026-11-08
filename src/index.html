@@ -20,8 +20,9 @@
       <path d="M12 12v6M9 15h6" fill="none" stroke="currentColor" stroke-width="1.6"/>
     </symbol>
     <symbol id="i-open" viewBox="0 0 24 24">
-      <path d="M3 7h6l2 2h10v10H3z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M3 7h6l2 2h10v10H3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
       <path d="M3 9h18" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M12 19v-7M9 15l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="i-save" viewBox="0 0 24 24">
       <path d="M4 3h13l3 3v15H4z" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -44,7 +45,7 @@
       <path d="M13 6l6 6-6 6zM4 6l6 6-6 6z" fill="currentColor"/>
     </symbol>
     <symbol id="i-delete" viewBox="0 0 24 24">
-      <path d="M5 7h14M9 7V4h6v3M8 7l1 13h6l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 7h16M9 7V4h6v3M6.5 7l1.1 13h8.8L17.5 7M9.5 11v5M14.5 11v5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="i-prev" viewBox="0 0 24 24">
       <path d="M16 5l-10 7 10 7z" fill="currentColor"/>
@@ -814,8 +815,9 @@
                 </tbody>
               </table>
               <div class="count-dead-summary" id="count-dead-summary"></div>
+              <p class="count-actions-note">RE is the SGF game-result field. <strong>Write RE</strong> stores this result in the root node; <strong>Done</strong> closes scoring.</p>
               <div class="count-actions">
-                <button type="button" class="btn" id="count-write">Write RE</button>
+                <button type="button" class="btn" id="count-write" title="Write the calculated result into the SGF RE property">Write RE</button>
                 <button type="button" class="btn btn-primary" id="count-done">Done</button>
               </div>
             </div>

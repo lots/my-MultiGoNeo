@@ -93,6 +93,13 @@ button {
   pointer-events: none;
 }
 
+/* Open SGF and Delete Move need a little more room to read at toolbar size. */
+#tool-delete .icon,
+.tool[data-action="open-sgf"] .icon {
+  width: 20px;
+  height: 20px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -276,7 +283,10 @@ button {
 
 .menu-item:hover:not(:disabled) kbd,
 .menu-item:focus-visible kbd {
-  opacity: 0.9;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  opacity: 1;
 }
 
 .menu-separator {
@@ -2462,6 +2472,8 @@ kbd {
 }
 
 .count-title {
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 1.08em;
   font-weight: 700;
 }
@@ -2582,15 +2594,38 @@ kbd {
   text-align: center;
 }
 
+.count-actions-note {
+  margin: 7px 0 0;
+  color: #777;
+  font-size: 0.78em;
+  line-height: 1.35;
+}
+
 .count-actions {
   display: flex;
   gap: 6px;
   justify-content: flex-end;
+  margin-top: 6px;
 }
 
 .count-actions .btn {
   padding: 3px 9px;
   font-size: 0.92em;
+}
+
+/* The score controls must not inherit the resized score text: A−/A+ need to
+   stay inside their fixed 20x18 boxes even at 36 px. */
+.count-card .comment-font-controls {
+  flex: 0 0 auto;
+  font-size: 11px;
+}
+
+.count-card .comment-font-button {
+  font: 600 10px/16px var(--font-ui);
+}
+
+.count-card .comment-font-value {
+  font-size: 10px;
 }
 
 .count-hint {

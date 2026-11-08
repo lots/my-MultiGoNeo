@@ -1534,27 +1534,39 @@
     const paneRect = paneBoard.getBoundingClientRect();
     const boardRect = boardCanvas.getBoundingClientRect();
     if (!paneRect.width || !boardRect.width) return;
-    const bottomBowl = settings.blackAtBottom === false ? bowlWhite : bowlBlack;
-    const topBowl = settings.blackAtBottom === false ? bowlBlack : bowlWhite;
-    const bowlWidth = bottomBowl.offsetWidth || 92;
-    const bowlHeight = bottomBowl.offsetHeight || 112;
+    const bowlWidth = bowlBlack.offsetWidth || 92;
+    const bowlHeight = bowlBlack.offsetHeight || 112;
     const gap = 8;
     const left = boardRect.left - paneRect.left;
     const top = boardRect.top - paneRect.top;
     const right = boardRect.right - paneRect.left;
     const bottom = boardRect.bottom - paneRect.top;
-    let bottomLeft = right + gap;
-    let bottomTop = bottom - bowlHeight;
-    if (bottomLeft + bowlWidth > paneRect.width - 4) bottomLeft = right - bowlWidth - gap;
-    if (bottomTop < 4) bottomTop = 4;
-    let topLeft = left - bowlWidth - gap;
-    let topTop = top;
-    if (topLeft < 4) topLeft = left + gap;
-    if (topTop + bowlHeight > paneRect.height - 4) topTop = paneRect.height - bowlHeight - 4;
-    bottomBowl.style.left = `${Math.round(bottomLeft)}px`;
-    bottomBowl.style.top = `${Math.round(bottomTop)}px`;
-    topBowl.style.left = `${Math.round(topLeft)}px`;
-    topBowl.style.top = `${Math.round(topTop)}px`;
+
+    // Seat first, then mirror each bowl independently for a horizontal or
+    // vertical board flip. Rotation is ignored: the players stay seated at the
+    // same edges of the screen.
+    let blackRow = settings.blackAtBottom === false ? 'top' : 'bottom';
+    let whiteRow = blackRow === 'bottom' ? 'top' : 'bottom';
+    let blackCol = settings.boardFlipH === true ? 'left' : 'right';
+    let whiteCol = blackCol === 'right' ? 'left' : 'right';
+    if (settings.boardFlipV === true) {
+      blackRow = blackRow === 'bottom' ? 'top' : 'bottom';
+      whiteRow = whiteRow === 'bottom' ? 'top' : 'bottom';
+    }
+
+    const placeBowl = (bowl, row, col) => {
+      let x = col === 'right' ? right + gap : left - bowlWidth - gap;
+      let y = row === 'bottom' ? bottom - bowlHeight : top;
+      if (x < 4) x = left + gap;
+      if (x + bowlWidth > paneRect.width - 4) x = right - bowlWidth - gap;
+      if (y < 4) y = 4;
+      if (y + bowlHeight > paneRect.height - 4) y = paneRect.height - bowlHeight - 4;
+      bowl.style.left = `${Math.round(x)}px`;
+      bowl.style.top = `${Math.round(y)}px`;
+    };
+
+    placeBowl(bowlBlack, blackRow, blackCol);
+    placeBowl(bowlWhite, whiteRow, whiteCol);
   }
 
   function togglePlayerSeats() {
@@ -2319,15 +2331,8 @@
         );
         context.stroke();
       }
-      const fleckAngle = rand01(seed, 31) * Math.PI * 2;
-      context.fillStyle = 'rgba(255, 255, 255, 0.32)';
-      context.beginPath();
-      context.arc(
-        px + Math.cos(fleckAngle) * radius * 0.42,
-        py + Math.sin(fleckAngle) * radius * 0.42,
-        Math.max(0.8, radius * 0.035), 0, Math.PI * 2,
-      );
-      context.fill();
+      // No bright dot: on a shell stone it reads as a grey blemish rather than
+      // a specular highlight. The fine concentric arcs are enough texture.
     }
     context.restore();
   }
@@ -2414,7 +2419,8 @@
       gradient.addColorStop(1, palette.whiteLow);
       context.fillStyle = gradient;
       context.fill();
-      if (detail && alpha > 0.95 && radius > 8 && settings.stoneTexture !== false) drawStoneTexture(x, y, sign, px, py, radius);
+      // Keep shell stones clean: the fine arcs read as a grey scratch at board
+      // scale and the old highlight dot looked like a blemish.
       context.shadowColor = 'transparent';
       context.lineWidth = Math.max(0.7, radius * 0.055);
       context.strokeStyle = palette.whiteEdge;

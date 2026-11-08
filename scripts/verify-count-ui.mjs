@@ -276,6 +276,26 @@ const scoreFontChanged = await evaluate(`({
   output: document.getElementById('score-font-size').textContent,
   dirty: __figdesk.dirty,
 })`)
+await evaluate(`document.getElementById('score-font-inc').click(); document.getElementById('score-font-inc').click()`)
+const scoreFontLayout = await evaluate(`(() => {
+  const buttons = [...document.querySelectorAll('.count-card .comment-font-button')].map((button) => {
+    const rect = button.getBoundingClientRect();
+    return { width: Math.round(rect.width), height: Math.round(rect.height), text: button.textContent };
+  });
+  const controls = document.querySelector('.count-card .comment-font-controls').getBoundingClientRect();
+  const card = document.getElementById('count-card').getBoundingClientRect();
+  return {
+    size: __figdesk.settings().scoreFontSize,
+    cardFont: getComputedStyle(document.getElementById('count-card')).fontSize,
+    buttons,
+    controlsWidth: Math.round(controls.width),
+    overlapsCard: controls.right > card.right || controls.left < card.left,
+    controlsOverlap: buttons.length === 2 && buttons[0].width > 0 && buttons[1].width > 0
+      && document.querySelectorAll('.count-card .comment-font-button')[0].getBoundingClientRect().right
+        > document.querySelectorAll('.count-card .comment-font-button')[1].getBoundingClientRect().left,
+  };
+})()`)
+await evaluate(`document.getElementById('score-font-dec').click(); document.getElementById('score-font-dec').click()`)
 const seats = await evaluate(`(() => {
   const read = () => {
     const board = document.getElementById('board').getBoundingClientRect();
@@ -294,6 +314,30 @@ const seats = await evaluate(`(() => {
   const after = read();
   document.querySelector('[data-action="swap-seats"]').click();
   return { before, after, restored: __figdesk.settings().blackAtBottom };
+})()`)
+const flips = await evaluate(`(() => {
+  const read = () => {
+    const board = document.getElementById('board').getBoundingClientRect();
+    const black = document.getElementById('bowl-black').getBoundingClientRect();
+    const white = document.getElementById('bowl-white').getBoundingClientRect();
+    return {
+      blackBelow: black.top > board.top + board.height / 2,
+      blackRight: black.left > board.left + board.width / 2,
+      whiteAbove: white.top < board.top + board.height / 2,
+      whiteLeft: white.left < board.left + board.width / 2,
+    };
+  };
+  const before = read();
+  document.querySelector('[data-action="flip-h"]').click();
+  const horizontal = read();
+  document.querySelector('[data-action="flip-v"]').click();
+  const both = read();
+  document.querySelector('[data-action="reset-board"]').click();
+  const reset = read();
+  document.querySelector('[data-action="rotate-cw"]').click();
+  const rotated = read();
+  document.querySelector('[data-action="reset-board"]').click();
+  return { before, horizontal, both, reset, rotated };
 })()`)
 await shot('preview/preview-count-japanese.png')
 
@@ -453,6 +497,6 @@ const chineseWritten = await evaluate(`(() => {
   return { re, areaResult };
 })()`)
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, seats, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, errors }, null, 2))
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, scoreFontLayout, seats, flips, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)
