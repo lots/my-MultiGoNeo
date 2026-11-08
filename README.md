@@ -562,12 +562,13 @@ way, and the editor does the arithmetic.
   Territory Scoring results simultaneously, with no rule selector. Clicking the **Score** tab
   when it is not active behaves like **Play → Score** / `Ctrl+Shift+R`. Komi or handicap edits
   made in Info recalculate both scoring and the audit tables when the panel is re-displayed.
-  While a scoring session is open the Score panel takes the full right column; the Game Tree
-  returns when scoring closes.
+  While a scoring session is open the Score panel takes the full right column; the Game Tree and
+  Message panes return when scoring closes.
 - **Chinese Rule** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to
   White and `−komi/2` to Black. Captures are not counted. This is MultiGo's half-count
   convention: the displayed result halves the area difference (`B+6.25` for a 30.75–18.25
-  total).
+  total) and is explicitly captioned **Half-count result** so it cannot be mistaken for the
+  standard Area result below.
 - **Area Scoring** is the standard full-area result below Chinese Rule: area = alive stones +
   controlled territory, komi and handicap go to White, dame are neutral, captures are not
   counted, and the result is **not halved**. The 7×7 reference is `B+12.5` before dead stones
@@ -906,7 +907,7 @@ layout and a 1100×1700 pass for the embed page:
 - clicked the lone white stone inside Black's area and confirmed its green dead marker, the
   score updates in all rule blocks, and the black bowl showed **1**;
 - confirmed the 7×7 Area Scoring result moves from `B+12.5` before dead stones to `W+1.5`
-  after, while the Chinese half-count stays `B+6.25` / `W+0.75`;
+  after, while the Chinese **Half-count result** stays `B+6.25` / `W+0.75`;
 - loaded the same position with `HA[2]` and `KM[0.5]` and confirmed the Area table shows
   handicap **2**, White total **11.5** and Area result `B+16.5`;
 - confirmed **Territory Scoring** is shown below Japanese Rule and the Territory table sits

@@ -693,6 +693,7 @@
     'Chinese Rule': '中国规则', 'Japanese Rule': '日本规则',
     'Area Scoring': '面积计分', 'Territory Scoring': '目数计分',
     'MultiGo half-count convention': 'MultiGo 半计分制',
+    'Half-count result': '半计分结果',
     'Area table': '面积表', 'Territory table': '目数表', Area: '面积', Total: '总计',
     'Black territory': '黑方领地', 'White territory': '白方领地',
     'Black prisoners': '黑方提子', 'White prisoners': '白方提子',

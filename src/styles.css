@@ -2439,7 +2439,9 @@ kbd {
 }
 
 .right-column.is-scoring .pane-moves,
-.right-column.is-scoring #splitter-h {
+.right-column.is-scoring #splitter-h,
+.right-column.is-scoring .pane-message,
+.right-column.is-scoring #splitter-m {
   display: none;
 }
 
@@ -2604,6 +2606,16 @@ kbd {
   line-height: 1.3;
 }
 
+.count-result-caption {
+  margin-top: 5px;
+  color: #8a6a3f;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .count-rule-result {
   margin-top: 4px;
   padding: 2px 0;
@@ -2612,6 +2624,10 @@ kbd {
   font-weight: 800;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+.count-result-caption + .count-rule-result {
+  margin-top: 0;
 }
 
 .count-rule-result.is-black { color: #111; }

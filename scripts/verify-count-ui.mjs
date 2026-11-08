@@ -249,6 +249,7 @@ const initial = await evaluate(`(() => {
     chineseWhite: document.getElementById('count-cn-white-total').textContent,
     chineseBlack: document.getElementById('count-cn-black-total').textContent,
     chineseResult: document.getElementById('count-cn-result').textContent,
+    halfCountLabel: document.querySelector('.count-result-caption').textContent,
     areaWhite: document.getElementById('count-area-white-total').textContent,
     areaBlack: document.getElementById('count-area-black-total').textContent,
     areaResult: document.getElementById('count-area-result').textContent,
