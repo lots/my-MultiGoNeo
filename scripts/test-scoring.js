@@ -214,6 +214,9 @@ test('matches the MultiGo Chinese and Japanese reference scores', () => {
   assert.equal(before.chinese.blackScore, 30.75);
   assert.equal(before.chinese.whiteScore, 18.25);
   assert.equal(before.chinese.result, 'B+6.25');
+  assert.equal(before.chinese.areaBlackScore, 28);
+  assert.equal(before.chinese.areaWhiteScore, 15.5);
+  assert.equal(before.chinese.areaResult, 'B+12.5');
   assert.equal(before.japanese.blackTerritory, 16);
   assert.equal(before.japanese.whiteTerritory, 0);
   assert.equal(before.japanese.blackScore, 17);
@@ -232,11 +235,29 @@ test('matches the MultiGo Chinese and Japanese reference scores', () => {
   assert.equal(after.chinese.blackScore, 23.75);
   assert.equal(after.chinese.whiteScore, 25.25);
   assert.equal(after.chinese.result, 'W+0.75');
+  assert.equal(after.chinese.areaBlackScore, 26);
+  assert.equal(after.chinese.areaWhiteScore, 27.5);
+  assert.equal(after.chinese.areaResult, 'W+1.5');
   assert.equal(after.japanese.blackTerritory, 16);
   assert.equal(after.japanese.whiteTerritory, 12);
   assert.equal(after.japanese.blackScore, 17);
   assert.equal(after.japanese.whiteScore, 20.5);
   assert.equal(after.japanese.result, 'W+3.5');
+});
+
+test('standard area scoring adds komi and handicap once', () => {
+  const area = scoring.compute({
+    signMap: walls,
+    rules: 'chinese',
+    komi: 0,
+    handicap: 2,
+  });
+  assert.equal(area.handicap, 2);
+  assert.equal(area.areaBlackScore, 10);
+  assert.equal(area.areaWhiteScore, 12);
+  assert.equal(area.areaResult, 'W+2');
+  assert.equal(area.result, 'Jigo');
+  assert.equal(area.japanese, undefined);
 });
 
 console.log(`\n${count} scoring tests passed.`);

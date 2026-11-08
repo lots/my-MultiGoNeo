@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capture sound test — MultiGo Neo</title>
+<style>
+  :root {
+    --ink: #2a2318;
+    --muted: #7c6b51;
+    --paper: #f3eee2;
+    --card: #fffdf7;
+    --line: #dbd0ba;
+    --accent: #a4522e;
+    --wood-hi: #e3bd7d;
+    --wood-mid: #d7a760;
+    --wood-low: #c6934c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    color: var(--ink);
+    background:
+      radial-gradient(1100px 540px at 14% -10%, #fffdf7 0%, rgba(255, 253, 247, 0) 62%),
+      radial-gradient(900px 620px at 94% -4%, #f6e8cf 0%, rgba(246, 232, 207, 0) 58%),
+      var(--paper);
+    font: 15px/1.5 "Segoe UI", "Noto Sans", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell {
+    width: min(824px, calc(100vw - 48px));
+    margin: 0 auto;
+    padding: 18px 0 8px;
+  }
+  .masthead { margin-bottom: 14px; }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 6px 0 6px;
+    font-size: 27px;
+    line-height: 1.15;
+    font-weight: 650;
+    letter-spacing: -.012em;
+  }
+  .lede {
+    margin: 0;
+    max-width: 66ch;
+    color: #5d4f3a;
+    font-size: 14.5px;
+  }
+  .lede code {
+    font: 12.5px ui-monospace, "Cascadia Mono", Consolas, monospace;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: #e9e0cd;
+    color: #4a3a23;
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: 92px 540px 92px;
+    justify-content: center;
+    align-items: stretch;
+    gap: 18px;
+  }
+  .bowl-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .bowl-slot--top { justify-content: flex-start; padding-top: 4px; }
+  .bowl-slot--bottom { justify-content: flex-end; padding-bottom: 4px; }
+  .bowl {
+    width: 92px;
+    height: 92px;
+    display: block;
+  }
+  .bowl-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .badge {
+    min-width: 17px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #e9dfca;
+    border: 1px solid #d5c7aa;
+    color: #5a482d;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 15px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .board-slot { display: flex; flex-direction: column; gap: 8px; }
+  #board {
+    width: 540px;
+    height: 540px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    border-radius: 4px;
+    border: 1px solid rgba(91, 56, 17, .38);
+    box-shadow: 0 3px 20px rgba(58, 36, 10, .26), 0 1px 0 rgba(255, 255, 255, .3) inset;
+    background: var(--wood-mid);
+  }
+  .status {
+    min-height: 24px;
+    margin: 0;
+    padding: 0 2px;
+    font-size: 13px;
+    color: #6a5a43;
+    font-variant-numeric: tabular-nums;
+  }
+  .status[data-tone="live"] { color: #4c3c24; }
+
+  .console {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 22px;
+    padding: 18px 20px 16px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(80, 55, 20, .07), 0 12px 34px rgba(80, 55, 20, .07);
+  }
+  .console h2 {
+    margin: 0 0 2px;
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .scene-caption {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #6c5b43;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 13px 9px 11px;
+    border-radius: 8px;
+    border: 1px solid #d3c6ad;
+    background: linear-gradient(#fffefb, #f5edda);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 1px 2px rgba(80, 55, 20, .09);
+    color: #40331f;
+    font: 600 13.5px/1 "Segoe UI", system-ui, sans-serif;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, transform .06s;
+  }
+  .chip:hover { border-color: #bda98a; background: linear-gradient(#fffefb, #f1e6cf); }
+  .chip:active { transform: translateY(1px); }
+  .chip:focus-visible { outline: 2px solid #b4552f; outline-offset: 2px; }
+  .chip .num {
+    font-size: 19px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .chip--primary {
+    border-color: #8f4626;
+    background: linear-gradient(#b9613a, #9a4a27);
+    color: #fff8ec;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .22) inset, 0 2px 5px rgba(90, 40, 15, .24);
+  }
+  .chip--primary:hover { border-color: #7c3a1e; background: linear-gradient(#c06a41, #a14e29); }
+  .chip--primary .num { color: #ffe6c8; }
+  kbd {
+    font: 600 9.5px/1.4 ui-monospace, Consolas, monospace;
+    padding: 1px 4px;
+    border: 1px solid #cfc2a9;
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    color: #8a7658;
+    background: #fffdf6;
+  }
+  .chip--primary kbd { border-color: #b1805f; background: #8d4223; color: #ffdcc0; }
+  .levels {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .levels input[type="range"] {
+    flex: 1 1 auto;
+    max-width: 220px;
+    accent-color: #b4552f;
+    cursor: pointer;
+  }
+  .levels output {
+    min-width: 38px;
+    font-variant-numeric: tabular-nums;
+    color: #5a482d;
+    font-weight: 600;
+  }
+  .hint { margin: 0; font-size: 12px; color: #8a7a5f; }
+  .hint a { color: #8f4626; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  .hint a:hover { color: #6f3318; }
+  .scope {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .scope-frame {
+    position: relative;
+    border: 1px solid #e2d8c4;
+    border-radius: 7px;
+    background: linear-gradient(#fffdf8, #faf5e9);
+    padding: 4px 6px;
+  }
+  #wave { display: block; width: 100%; height: 84px; }
+  .scope figcaption {
+    font-size: 11.5px;
+    color: #8a7a5f;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .footnote {
+    margin: 10px 0 0;
+    font-size: 11.5px;
+    color: #8f8068;
+  }
+  @media (max-width: 900px) {
+    .shell { width: calc(100vw - 32px); }
+    .stage { grid-template-columns: minmax(0, 1fr); }
+    .bowl-slot { display: none; }
+    .board-slot { align-items: center; }
+    #board { width: min(540px, calc(100vw - 32px)); }
+    .console { grid-template-columns: minmax(0, 1fr); }
+    .levels input[type="range"] { max-width: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chip { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="masthead">
+    <div class="eyebrow">MultiGo Neo · audio check</div>
+    <h1>One stone captured and lifted off the goban</h1>
+    <p class="lede">
+      White is surrounded and its last liberty is filled. The stones rise off the board into the
+      bowl while <code>playCaptureSound()</code> plays the same wooden body, bowl click and bright
+      stones-in-the-bowl rattle you hear during play. Click a chip, or press <kbd>1</kbd>,
+      <kbd>3</kbd> or <kbd>8</kbd>.
+    </p>
+  </header>
+
+  <div class="stage">
+    <div class="bowl-slot bowl-slot--top">
+      <canvas id="bowl-white" class="bowl" aria-label="White's captured-stone bowl"></canvas>
+      <div class="bowl-name">White's bowl <span id="bowl-white-count" class="badge">0</span></div>
+    </div>
+
+    <div class="board-slot">
+      <canvas id="board" role="img" aria-label="9 by 9 goban with white stones surrounded by black"></canvas>
+      <p class="status" id="status" role="status" aria-live="polite">
+        Press a capture chip to hear the bowl sound.
+      </p>
+    </div>
+
+    <div class="bowl-slot bowl-slot--bottom">
+      <canvas id="bowl-black" class="bowl" aria-label="Black's captured-stone bowl"></canvas>
+      <div class="bowl-name">Black's bowl <span id="bowl-black-count" class="badge">0</span></div>
+    </div>
+  </div>
+
+  <section class="console" aria-label="Capture sound controls">
+    <div class="console-main">
+      <h2>Capture size</h2>
+      <p class="scene-caption" id="scene-caption">One white stone at E5 — Black fills E6.</p>
+      <div class="chips">
+        <button type="button" class="chip chip--primary" data-count="1">
+          <span class="num">1</span> stone <kbd>1</kbd>
+        </button>
+        <button type="button" class="chip" data-count="3">
+          <span class="num">3</span> stones <kbd>3</kbd>
+        </button>
+        <button type="button" class="chip" data-count="8">
+          <span class="num">8</span> stones <kbd>8</kbd>
+        </button>
+      </div>
+      <div class="levels">
+        <label for="volume">Volume</label>
+        <input id="volume" type="range" min="0" max="100" step="1" value="100">
+        <output id="volume-out" for="volume">100%</output>
+      </div>
+      <p class="hint">
+        <a href="capture-sound.wav" download>Play the rendered WAV</a> —
+        one, three and eight stones in a single 4.0 s audition.
+      </p>
+    </div>
+    <figure class="scope">
+      <div class="scope-frame">
+        <canvas id="wave" aria-label="Waveform of the last capture sound"></canvas>
+      </div>
+      <figcaption id="wave-caption">Waveform appears after the first capture.</figcaption>
+    </figure>
+  </section>
+
+  <p class="footnote">
+    Synthesised with Web Audio at the app's per-voice gains (0.22 body, 0.15 click, 0.60
+    high-passed rattle); the WAV is normalised to −0.5 dBFS for audition. Regenerate it with
+    <code>node scripts/render-capture-sound.mjs</code>.
+  </p>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  // ── The capture voice, kept in step with src/renderer.js:playCaptureSound ──
+  // Triangle body: 220 Hz falling to 105 Hz, 55 ms; square bowl click at 1.35 kHz.
+  // Stones land 28-46 ms apart, each with a slightly different pitch.
+  const VOICE = {
+    maxStones: 8,
+    gapMin: 0.028,
+    gapSpread: 0.018,
+    body: {
+      type: 'triangle', f0: 220, f1: 105, sweep: 0.1, step: 8, cents: 70,
+      peak: 0.22, attack: 0.006, decay: 0.12, stop: 0.13,
+    },
+    click: {
+      type: 'square', f0: 1350, step: 25, cents: 50,
+      peak: 0.15, attack: 0.002, decay: 0.045, stop: 0.05,
+    },
+    // Bright noise rattle of stones settling into the bowl. This is what makes
+    // the capture audible on laptop speakers, where the 105-220 Hz body is
+    // nearly out of range (Sabaki's samples are 95% above 2 kHz for the same
+    // reason).
+    rattle: {
+      peak: 0.6, attack: 0.002, decay: 0.4, stop: 0.42,
+      highpass: 1400, lowpass: 6500, q: 0.707, noiseOffsetMax: 0.9,
+    },
+  };
+  // Fixed seed for the offline render (the WAV and the verification use it);
+  // live captures draw a fresh seed so repeated captures do not sound identical.
+  const RENDER_SEED = 0x51ed270b;
+  let noiseBuffer = null;
+
+  function makeRandom(seed) {
+    let state = seed >>> 0;
+    return () => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // Timing, pitch and noise offset for each stone in one capture. The same
+  // draw order runs in src/renderer.js and scripts/render-capture-sound.mjs.
+  function planStones(count, seed) {
+    const stones = clamp(Math.round(count), 1, VOICE.maxStones);
+    const random = makeRandom(seed);
+    const plan = [];
+    let at = 0;
+    for (let index = 0; index < stones; index += 1) {
+      if (index > 0) at += VOICE.gapMin + random() * VOICE.gapSpread;
+      const bodyCents = (random() * 2 - 1) * VOICE.body.cents;
+      const clickCents = (random() * 2 - 1) * VOICE.click.cents;
+      plan.push({
+        at,
+        bodyHz: (VOICE.body.f0 - index * VOICE.body.step) * 2 ** (bodyCents / 1200),
+        clickHz: (VOICE.click.f0 - index * VOICE.click.step) * 2 ** (clickCents / 1200),
+        noiseOffset: random() * VOICE.rattle.noiseOffsetMax,
+      });
+    }
+    return plan;
+  }
+
+  function getNoiseBuffer(context) {
+    if (noiseBuffer && noiseBuffer.sampleRate === context.sampleRate) return noiseBuffer;
+    const seconds = 1.5;
+    const buffer = context.createBuffer(
+      1,
+      Math.ceil(seconds * context.sampleRate),
+      context.sampleRate,
+    );
+    const data = buffer.getChannelData(0);
+    let seed = 0x9e3779b9;
+    for (let i = 0; i < data.length; i += 1) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      data[i] = (seed / 4294967296) * 2 - 1;
+    }
+    noiseBuffer = buffer;
+    return buffer;
+  }
+  const RENDER_RATE = 44100;
+  const SIZE = 9;
+  const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J'];
+  const STARS = [[2, 2], [6, 2], [4, 4], [2, 6], [6, 6]];
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const FADE_MS = REDUCED ? 110 : 300;
+
+  const key = (x, y) => `${x},${y}`;
+  const pointLabel = (x, y) => `${LETTERS[x]}${SIZE - y}`;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const easeOut = (t) => 1 - (1 - t) ** 3;
+
+  // ── Positions ────────────────────────────────────────────────────────────
+  // Each scene leaves the white group with exactly one liberty, which the
+  // black move fills. The capture itself is resolved by the little rules
+  // engine below, so the stones really do leave the board.
+  const SCENES = {
+    1: {
+      white: [[4, 4]],
+      black: [[3, 4], [5, 4], [4, 5]],
+      move: [4, 3],
+      caption: 'One white stone at E5 — Black fills E6.',
+    },
+    3: {
+      white: [[3, 4], [4, 4], [5, 4]],
+      black: [[2, 4], [6, 4], [3, 3], [4, 3], [5, 3], [3, 5], [4, 5]],
+      move: [5, 5],
+      caption: 'Three white stones on the fifth line — Black fills F4.',
+    },
+    8: {
+      white: [[2, 3], [3, 3], [4, 3], [5, 3], [2, 4], [3, 4], [4, 4], [5, 4]],
+      black: [
+        [2, 2], [3, 2], [4, 2], [5, 2],
+        [2, 5], [3, 5], [4, 5], [5, 5],
+        [1, 3], [1, 4], [6, 3],
+      ],
+      move: [6, 4],
+      caption: 'Eight white stones in a 2×4 block — Black fills G5.',
+    },
+  };
+
+  function neighbours(x, y) {
+    const out = [];
+    if (x > 0) out.push([x - 1, y]);
+    if (x < SIZE - 1) out.push([x + 1, y]);
+    if (y > 0) out.push([x, y - 1]);
+    if (y < SIZE - 1) out.push([x, y + 1]);
+    return out;
+  }
+
+  function groupAt(stones, x, y) {
+    const sign = stones.get(key(x, y));
+    if (!sign) return null;
+    const seen = new Set([key(x, y)]);
+    const stack = [[x, y]];
+    const members = [];
+    const liberties = new Set();
+    while (stack.length) {
+      const [cx, cy] = stack.pop();
+      members.push([cx, cy]);
+      for (const [nx, ny] of neighbours(cx, cy)) {
+        const nk = key(nx, ny);
+        const neighbour = stones.get(nk);
+        if (!neighbour) liberties.add(nk);
+        else if (neighbour === sign && !seen.has(nk)) {
+          seen.add(nk);
+          stack.push([nx, ny]);
+        }
+      }
+    }
+    return { sign, members, liberties: liberties.size };
+  }
+
+  // Returns the stones that would be captured by `move`, without lifting them
+  // yet: the page shows the group still on the board for one beat, then removes
+  // it as the bowl sound starts.
+  function capturesAfter(stones, move, sign) {
+    const [mx, my] = move;
+    const dead = new Set();
+    const captured = [];
+    for (const [nx, ny] of neighbours(mx, my)) {
+      if (stones.get(key(nx, ny)) !== -sign || dead.has(key(nx, ny))) continue;
+      const group = groupAt(stones, nx, ny);
+      if (!group || group.liberties > 0) continue;
+      for (const [gx, gy] of group.members) {
+        dead.add(key(gx, gy));
+        captured.push({ x: gx, y: gy, sign });
+      }
+    }
+    return captured;
+  }
+
+  // ── Audio ────────────────────────────────────────────────────────────────
+  const stats = { oscillators: 0, plays: 0, audio: 'none' };
+  let audio = null;
+  let master = null;
+  let volume = 1;
+  let waveToken = 0;
+
+  function ensureAudio() {
+    try {
+      if (!audio) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        audio = new AudioContextClass();
+        master = audio.createGain();
+        master.gain.value = volume;
+        master.connect(audio.destination);
+      }
+      if (audio.state === 'suspended') void audio.resume();
+      stats.audio = audio.state;
+      return audio;
+    } catch {
+      stats.audio = 'unavailable';
+      return null;
+    }
+  }
+
+  function buildVoice(target, startAt, count, destination, countStats, seed = RENDER_SEED) {
+    const stones = clamp(Math.round(count), 1, VOICE.maxStones);
+    const start = Math.max(0, startAt);
+    // The rattle is decorrelated per stone, so a group peaks near the level of
+    // one stone without per-count scaling; the extra stones lengthen the
+    // rattle instead of multiplying its peak.
+    for (const stone of planStones(stones, seed)) {
+      const t = start + stone.at;
+
+      // Low wooden body of a stone landing in a bowl.
+      const body = target.createOscillator();
+      const bodyGain = target.createGain();
+      body.type = VOICE.body.type;
+      body.frequency.setValueAtTime(stone.bodyHz, t);
+      body.frequency.exponentialRampToValueAtTime(VOICE.body.f1, t + VOICE.body.sweep);
+      bodyGain.gain.setValueAtTime(0.0001, t);
+      bodyGain.gain.exponentialRampToValueAtTime(VOICE.body.peak, t + VOICE.body.attack);
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001, t + VOICE.body.decay);
+      body.connect(bodyGain).connect(destination);
+      body.start(t);
+      body.stop(t + VOICE.body.stop);
+
+      // A brief high click suggests the stone knocking the bowl or cover.
+      const click = target.createOscillator();
+      const clickGain = target.createGain();
+      click.type = VOICE.click.type;
+      click.frequency.setValueAtTime(stone.clickHz, t);
+      clickGain.gain.setValueAtTime(0.0001, t);
+      clickGain.gain.exponentialRampToValueAtTime(VOICE.click.peak, t + VOICE.click.attack);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, t + VOICE.click.decay);
+      click.connect(clickGain).connect(destination);
+      click.start(t);
+      click.stop(t + VOICE.click.stop);
+
+      // Bright rattle: high-passed noise, one decorrelated offset per stone.
+      const noise = target.createBufferSource();
+      noise.buffer = getNoiseBuffer(target);
+      const highpass = target.createBiquadFilter();
+      highpass.type = 'highpass';
+      highpass.frequency.setValueAtTime(VOICE.rattle.highpass, t);
+      highpass.Q.setValueAtTime(VOICE.rattle.q, t);
+      const lowpass = target.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.setValueAtTime(VOICE.rattle.lowpass, t);
+      lowpass.Q.setValueAtTime(VOICE.rattle.q, t);
+      const rattleGain = target.createGain();
+      rattleGain.gain.setValueAtTime(0.0001, t);
+      rattleGain.gain.exponentialRampToValueAtTime(VOICE.rattle.peak, t + VOICE.rattle.attack);
+      rattleGain.gain.exponentialRampToValueAtTime(0.0001, t + VOICE.rattle.decay);
+      noise.connect(highpass).connect(lowpass).connect(rattleGain).connect(destination);
+      noise.start(t, stone.noiseOffset);
+      noise.stop(t + VOICE.rattle.stop);
+
+      if (countStats) stats.oscillators += 2;
+    }
+  }
+
+  function playCaptureSound(count) {
+    const stones = clamp(Math.round(count), 1, VOICE.maxStones);
+    const context = ensureAudio();
+    if (!context) return false;
+    // Fresh randomness per capture, so repeated captures are not identical.
+    const seed = (Math.random() * 0x100000000) >>> 0;
+    buildVoice(context, context.currentTime, stones, master, true, seed);
+    stats.plays += 1;
+    const token = ++waveToken;
+    state.wavePromise = renderOffline(stones, RENDER_RATE, seed)
+      .then((pcm) => { if (pcm && token === waveToken) drawWave(pcm, stones, seed); })
+      .catch(() => {});
+    return true;
+  }
+
+  async function renderOffline(count, sampleRate = RENDER_RATE, seed = RENDER_SEED) {
+    const OfflineClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OfflineClass) return null;
+    const stones = clamp(Math.round(count), 1, VOICE.maxStones);
+    const plan = planStones(stones, seed);
+    const seconds = plan[plan.length - 1].at + VOICE.rattle.stop + 0.08;
+    const offline = new OfflineClass(1, Math.ceil(seconds * sampleRate), sampleRate);
+    buildVoice(offline, 0, stones, offline.destination, false, seed);
+    const rendered = await offline.startRendering();
+    return rendered.getChannelData(0);
+  }
+
+  const volumeInput = document.getElementById('volume');
+  const volumeOut = document.getElementById('volume-out');
+  function applyVolume(percent) {
+    volume = clamp(Number(percent) / 100, 0, 1);
+    if (master) master.gain.value = volume;
+    volumeOut.textContent = `${Math.round(volume * 100)}%`;
+  }
+  volumeInput.addEventListener('input', () => applyVolume(volumeInput.value));
+  applyVolume(volumeInput.value);
+
+  // ── Canvas plumbing ──────────────────────────────────────────────────────
+  const boardCanvas = document.getElementById('board');
+  const boardContext = boardCanvas.getContext('2d');
+  const whiteBowlCanvas = document.getElementById('bowl-white');
+  const whiteBowlContext = whiteBowlCanvas.getContext('2d');
+  const blackBowlCanvas = document.getElementById('bowl-black');
+  const blackBowlContext = blackBowlCanvas.getContext('2d');
+  const waveCanvas = document.getElementById('wave');
+  const waveContext = waveCanvas.getContext('2d');
+
+  let VIEW = 540;
+  let PAD = 46;
+  let STEP = 60;
+  let RADIUS = 27;
+  let dpr = 1;
+
+  function fit(canvas, context, width, height) {
+    canvas.width = Math.max(1, Math.round(width * dpr));
+    canvas.height = Math.max(1, Math.round(height * dpr));
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function measure() {
+    dpr = clamp(window.devicePixelRatio || 1, 1, 2);
+    VIEW = boardCanvas.clientWidth || 540;
+    fit(boardCanvas, boardContext, VIEW, VIEW);
+    PAD = Math.round(VIEW * 0.0793);
+    STEP = (VIEW - PAD * 2) / (SIZE - 1);
+    RADIUS = STEP * 0.455;
+
+    const bowlSize = whiteBowlCanvas.clientWidth || 92;
+    fit(whiteBowlCanvas, whiteBowlContext, bowlSize, bowlSize);
+    fit(blackBowlCanvas, blackBowlContext, bowlSize, bowlSize);
+
+    const waveWidth = waveCanvas.clientWidth || 340;
+    const waveHeight = waveCanvas.clientHeight || 84;
+    fit(waveCanvas, waveContext, waveWidth, waveHeight);
+  }
+
+  const pos = (x, y) => [PAD + x * STEP, PAD + y * STEP];
+
+  // ── Board drawing ────────────────────────────────────────────────────────
+  function drawWood() {
+    const ctx = boardContext;
+    const wood = ctx.createLinearGradient(0, 0, VIEW, VIEW);
+    wood.addColorStop(0, '#e3bd7d');
+    wood.addColorStop(0.48, '#d7a760');
+    wood.addColorStop(1, '#c6934c');
+    ctx.fillStyle = wood;
+    ctx.fillRect(0, 0, VIEW, VIEW);
+
+    const glow = ctx.createRadialGradient(VIEW * 0.3, VIEW * 0.2, VIEW * 0.05, VIEW * 0.3, VIEW * 0.2, VIEW * 0.9);
+    glow.addColorStop(0, 'rgba(255, 250, 235, 0.18)');
+    glow.addColorStop(1, 'rgba(255, 250, 235, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, VIEW, VIEW);
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (let line = 0; line < 64; line += 1) {
+      const base = ((line + 0.5) / 64) * VIEW;
+      ctx.strokeStyle = `rgba(112, 68, 20, ${0.018 + (line % 6) * 0.004})`;
+      ctx.lineWidth = 0.6 + (line % 3) * 0.35;
+      ctx.beginPath();
+      for (let x = 0; x <= VIEW; x += 16) {
+        const y = base + Math.sin(x * 0.011 + line * 1.7) * 2.1 + Math.sin(x * 0.003 + line) * 1.4;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawGrid() {
+    const ctx = boardContext;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(38, 22, 5, 0.84)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < SIZE; i += 1) {
+      const at = PAD + i * STEP;
+      ctx.beginPath();
+      ctx.moveTo(PAD, at);
+      ctx.lineTo(VIEW - PAD, at);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(at, PAD);
+      ctx.lineTo(at, VIEW - PAD);
+      ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(37, 22, 5, 0.8)';
+    for (const [x, y] of STARS) {
+      const [px, py] = pos(x, y);
+      ctx.beginPath();
+      ctx.arc(px, py, Math.max(2.4, STEP * 0.052), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawLabels() {
+    const ctx = boardContext;
+    ctx.save();
+    ctx.fillStyle = 'rgba(61, 39, 13, 0.72)';
+    ctx.font = `600 ${Math.max(9, Math.round(VIEW * 0.0185))}px "Segoe UI", system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < SIZE; i += 1) {
+      const at = PAD + i * STEP;
+      ctx.fillText(LETTERS[i], at, PAD - Math.round(VIEW * 0.028));
+      ctx.fillText(LETTERS[i], at, VIEW - PAD + Math.round(VIEW * 0.028));
+      const row = String(SIZE - i);
+      ctx.fillText(row, PAD - Math.round(VIEW * 0.031), at);
+      ctx.fillText(row, VIEW - PAD + Math.round(VIEW * 0.031), at);
+    }
+    ctx.restore();
+  }
+
+  function drawStone(px, py, sign, radius, alpha = 1, scale = 1) {
+    const ctx = boardContext;
+    const r = radius * scale;
+    if (r <= 0.5) return;
+    ctx.save();
+    ctx.globalAlpha = clamp(alpha, 0, 1);
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.34)';
+    ctx.shadowBlur = Math.max(2, r * 0.3);
+    ctx.shadowOffsetY = Math.max(1, r * 0.08);
+    if (sign > 0) {
+      const gradient = ctx.createRadialGradient(
+        px - r * 0.28, py - r * 0.32, r * 0.12,
+        px, py, r * 1.1,
+      );
+      gradient.addColorStop(0, '#6f6f6f');
+      gradient.addColorStop(0.36, '#292929');
+      gradient.addColorStop(1, '#000000');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    } else {
+      const gradient = ctx.createRadialGradient(
+        px - r * 0.32, py - r * 0.36, r * 0.15,
+        px, py, r * 1.05,
+      );
+      gradient.addColorStop(0, '#ffffff');
+      gradient.addColorStop(0.65, '#f2f2f2');
+      gradient.addColorStop(1, '#c9c9c9');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.lineWidth = Math.max(0.7, r * 0.05);
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.28)';
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawLastMoveMark(px, py, radius) {
+    const ctx = boardContext;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(px, py - radius * 0.44);
+    ctx.lineTo(px + radius * 0.4, py + radius * 0.32);
+    ctx.lineTo(px - radius * 0.4, py + radius * 0.32);
+    ctx.closePath();
+    ctx.fillStyle = '#e2453c';
+    ctx.fill();
+    ctx.lineWidth = Math.max(1, radius * 0.05);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.86)';
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const state = {
+    count: 1,
+    phase: 'idle',
+    stones: new Map(),
+    lastMove: null,
+    placeAt: 0,
+    fading: [],
+    fadeAt: 0,
+    captured: [],
+    bowlAt: 0,
+    bowls: { black: 0, white: 0 },
+    wavePromise: null,
+  };
+
+  function renderBoard() {
+    const ctx = boardContext;
+    const now = performance.now();
+    ctx.clearRect(0, 0, VIEW, VIEW);
+    drawWood();
+    drawGrid();
+    drawLabels();
+
+    // Stones that just left the board: lift, shrink and fade.
+    if (state.fading.length) {
+      const progress = clamp((now - state.fadeAt) / FADE_MS, 0, 1);
+      for (const stone of state.fading) {
+        const [px, py] = pos(stone.x, stone.y);
+        drawStone(px, py - 26 * easeOut(progress), stone.sign, RADIUS, 1 - progress, 1 - 0.4 * progress);
+      }
+    }
+
+    let placedScale = 1;
+    if (state.lastMove && state.placeAt) {
+      const progress = clamp((now - state.placeAt) / 150, 0, 1);
+      placedScale = 1 + 0.18 * (1 - easeOut(progress));
+    }
+
+    for (const [spot, sign] of state.stones) {
+      const [x, y] = spot.split(',').map(Number);
+      const [px, py] = pos(x, y);
+      const scale = state.lastMove && x === state.lastMove[0] && y === state.lastMove[1]
+        ? placedScale
+        : 1;
+      drawStone(px, py, sign, RADIUS, 1, scale);
+    }
+
+    if (state.lastMove && state.stones.has(key(state.lastMove[0], state.lastMove[1]))) {
+      const [px, py] = pos(state.lastMove[0], state.lastMove[1]);
+      drawLastMoveMark(px, py, RADIUS);
+    }
+  }
+
+  const bowlSlots = (() => {
+    const slots = [[0, 0]];
+    for (let i = 0; i < 6; i += 1) {
+      const angle = (i * Math.PI) / 3 - Math.PI / 2;
+      slots.push([Math.cos(angle) * 0.38, Math.sin(angle) * 0.38]);
+    }
+    for (let i = 0; i < 12; i += 1) {
+      const angle = (i * Math.PI) / 6 - Math.PI / 2 + Math.PI / 12;
+      slots.push([Math.cos(angle) * 0.6, Math.sin(angle) * 0.6]);
+    }
+    return slots;
+  })();
+
+  function renderBowl(context, owner, count) {
+    const size = whiteBowlCanvas.clientWidth || 92;
+    const ctx = context;
+    ctx.clearRect(0, 0, size, size);
+    const cx = size / 2;
+    const cy = size / 2 + 2;
+    const R = size * 0.4;
+    const now = performance.now();
+    let pulse = 1;
+    if (state.bowlAt) {
+      const progress = clamp((now - state.bowlAt) / 260, 0, 1);
+      pulse = 1 + 0.045 * Math.sin(Math.PI * progress);
+    }
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(pulse, pulse);
+    ctx.translate(-cx, -cy);
+
+    ctx.fillStyle = 'rgba(40, 26, 8, 0.16)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + R * 0.74, R * 0.94, R * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const rim = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.34, R * 0.1, cx, cy, R * 1.02);
+    rim.addColorStop(0, '#f7dca8');
+    rim.addColorStop(0.45, '#e2b473');
+    rim.addColorStop(1, '#bd8842');
+    ctx.fillStyle = rim;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = Math.max(1, R * 0.045);
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.9, Math.PI * 1.05, Math.PI * 1.52);
+    ctx.stroke();
+
+    const cavity = ctx.createRadialGradient(cx - R * 0.2, cy - R * 0.24, R * 0.06, cx, cy, R * 0.78);
+    cavity.addColorStop(0, '#6a4521');
+    cavity.addColorStop(0.55, '#8a5c2c');
+    cavity.addColorStop(1, '#b07c3f');
+    ctx.fillStyle = cavity;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.78, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(58, 35, 12, 0.4)';
+    ctx.lineWidth = Math.max(1, R * 0.03);
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.78, Math.PI * 0.15, Math.PI * 0.85);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 0.7, 0, Math.PI * 2);
+    ctx.clip();
+    const stoneSign = -owner;
+    const stoneRadius = R * 0.19;
+    for (let index = 0; index < Math.min(count, bowlSlots.length); index += 1) {
+      const [sx, sy] = bowlSlots[index];
+      const px = cx + sx * R;
+      const py = cy + sy * R;
+      ctx.beginPath();
+      ctx.arc(px, py, stoneRadius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(30, 18, 6, 0.3)';
+      ctx.fill();
+      const shade = ctx.createRadialGradient(
+        px - stoneRadius * 0.3, py - stoneRadius * 0.34, stoneRadius * 0.1,
+        px, py, stoneRadius * 1.1,
+      );
+      if (stoneSign > 0) {
+        shade.addColorStop(0, '#6f6f6f');
+        shade.addColorStop(0.36, '#292929');
+        shade.addColorStop(1, '#000000');
+      } else {
+        shade.addColorStop(0, '#ffffff');
+        shade.addColorStop(0.65, '#f2f2f2');
+        shade.addColorStop(1, '#c9c9c9');
+      }
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(px, py, stoneRadius * 0.92, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function renderBowls() {
+    renderBowl(whiteBowlContext, -1, state.bowls.white);
+    renderBowl(blackBowlContext, 1, state.bowls.black);
+    document.getElementById('bowl-white-count').textContent = String(state.bowls.white);
+    document.getElementById('bowl-black-count').textContent = String(state.bowls.black);
+  }
+
+  function renderAll() {
+    renderBoard();
+    renderBowls();
+  }
+
+  // ── Waveform ─────────────────────────────────────────────────────────────
+  function drawWave(pcm, count, seed = RENDER_SEED) {
+    const ctx = waveContext;
+    const width = waveCanvas.clientWidth || 340;
+    const height = waveCanvas.clientHeight || 84;
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.strokeStyle = 'rgba(120, 90, 55, 0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, height / 2);
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+
+    let peak = 0;
+    for (let i = 0; i < pcm.length; i += 1) {
+      const magnitude = Math.abs(pcm[i]);
+      if (magnitude > peak) peak = magnitude;
+    }
+    if (peak <= 0) return;
+
+    const columns = Math.floor(width);
+    const perColumn = Math.max(1, Math.floor(pcm.length / columns));
+    const scale = (height * 0.44) / peak;
+    ctx.fillStyle = 'rgba(164, 82, 46, 0.92)';
+    for (let column = 0; column < columns; column += 1) {
+      const from = column * perColumn;
+      let low = 0;
+      let high = 0;
+      for (let i = from; i < Math.min(pcm.length, from + perColumn); i += 1) {
+        if (pcm[i] < low) low = pcm[i];
+        if (pcm[i] > high) high = pcm[i];
+      }
+      const top = height / 2 - high * scale;
+      const bottom = height / 2 - low * scale;
+      ctx.fillRect(column, top, 1, Math.max(1, bottom - top));
+    }
+
+    const stones = clamp(Math.round(count), 1, VOICE.maxStones);
+    const plan = planStones(stones, seed);
+    const span = plan[plan.length - 1].at + VOICE.rattle.stop;
+    const spacing = stones === 1 ? '±70¢ pitch' : '28–46 ms gaps · ±70¢';
+    document.getElementById('wave-caption').textContent =
+      `${stones} stone${stones === 1 ? '' : 's'} · ≈${span.toFixed(2)} s · ${spacing} · 1.4–6.5 kHz rattle`;
+  }
+
+  // ── Status + capture story ───────────────────────────────────────────────
+  const statusElement = document.getElementById('status');
+  const captionElement = document.getElementById('scene-caption');
+  function setStatus(text, tone) {
+    statusElement.textContent = text;
+    if (tone) statusElement.dataset.tone = tone;
+    else delete statusElement.dataset.tone;
+  }
+
+  let runToken = 0;
+  let frameHandle = 0;
+
+  function animate(duration) {
+    const started = performance.now();
+    cancelAnimationFrame(frameHandle);
+    const tick = (now) => {
+      renderAll();
+      if (now - started < duration) {
+        frameHandle = requestAnimationFrame(tick);
+      } else {
+        frameHandle = 0;
+      }
+    };
+    frameHandle = requestAnimationFrame(tick);
+  }
+
+  function resetScene(count) {
+    const scene = SCENES[count];
+    state.count = count;
+    state.phase = 'ready';
+    state.stones = new Map();
+    for (const [x, y] of scene.black) state.stones.set(key(x, y), 1);
+    for (const [x, y] of scene.white) state.stones.set(key(x, y), -1);
+    state.lastMove = null;
+    state.placeAt = 0;
+    state.fading = [];
+    state.fadeAt = 0;
+    state.captured = [];
+    state.bowlAt = 0;
+    state.bowls = { black: 0, white: 0 };
+    captionElement.textContent = scene.caption;
+  }
+
+  async function capture(count) {
+    const scene = SCENES[count];
+    if (!scene) return snapshot();
+    const token = ++runToken;
+    cancelAnimationFrame(frameHandle);
+    frameHandle = 0;
+    resetScene(count);
+    setStatus(`White to be captured: ${scene.caption}`, 'live');
+    renderAll();
+    await sleep(REDUCED ? 40 : 140);
+    if (token !== runToken) return snapshot();
+
+    // The capturing move lands with a small pop; the white group is still on
+    // the board for this beat, so the removal is visible when it happens.
+    state.stones.set(key(scene.move[0], scene.move[1]), 1);
+    state.lastMove = scene.move;
+    state.placeAt = performance.now();
+    state.phase = 'placing';
+    setStatus(`Black plays ${pointLabel(scene.move[0], scene.move[1])} — the white group has no liberties left.`, 'live');
+    const captured = capturesAfter(state.stones, scene.move, 1);
+    renderAll();
+    await sleep(REDUCED ? 60 : 170);
+    if (token !== runToken) return snapshot();
+
+    // They leave the goban: the bowl sound fires at this exact moment.
+    state.phase = 'capturing';
+    for (const stone of captured) state.stones.delete(key(stone.x, stone.y));
+    state.captured = captured;
+    state.fadeAt = performance.now();
+    state.bowlAt = state.fadeAt;
+    state.fading = captured.slice();
+    state.bowls.black += captured.length;
+    const played = playCaptureSound(captured.length);
+    setStatus(
+      `${captured.length} white stone${captured.length === 1 ? '' : 's'} at ${captured.map((stone) => pointLabel(stone.x, stone.y)).join(', ')} captured — lifted off the goban.`,
+      'live',
+    );
+    renderAll();
+    animate(FADE_MS);
+    await sleep(FADE_MS + 60);
+    if (token !== runToken) return snapshot();
+
+    state.fading = [];
+    state.captured = captured;
+    state.phase = 'done';
+    renderAll();
+    setStatus(
+      `${captured.length} white stone${captured.length === 1 ? '' : 's'} captured at ${captured.map((stone) => pointLabel(stone.x, stone.y)).join(', ')} · Black's bowl: ${state.bowls.black}${played ? '' : ' (audio unavailable)'}.`,
+      'live',
+    );
+    return snapshot();
+  }
+
+  function snapshot() {
+    let black = 0;
+    let white = 0;
+    for (const sign of state.stones.values()) {
+      if (sign > 0) black += 1;
+      else white += 1;
+    }
+    return {
+      phase: state.phase,
+      count: state.count,
+      blackStones: black,
+      whiteStones: white,
+      captured: state.captured.length,
+      capturedAt: state.captured.map((stone) => pointLabel(stone.x, stone.y)),
+      bowlBlack: state.bowls.black,
+      bowlWhite: state.bowls.white,
+      oscillators: stats.oscillators,
+      plays: stats.plays,
+      audio: stats.audio,
+      volume,
+    };
+  }
+
+  document.querySelectorAll('.chip').forEach((button) => {
+    button.addEventListener('click', () => { void capture(Number(button.dataset.count)); });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.target instanceof HTMLInputElement || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === '1' || event.key === '3' || event.key === '8') {
+      event.preventDefault();
+      void capture(Number(event.key));
+    }
+  });
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => { measure(); renderAll(); }, 120);
+  });
+
+  // ── Test surface ─────────────────────────────────────────────────────────
+  window.__captureSoundTest = {
+    capture,
+    state: snapshot,
+    playSound: (count) => playCaptureSound(clamp(Math.round(count), 1, VOICE.maxStones)),
+    renderPCM: async (count, sampleRate = RENDER_RATE, seed = RENDER_SEED) => {
+      const pcm = await renderOffline(count, sampleRate, seed);
+      return pcm ? Array.from(pcm) : null;
+    },
+    schedule: (count, seed = RENDER_SEED) => planStones(count, seed),
+    waveReady: () => state.wavePromise || Promise.resolve(),
+    voice: VOICE,
+  };
+
+  measure();
+  resetScene(1);
+  renderAll();
+})();
+</script>
+</body>
+</html>

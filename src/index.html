@@ -746,6 +746,7 @@
               <p class="count-hint" id="count-hint">Now you can mark dead stones on the board; the result updates automatically.</p>
               <section class="count-rule" data-rule="chinese">
                 <div class="count-rule-title">Chinese Rule</div>
+                <div class="count-rule-note">MultiGo half-count convention</div>
                 <div class="count-score-line">
                   <span class="count-side">White:</span>
                   <strong class="count-total" id="count-cn-white-total">—</strong>
@@ -757,6 +758,20 @@
                   <span class="count-equation" id="count-cn-black-formula"></span>
                 </div>
                 <div class="count-rule-result" id="count-cn-result">—</div>
+              </section>
+              <section class="count-rule count-area-rule" data-rule="area">
+                <div class="count-rule-title">Area Scoring</div>
+                <div class="count-score-line">
+                  <span class="count-side">White:</span>
+                  <strong class="count-total" id="count-area-white-total">—</strong>
+                  <span class="count-equation" id="count-area-white-formula"></span>
+                </div>
+                <div class="count-score-line">
+                  <span class="count-side">Black:</span>
+                  <strong class="count-total" id="count-area-black-total">—</strong>
+                  <span class="count-equation" id="count-area-black-formula"></span>
+                </div>
+                <div class="count-rule-result" id="count-area-result">—</div>
               </section>
               <section class="count-rule" data-rule="japanese">
                 <div class="count-rule-title">Japanese Rule</div>
@@ -772,6 +787,32 @@
                 </div>
                 <div class="count-rule-result" id="count-jp-result">—</div>
               </section>
+              <div class="count-table-title">Area table</div>
+              <table class="count-table">
+                <thead>
+                  <tr><th></th><th>Area</th><th>Territory</th><th>Captures</th><th>Komi</th><th>Handicap</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Black</th>
+                    <td id="count-table-black-area">—</td>
+                    <td id="count-table-black-territory">—</td>
+                    <td id="count-table-black-captures">—</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td id="count-table-black-total">—</td>
+                  </tr>
+                  <tr>
+                    <th>White</th>
+                    <td id="count-table-white-area">—</td>
+                    <td id="count-table-white-territory">—</td>
+                    <td id="count-table-white-captures">—</td>
+                    <td id="count-table-white-komi">—</td>
+                    <td id="count-table-white-handicap">—</td>
+                    <td id="count-table-white-total">—</td>
+                  </tr>
+                </tbody>
+              </table>
               <div class="count-dead-summary" id="count-dead-summary"></div>
               <div class="count-actions">
                 <button type="button" class="btn" id="count-write">Write RE</button>

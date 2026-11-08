@@ -2391,6 +2391,18 @@ kbd {
 .score-tab {
   padding: 8px 10px 12px;
   overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Give the scoring panel the right column while a scoring session is active;
+   the game tree comes back as soon as scoring closes. */
+.right-column.is-scoring .pane-info {
+  flex: 1 1 auto !important;
+}
+
+.right-column.is-scoring .pane-moves,
+.right-column.is-scoring #splitter-h {
+  display: none;
 }
 
 .score-tab .count-card {
@@ -2472,6 +2484,52 @@ kbd {
   color: #3f3f3f;
   font-size: 0.96em;
   font-weight: 700;
+}
+
+.count-rule-note {
+  margin: -3px 0 4px;
+  color: #8a8a8a;
+  font-size: 0.72em;
+}
+
+.count-area-rule {
+  border-top-color: rgba(46, 112, 72, 0.28);
+}
+
+.count-table-title {
+  margin: 8px 0 3px;
+  color: #3f3f3f;
+  font-size: 0.82em;
+  font-weight: 700;
+}
+
+.count-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #444;
+  font-size: 0.7em;
+  font-variant-numeric: tabular-nums;
+}
+
+.count-table th,
+.count-table td {
+  padding: 2px 1px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count-table thead th {
+  color: #777;
+  font-weight: 600;
+}
+
+.count-table th:first-child {
+  width: 3.6em;
+  text-align: left;
 }
 
 .count-score-line {

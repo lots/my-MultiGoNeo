@@ -44,9 +44,10 @@ Released 2026-11-06. The Windows artifacts are `MultiGo-Neo-1.1.4-setup.exe` and
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
   overlay and Engine tab, and drive the engine from the docked GTP console. See
   [GTP engines](#gtp-engines).
-- **Estimate and Score** — a docked **Score** tab beside Info/Comment/Engine shows Chinese and
-  Japanese results together. Compact black/white bordered squares mark ownership, red squares
-  mark shared points, and green squares mark dead stones. The Score text has its own 12–36 px
+- **Estimate and Score** — a docked **Score** tab beside Info/Comment/Engine shows Chinese,
+  standard **Area Scoring** and Japanese results together, plus an Area/Territory/Captures/
+  Komi/Handicap table. Compact black/white bordered squares mark ownership, red squares mark
+  shared points, and green squares mark dead stones. The Score text has its own 12–36 px
   A−/A+ control. **Play → Estimate** pre-marks dead stones; **Play → Score** starts manual.
   See [Estimate and Score](#estimate-and-score).
 - **Two consecutive passes** end the game and offer to count the result.
@@ -551,15 +552,24 @@ way, and the editor does the arithmetic.
   black border, borderless red **shared/dame** squares, and green dead-stone squares — all
   the same size so they fit inside a stone.
 - **Docked Score tab**: the Score panel lives beside **Info / Comment / Engine** in the right
-  column, not as a floating board popup. It shows the Chinese and Japanese results
-  simultaneously, with no rule selector.
-- **Chinese** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to White
-  and `−komi/2` to Black. Captures are not counted. The displayed result halves the area
-  difference, matching MultiGo (`B+6.25` for a 30.75–18.25 total).
+  column, not as a floating board popup. It shows Chinese, standard Area Scoring and Japanese
+  results simultaneously, with no rule selector. While a scoring session is open the Score
+  panel takes the full right column; the Game Tree returns when scoring closes.
+- **Chinese Rule** counts alive stones + territory, adds `shared / 2`, and applies `+komi/2` to
+  White and `−komi/2` to Black. Captures are not counted. This is MultiGo's half-count
+  convention: the displayed result halves the area difference (`B+6.25` for a 30.75–18.25
+  total).
+- **Area Scoring** is the standard full-area result below Chinese Rule: area = alive stones +
+  controlled territory, komi and handicap go to White, dame are neutral, captures are not
+  counted, and the result is **not halved**. The 7×7 reference is `B+12.5` before dead stones
+  and `W+1.5` after.
 - **Japanese** counts territory + prisoners/dead stones + komi for White; shared points are not
   scored. The card labels the prisoner terms **Black's Dead** / **White's Dead**.
-- **Write RE** stores the result for the SGF's `RU` rule in the root node (and the title
-  updates); **Done** or `Esc` closes scoring.
+- **Area table** shows Area, Territory, Captures, Komi, Handicap and area Total for both sides.
+  `HA` is read into the handicap term for Area Scoring only (territory scoring, like Sabaki,
+  does not add it).
+- **Write RE** writes the **standard area result** for `RU[Chinese]` and the normal territory
+  result for `RU[Japanese]`; **Done** or `Esc` closes scoring.
 - **Captured-stone bowls**: by default Black sits at the bottom, so the black bowl is at the
   **lower right** of the goban and the white bowl at the **upper left**. **View → Swap Player
   Sides** flips the seating and therefore the bowls. Bowls stay beside the board when the pane
@@ -570,17 +580,24 @@ way, and the editor does the arithmetic.
   rules they stay hidden, they disappear when the board pane is too narrow, and
   **View → Show Go Bowls** turns them off manually.
 - **Capture sound**: when a move captures one or more stones (or an edit/undo removes
-  stones), a short wooden body plus high bowl/cover click is generated with Web Audio. Multiple
-  stones are staggered. Enable **Preferences → Traverse → Play sound on moves and captures** to
-  hear it.
+  stones), a short wooden body, a high bowl/cover click and a bright high-passed noise rattle are
+  generated with Web Audio. Stones land 28–46 ms apart, each with a small random pitch offset
+  (±70 cents on the body, ±50 on the click), so a group never sounds mechanical. The rattle
+  carries the sound on laptop speakers, where the 105–220 Hz body is nearly out of range —
+  Sabaki's recorded capture samples are 95 % above 2 kHz for the same reason. Enable
+  **Preferences → Traverse → Play sound on moves and captures** to hear it. **Hear it on its
+  own:** open [`preview/capture-sound-test.html`](preview/capture-sound-test.html) and click
+  **1**, **3** or **8** stones — the surrounded white group lifts off the goban into the bowl —
+  or play [`preview/capture-sound.wav`](preview/capture-sound.wav), a 4.0 s audition of one,
+  three and eight stones. `npm run sound` re-renders that WAV from the same voice.
 
 Seki and life-and-death are the player's judgement: whatever is not marked dead is treated as
 alive, just like Sabaki's score mode. Estimate is only a heuristic, so correct it by hand when
 it gets a group wrong.
 
-![Reference 7×7 scoring before dead stones: black and white ownership squares, red shared points, and both rule totals](preview/preview-scoring-reference.png)
+![Reference 7×7 scoring before dead stones: Chinese half-count, Area Scoring, Japanese territory and the Area table](preview/preview-scoring-reference.png)
 
-![After marking B7 and B1 dead: green dead-stone squares, white control of the vacated region, and both scores updated](preview/preview-scoring-reference-dead.png)
+![After marking B7 and B1 dead: green dead-stone squares, white control of the vacated region, and all scores updated](preview/preview-scoring-reference-dead.png)
 
 ![Play > Estimate: the sealed white stone is estimated dead and counted](preview/preview-estimate.png)
 
@@ -850,7 +867,7 @@ layout and a 1100×1700 pass for the embed page:
   root, with the overlay drawn on the board;
 - opened the docked GTP console, sent commands, and closed it by leaving the Engine tab;
 - chose **Play → Score** on a 13×13 position with a black and a white wall and confirmed the
-  docked **Score** tab showed both Chinese and Japanese results;
+  docked **Score** tab showed Chinese, Area Scoring and Japanese results;
 - confirmed the captured-stone bowls are already visible **during play** on a Japanese-rules
   game, showing exactly one white stone (no duplicated number) with the status bar reading
   `Captures: B 1 · W 0`;
@@ -859,10 +876,18 @@ layout and a 1100×1700 pass for the embed page:
 - confirmed the default seats place Black lower-right and White upper-left, then used
   **View → Swap Player Sides** and confirmed the bowls swapped corners and the setting restored;
 - loaded the same position with `RU[Chinese]` and confirmed the bowls stay hidden;
+- opened `preview/capture-sound-test.html`, captured one surrounded white stone and confirmed it
+  left the goban for the black bowl while the page created two oscillators and a filtered rattle
+  (body, bowl click and noise); repeated with three and eight stones and confirmed 24
+  oscillators, eight stones in the bowl, and randomised 28–46 ms gaps with varying pitches;
 - chose **Play → Estimate** and confirmed it entered Estimate mode with the sealed white stone
-  already marked dead and both rule results shown; **Play → Score** opened with no dead stones;
+  already marked dead and all three results shown; **Play → Score** opened with no dead stones;
 - clicked the lone white stone inside Black's area and confirmed its green dead marker, the
-  score updates in both rule blocks, and the black bowl showed **1**;
+  score updates in all rule blocks, and the black bowl showed **1**;
+- confirmed the 7×7 Area Scoring result moves from `B+12.5` before dead stones to `W+1.5`
+  after, while the Chinese half-count stays `B+6.25` / `W+0.75`;
+- loaded the same position with `HA[2]` and `KM[0.5]` and confirmed the Area table shows
+  handicap **2**, White total **11.5** and Area result `B+16.5`;
 - confirmed the compact scoring markers: black squares with white borders, white squares with
   black borders, borderless red shared points and green dead stones;
 - changed the Score tab display font from 12 px to 14 px, confirmed the app stayed clean, and
@@ -870,8 +895,8 @@ layout and a 1100×1700 pass for the embed page:
 - scoring unit tests reproduce the MultiGo reference exactly: Chinese **30.75 / 18.25**
   before dead marking, **23.75 / 25.25** after; Japanese **17 / 6.5** before and
   **17 / 20.5** after, with results `B+6.25`, `W+0.75`, `B+10.5`, `W+3.5`;
-- wrote the Japanese result to `RE` and confirmed it round-tripped into the SGF; `Esc` closed
-  scoring;
+- wrote the Japanese result to `RE` and confirmed it round-tripped into the SGF; with
+  `RU[Chinese]`, **Write RE** stored the standard Area result (`B+12.5`); `Esc` closed scoring;
 - shrank the board pane to 520 px and confirmed the bowls hid themselves;
 - played two consecutive passes, saw the **Count Result** prompt, and confirmed accepting it
   opened the scoring card;
@@ -912,6 +937,7 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [dual-rule score card](preview/preview-score.png),
 [play-time captured-stone bowls](preview/preview-bowls.png),
 [captured black stone in the white bowl](preview/preview-bowls-white.png),
+[capture sound test](preview/preview-capture-sound.png),
 [Play > Estimate](preview/preview-estimate.png), [Play > Score](preview/preview-score.png),
 [8×8 board with edge stones](preview/preview-8x8.png)
 and [embeds](preview/preview-embed.png).
@@ -1153,7 +1179,7 @@ engines/engines.json      hand-editable engine connection list shared with Manag
 engines/README.md         shim and configuration reference
 scripts/test-tree.js      5 tree/SGF/go-board tests
 scripts/test-path.js      5 position-path tests
-scripts/test-scoring.js   12 territory/area scoring and estimator tests, including the MultiGo 7×7 reference
+scripts/test-scoring.js   13 territory/area scoring and estimator tests, including the MultiGo 7×7 reference and standard Area/handicap checks
 scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
 scripts/test-engine-config.js  engine JSON load/save/path tests
 scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs
@@ -1176,6 +1202,9 @@ scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persiste
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-count-ui.mjs CDP test for dual-rule Estimate/Score, dead stones, markers, bowls, RE and double passes
 scripts/verify-capture-sound-ui.mjs CDP test that a real capture creates the bowl sound
+preview/capture-sound-test.html  standalone sound-test page for the capture voice
+scripts/render-capture-sound.mjs  renders preview/capture-sound.wav and its cue manifest
+scripts/verify-capture-sound-test-ui.mjs CDP + WAV test for the sound-test page
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js

@@ -79,6 +79,7 @@
    * @param {number} [options.komi]
    * @param {number} [options.capturesBlack] stones captured by Black during the game
    * @param {number} [options.capturesWhite] stones captured by White during the game
+   * @param {number} [options.handicap] handicap compensation added to White in area scoring
    */
   function compute(options = {}) {
     const signMap = Array.isArray(options.signMap) ? options.signMap : []
@@ -86,6 +87,7 @@
     const cols = rows ? signMap[0].length : 0
     const rules = options.rules === 'chinese' ? 'chinese' : 'japanese'
     const komi = Number.isFinite(Number(options.komi)) ? Number(options.komi) : 0
+    const handicap = Math.max(0, Number(options.handicap) || 0)
     const dead = normaliseDead(options.dead)
 
     const grid = signMap.map((row) => row.slice())
@@ -177,9 +179,21 @@
     // normal territory difference.
     const resultDiff = rules === 'chinese' ? round2(diff / 2) : diff
 
+    // Standard area scoring, matching Sabaki's Area tab: area is alive stones
+    // plus controlled territory, komi and handicap go to White, and dame are
+    // neutral. The area difference is not halved.
+    const areaBlackScore = round2(blackPoints)
+    const areaWhiteScore = round2(whitePoints + komi + handicap)
+    const areaDiff = round2(areaBlackScore - areaWhiteScore)
+
     return {
       rules,
       komi,
+      handicap,
+      areaBlackScore,
+      areaWhiteScore,
+      areaDiff,
+      areaResult: resultLabel(areaDiff),
       dead: [...dead],
       deadBlack,
       deadWhite,

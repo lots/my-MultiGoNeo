@@ -16,6 +16,7 @@
     "test:gtp": "node scripts/test-gtp.js",
     "test:engines": "node scripts/test-engine-config.js",
     "test:legacy": "node scripts/test-engine.js",
+    "sound": "node scripts/render-capture-sound.mjs",
     "bundle": "node scripts/build-sabaki-bundle.mjs",
     "icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icon.ps1",
     "pack": "electron-builder --dir --config electron-builder.config.js",

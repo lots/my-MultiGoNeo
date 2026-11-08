@@ -200,6 +200,13 @@
       blackFormula: $('#count-cn-black-formula'),
       result: $('#count-cn-result'),
     },
+    area: {
+      whiteTotal: $('#count-area-white-total'),
+      whiteFormula: $('#count-area-white-formula'),
+      blackTotal: $('#count-area-black-total'),
+      blackFormula: $('#count-area-black-formula'),
+      result: $('#count-area-result'),
+    },
     japanese: {
       whiteTotal: $('#count-jp-white-total'),
       whiteFormula: $('#count-jp-white-formula'),
@@ -207,6 +214,18 @@
       blackFormula: $('#count-jp-black-formula'),
       result: $('#count-jp-result'),
     },
+  };
+  const countTable = {
+    blackArea: $('#count-table-black-area'),
+    blackTerritory: $('#count-table-black-territory'),
+    blackCaptures: $('#count-table-black-captures'),
+    blackTotal: $('#count-table-black-total'),
+    whiteArea: $('#count-table-white-area'),
+    whiteTerritory: $('#count-table-white-territory'),
+    whiteCaptures: $('#count-table-white-captures'),
+    whiteKomi: $('#count-table-white-komi'),
+    whiteHandicap: $('#count-table-white-handicap'),
+    whiteTotal: $('#count-table-white-total'),
   };
   const bowlBlack = $('#bowl-black');
   const bowlWhite = $('#bowl-white');
@@ -652,6 +671,8 @@
     'Now you can mark dead stones on the board; the result updates automatically.': '现在可以在棋盘上标记死子，结果会自动更新。',
     Japanese: '日本规则', Chinese: '中国规则',
     'Chinese Rule': '中国规则', 'Japanese Rule': '日本规则',
+    'Area Scoring': '面积计分', 'MultiGo half-count convention': 'MultiGo 半计分制',
+    'Area table': '面积表', Area: '面积', Total: '总计',
     'Black territory': '黑方领地', 'White territory': '白方领地',
     'Black prisoners': '黑方提子', 'White prisoners': '白方提子',
     'Black stones': '黑方棋子', 'White stones': '白方棋子',
@@ -1187,6 +1208,59 @@
     return { black, white };
   }
 
+  let captureNoiseBuffer = null;
+
+  // Deterministic white noise for the stones-in-the-bowl rattle. The same
+  // generator and seed run in scripts/render-capture-sound.mjs, so the WAV
+  // audition and the app sound stay in step.
+  function getCaptureNoiseBuffer(context) {
+    if (captureNoiseBuffer && captureNoiseBuffer.sampleRate === context.sampleRate) {
+      return captureNoiseBuffer;
+    }
+    const length = Math.ceil(1.5 * context.sampleRate);
+    const buffer = context.createBuffer(1, length, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    let seed = 0x9e3779b9;
+    for (let i = 0; i < length; i += 1) {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      data[i] = (seed / 4294967296) * 2 - 1;
+    }
+    captureNoiseBuffer = buffer;
+    return buffer;
+  }
+
+  // Per-capture randomness: the gap between stones, their pitch and the noise
+  // offset. The same draw order runs in preview/capture-sound-test.html and
+  // scripts/render-capture-sound.mjs (which uses a fixed seed for its WAV).
+  function makeCaptureRandom(seed) {
+    let state = seed >>> 0;
+    return () => {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function planCaptureStones(stones, seed) {
+    const random = makeCaptureRandom(seed);
+    const plan = [];
+    let at = 0;
+    for (let index = 0; index < stones; index += 1) {
+      if (index > 0) at += 0.028 + random() * 0.018;
+      const bodyCents = (random() * 2 - 1) * 70;
+      const clickCents = (random() * 2 - 1) * 50;
+      plan.push({
+        at,
+        bodyHz: (220 - index * 8) * 2 ** (bodyCents / 1200),
+        clickHz: (1350 - index * 25) * 2 ** (clickCents / 1200),
+        noiseOffset: random() * 0.9,
+      });
+    }
+    return plan;
+  }
+
   function playCaptureSound(count = 1) {
     if (!settings.soundEnabled || count <= 0) return;
     try {
@@ -1197,16 +1271,17 @@
       if (context.state === 'suspended') void context.resume();
       const stones = Math.min(8, Math.max(1, count));
       const start = context.currentTime;
-      for (let index = 0; index < stones; index += 1) {
-        const at = start + index * 0.035;
+      const seed = (Math.random() * 0x100000000) >>> 0;
+      for (const stone of planCaptureStones(stones, seed)) {
+        const at = start + stone.at;
         // Low wooden body of a stone landing in a bowl.
         const body = context.createOscillator();
         const bodyGain = context.createGain();
         body.type = 'triangle';
-        body.frequency.setValueAtTime(220 - index * 11, at);
+        body.frequency.setValueAtTime(stone.bodyHz, at);
         body.frequency.exponentialRampToValueAtTime(105, at + 0.1);
         bodyGain.gain.setValueAtTime(0.0001, at);
-        bodyGain.gain.exponentialRampToValueAtTime(0.055, at + 0.006);
+        bodyGain.gain.exponentialRampToValueAtTime(0.22, at + 0.006);
         bodyGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.12);
         body.connect(bodyGain).connect(context.destination);
         body.start(at);
@@ -1216,13 +1291,36 @@
         const click = context.createOscillator();
         const clickGain = context.createGain();
         click.type = 'square';
-        click.frequency.setValueAtTime(1350 - index * 40, at);
+        click.frequency.setValueAtTime(stone.clickHz, at);
         clickGain.gain.setValueAtTime(0.0001, at);
-        clickGain.gain.exponentialRampToValueAtTime(0.012, at + 0.002);
-        clickGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.028);
+        clickGain.gain.exponentialRampToValueAtTime(0.15, at + 0.002);
+        clickGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.045);
         click.connect(clickGain).connect(context.destination);
         click.start(at);
-        click.stop(at + 0.03);
+        click.stop(at + 0.05);
+
+        // Bright rattle of stones settling into the bowl. This carries the
+        // sound on laptop speakers, where the 105-220 Hz body is nearly out of
+        // range; Sabaki's capture samples are 95% above 2 kHz for the same
+        // reason. One decorrelated noise offset per stone, so a large group
+        // lengthens the rattle instead of just multiplying its peak.
+        const noise = context.createBufferSource();
+        noise.buffer = getCaptureNoiseBuffer(context);
+        const highpass = context.createBiquadFilter();
+        highpass.type = 'highpass';
+        highpass.frequency.setValueAtTime(1400, at);
+        highpass.Q.setValueAtTime(0.707, at);
+        const lowpass = context.createBiquadFilter();
+        lowpass.type = 'lowpass';
+        lowpass.frequency.setValueAtTime(6500, at);
+        lowpass.Q.setValueAtTime(0.707, at);
+        const rattleGain = context.createGain();
+        rattleGain.gain.setValueAtTime(0.0001, at);
+        rattleGain.gain.exponentialRampToValueAtTime(0.6, at + 0.002);
+        rattleGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.4);
+        noise.connect(highpass).connect(lowpass).connect(rattleGain).connect(context.destination);
+        noise.start(at, stone.noiseOffset);
+        noise.stop(at + 0.42);
       }
     } catch { /* sound is best-effort */ }
   }
@@ -1295,6 +1393,12 @@
     return Number(settings.defaultKomi) || 0;
   }
 
+  function countHandicap() {
+    const value = Number.parseFloat(rootProperty('HA', ''));
+    if (!Number.isFinite(value)) return 0;
+    return Math.max(0, Math.round(value));
+  }
+
   function isPassNode(node) {
     if (!node || !node.data) return false;
     const black = node.data.B;
@@ -1318,6 +1422,7 @@
       signMap: currentBoard.signMap,
       dead: [...countState.dead],
       komi: countKomi(),
+      handicap: countHandicap(),
       capturesBlack: currentBoard.getCaptures(1) || 0,
       capturesWhite: currentBoard.getCaptures(-1) || 0,
     });
@@ -1472,15 +1577,38 @@
       block.blackTotal.textContent = points(result.blackScore);
       block.whiteFormula.textContent = `= ${points(result.whitePoints)} (${t('Points')}) + ${points(result.dame)} (${t('Shared')}) / 2 + ${points(result.komi)} (${t('Komi')}) / 2`;
       block.blackFormula.textContent = `= ${points(result.blackPoints)} (${t('Points')}) + ${points(result.dame)} (${t('Shared')}) / 2 - ${points(result.komi)} (${t('Komi')}) / 2`;
+    } else if (rule === 'area') {
+      block.whiteTotal.textContent = points(result.areaWhiteScore);
+      block.blackTotal.textContent = points(result.areaBlackScore);
+      block.whiteFormula.textContent = `= ${points(result.whitePoints)} (${t('Area')}) + ${points(result.komi)} (${t('Komi')}) + ${points(result.handicap)} (${t('Handicap')})`;
+      block.blackFormula.textContent = `= ${points(result.blackPoints)} (${t('Area')})`;
     } else {
       block.whiteTotal.textContent = points(result.whiteScore);
       block.blackTotal.textContent = points(result.blackScore);
       block.whiteFormula.textContent = `= ${points(result.whiteTerritory)} (${t('Territory')}) + ${points(result.whitePrisoners)} (${t("Black's Dead")}) + ${points(result.komi)} (${t('Komi')})`;
       block.blackFormula.textContent = `= ${points(result.blackTerritory)} (${t('Territory')}) + ${points(result.blackPrisoners)} (${t("White's Dead")})`;
     }
-    block.result.textContent = spacedResult(result);
-    block.result.classList.toggle('is-black', result.diff > 0);
-    block.result.classList.toggle('is-white', result.diff < 0);
+    const diff = rule === 'area' ? result.areaDiff : result.diff;
+    block.result.textContent = rule === 'area'
+      ? spacedResult({ result: result.areaResult })
+      : spacedResult(result);
+    block.result.classList.toggle('is-black', diff > 0);
+    block.result.classList.toggle('is-white', diff < 0);
+  }
+
+  function updateCountTable(result) {
+    if (!countTable || !result) return;
+    const points = window.MultiGoScoring.formatPoints;
+    if (countTable.blackArea) countTable.blackArea.textContent = points(result.blackPoints);
+    if (countTable.whiteArea) countTable.whiteArea.textContent = points(result.whitePoints);
+    if (countTable.blackTerritory) countTable.blackTerritory.textContent = points(result.blackTerritory);
+    if (countTable.whiteTerritory) countTable.whiteTerritory.textContent = points(result.whiteTerritory);
+    if (countTable.blackCaptures) countTable.blackCaptures.textContent = points(result.blackPrisoners);
+    if (countTable.whiteCaptures) countTable.whiteCaptures.textContent = points(result.whitePrisoners);
+    if (countTable.whiteKomi) countTable.whiteKomi.textContent = points(result.komi);
+    if (countTable.whiteHandicap) countTable.whiteHandicap.textContent = points(result.handicap);
+    if (countTable.blackTotal) countTable.blackTotal.textContent = points(result.areaBlackScore);
+    if (countTable.whiteTotal) countTable.whiteTotal.textContent = points(result.areaWhiteScore);
   }
 
   function updateCountPanel() {
@@ -1495,7 +1623,9 @@
     const result = countState.result;
     if (!result) return;
     updateScoreBlock('chinese', result.chinese);
+    updateScoreBlock('area', result.chinese);
     updateScoreBlock('japanese', result.japanese);
+    updateCountTable(result.chinese);
     const japanese = result.japanese;
     if (countDeadSummary) {
       countDeadSummary.textContent = `${t('Dead')}: ${t('Black')} ${japanese.deadBlack} · ${t('White')} ${japanese.deadWhite}`;
@@ -1513,6 +1643,7 @@
     if (mode === 'edit') toggleEditMode();
     if (autoPlayTimer) stopAutoPlay();
     countState.active = true;
+    rightColumn.classList.add('is-scoring');
     countState.mode = countMode === 'estimate' ? 'estimate' : 'score';
     countState.rules = rules === 'chinese' ? 'chinese' : 'japanese';
     settings.countRules = countState.rules;
@@ -1539,6 +1670,7 @@
       return;
     }
     countState.active = false;
+    rightColumn.classList.remove('is-scoring');
     countState.dead.clear();
     countState.result = null;
     updateCountPanel();
@@ -1582,10 +1714,12 @@
     const rule = gameRules();
     const result = countState.result?.[rule];
     if (!result) return false;
-    const label = result.result;
+    // RU[Chinese] means area rules, so write the standard full-area result.
+    // RU[Japanese] writes the normal territory result.
+    const label = rule === 'chinese' ? result.areaResult : result.result;
     const ok = mutateTree((draft) => {
       draft.updateProperty(tree.root.id, 'RE', [label]);
-    }, { message: `${rule === 'chinese' ? 'Chinese' : 'Japanese'} result written to RE: ${label}.` });
+    }, { message: `${rule === 'chinese' ? 'Area' : 'Japanese'} result written to RE: ${label}.` });
     if (ok) updateTitle();
     return ok;
   }

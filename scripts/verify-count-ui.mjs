@@ -249,11 +249,16 @@ const initial = await evaluate(`(() => {
     chineseWhite: document.getElementById('count-cn-white-total').textContent,
     chineseBlack: document.getElementById('count-cn-black-total').textContent,
     chineseResult: document.getElementById('count-cn-result').textContent,
+    areaWhite: document.getElementById('count-area-white-total').textContent,
+    areaBlack: document.getElementById('count-area-black-total').textContent,
+    areaResult: document.getElementById('count-area-result').textContent,
     japaneseWhite: document.getElementById('count-jp-white-total').textContent,
     japaneseBlack: document.getElementById('count-jp-black-total').textContent,
     japaneseResult: document.getElementById('count-jp-result').textContent,
     chineseVisible: Boolean(document.querySelector('.count-rule[data-rule="chinese"]')),
+    areaVisible: Boolean(document.querySelector('.count-rule[data-rule="area"]')),
     japaneseVisible: Boolean(document.querySelector('.count-rule[data-rule="japanese"]')),
+    tableTotal: document.getElementById('count-table-white-total').textContent,
     panelOpen: !document.getElementById('count-card').hidden,
     scoreTabActive: document.getElementById('tab-score').classList.contains('is-active'),
     scoreTabVisible: !document.getElementById('tab-score').hidden,
@@ -406,6 +411,8 @@ await evaluate(`__figdesk.enterCount('japanese')`)
 await sleep(350)
 const referenceBefore = await evaluate(`({
   chinese: document.getElementById('count-cn-result').textContent,
+  area: document.getElementById('count-area-result').textContent,
+  areaTotal: document.getElementById('count-table-white-total').textContent,
   japanese: document.getElementById('count-jp-result').textContent,
   dead: window.__figdesk.count().dead,
 })`)
@@ -414,12 +421,38 @@ await evaluate(`__figdesk.toggleCountStone(1, 0); __figdesk.toggleCountStone(1, 
 await sleep(250)
 const referenceAfter = await evaluate(`({
   chinese: document.getElementById('count-cn-result').textContent,
+  area: document.getElementById('count-area-result').textContent,
+  areaTotal: document.getElementById('count-table-white-total').textContent,
   japanese: document.getElementById('count-jp-result').textContent,
   dead: window.__figdesk.count().dead,
 })`)
 await shot('preview/preview-scoring-reference-dead.png')
 await evaluate(`__figdesk.exitCount()`)
 
-console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, seats, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, errors }, null, 2))
+const handicapSgf = referenceSgf.replace('KM[6.5]', 'KM[0.5]HA[2]')
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(handicapSgf)}, 'scoring-handicap.sgf')`)
+await evaluate(`__figdesk.enterCount('chinese')`)
+await sleep(250)
+const handicapScoring = await evaluate(`({
+  handicap: document.getElementById('count-table-white-handicap').textContent,
+  whiteTotal: document.getElementById('count-table-white-total').textContent,
+  areaResult: document.getElementById('count-area-result').textContent,
+  komi: document.getElementById('count-table-white-komi').textContent,
+})`)
+await evaluate(`__figdesk.exitCount()`)
+
+const scoringChineseSgf = referenceSgf.replace('RU[Japanese]', 'RU[Chinese]')
+await evaluate(`__figdesk.applySgfText(${JSON.stringify(scoringChineseSgf)}, 'scoring-chinese.sgf')`)
+await evaluate(`__figdesk.enterCount('chinese')`)
+await sleep(200)
+const chineseWritten = await evaluate(`(() => {
+  const areaResult = document.getElementById('count-area-result').textContent;
+  document.getElementById('count-write').click();
+  const re = window.__figdesk.tree.root.data.RE;
+  window.__figdesk.exitCount();
+  return { re, areaResult };
+})()`)
+
+console.log(JSON.stringify({ playBowls, bowlGapWide, bowlGapResized, whiteBowls, chineseBowls, menuEstimate, menuScore, legacyCountRemoved, initial, scoreFontChanged, seats, afterDead, chinese, written, escaped, narrow, doublePass, smallBoards, referenceBefore, referenceAfter, handicapScoring, chineseWritten, errors }, null, 2))
 ws.close()
 process.exit(errors.length === 0 ? 0 : 1)

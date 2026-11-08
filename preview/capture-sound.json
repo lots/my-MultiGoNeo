@@ -1,0 +1,168 @@
+{
+  "generatedBy": "scripts/render-capture-sound.mjs",
+  "description": "Stone-capture bowl sound from playCaptureSound() in src/renderer.js: wooden body, bowl click and a bright high-passed rattle, rendered offline as an audition track (one, three and eight stones). Stones land 28-46 ms apart with a small pitch jitter.",
+  "sampleRate": 44100,
+  "channels": 1,
+  "bits": 16,
+  "duration": 4.058,
+  "targetPeak": 0.95,
+  "normalizeGain": 1.2822,
+  "normalizeDb": 2.16,
+  "rawPeak": 0.740941,
+  "randomization": {
+    "seed": 1374496523,
+    "note": "The app draws a fresh seed per capture; this WAV uses a fixed seed so it is reproducible.",
+    "gapMs": [
+      28,
+      46
+    ],
+    "bodyCents": 70,
+    "clickCents": 50,
+    "noiseOffsetMaxSeconds": 0.9
+  },
+  "voice": {
+    "maxStones": 8,
+    "gapSeconds": {
+      "min": 0.028,
+      "max": 0.046
+    },
+    "body": {
+      "wave": "triangle",
+      "fromHz": 220,
+      "toHz": 105,
+      "sweepSeconds": 0.1,
+      "hzPerStone": 8,
+      "pitchJitterCents": 70,
+      "peakGain": 0.22,
+      "attackSeconds": 0.006,
+      "decaySeconds": 0.12,
+      "stopSeconds": 0.13
+    },
+    "click": {
+      "wave": "square",
+      "hz": 1350,
+      "hzPerStone": 25,
+      "pitchJitterCents": 50,
+      "peakGain": 0.15,
+      "attackSeconds": 0.002,
+      "decaySeconds": 0.045,
+      "stopSeconds": 0.05
+    },
+    "rattle": {
+      "source": "deterministic white noise",
+      "seed": 2654435769,
+      "filter": {
+        "highpassHz": 1400,
+        "lowpassHz": 6500,
+        "q": 0.707
+      },
+      "peakGain": 0.6,
+      "attackSeconds": 0.002,
+      "decaySeconds": 0.4,
+      "stopSeconds": 0.42,
+      "noiseSeconds": 1.5,
+      "noiseOffsetMaxSeconds": 0.9
+    }
+  },
+  "sections": [
+    {
+      "count": 1,
+      "start": 0.3,
+      "duration": 0.47,
+      "rawPeak": 0.497242,
+      "rawRms": 0.042934,
+      "schedule": [
+        {
+          "at": 0,
+          "bodyHz": 216.63,
+          "clickHz": 1333.06,
+          "noiseOffset": 0.67
+        }
+      ]
+    },
+    {
+      "count": 3,
+      "start": 1.52,
+      "duration": 0.548,
+      "rawPeak": 0.622905,
+      "rawRms": 0.068525,
+      "schedule": [
+        {
+          "at": 0,
+          "bodyHz": 216.63,
+          "clickHz": 1333.06,
+          "noiseOffset": 0.67
+        },
+        {
+          "at": 0.0439,
+          "bodyHz": 211.42,
+          "clickHz": 1335.47,
+          "noiseOffset": 0.0861
+        },
+        {
+          "at": 0.0783,
+          "bodyHz": 201.43,
+          "clickHz": 1277.82,
+          "noiseOffset": 0.1903
+        }
+      ]
+    },
+    {
+      "count": 8,
+      "start": 2.818,
+      "duration": 0.74,
+      "rawPeak": 0.740941,
+      "rawRms": 0.097135,
+      "schedule": [
+        {
+          "at": 0,
+          "bodyHz": 216.63,
+          "clickHz": 1333.06,
+          "noiseOffset": 0.67
+        },
+        {
+          "at": 0.0439,
+          "bodyHz": 211.42,
+          "clickHz": 1335.47,
+          "noiseOffset": 0.0861
+        },
+        {
+          "at": 0.0783,
+          "bodyHz": 201.43,
+          "clickHz": 1277.82,
+          "noiseOffset": 0.1903
+        },
+        {
+          "at": 0.1142,
+          "bodyHz": 196.56,
+          "clickHz": 1301.81,
+          "noiseOffset": 0.8523
+        },
+        {
+          "at": 0.1526,
+          "bodyHz": 190.21,
+          "clickHz": 1236.52,
+          "noiseOffset": 0.5821
+        },
+        {
+          "at": 0.188,
+          "bodyHz": 178.4,
+          "clickHz": 1219.84,
+          "noiseOffset": 0.69
+        },
+        {
+          "at": 0.2257,
+          "bodyHz": 176.27,
+          "clickHz": 1209.69,
+          "noiseOffset": 0.2279
+        },
+        {
+          "at": 0.2695,
+          "bodyHz": 158.68,
+          "clickHz": 1165.04,
+          "noiseOffset": 0.7993
+        }
+      ]
+    }
+  ]
+}
