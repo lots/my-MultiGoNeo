@@ -21,11 +21,11 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.4 build** adds the Sabaki-derived **GTP engine layer**, Sabaki-style **scoring
-territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board edge
-fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**, **PNG board
-export**, the **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen**
-and one shared lighter icon.
+The **1.1.5 build** repackages the 1.1.4 feature set: the Sabaki-derived **GTP engine layer**,
+Sabaki-style **scoring territory** with **Play → Estimate / Score**, live captured-stone bowls
+and small-board edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch
+import**, **PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
+**native fullscreen** and one shared lighter icon.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
@@ -36,9 +36,19 @@ boards [below](#board-themes-and-responsive-layout).
 
 ## What is implemented
 
+### Version 1.1.5
+
+Released 2026-11-09. The Windows artifacts are `MultiGo-Neo-1.1.5-setup.exe` and
+`MultiGo-Neo-1.1.5-portable.exe`.
+
+Maintenance repackaging of the 1.1.4 feature set with no functional changes: the docked Score
+tab, GTP engines, Estimate/Score modes, captured-stone bowls and small-board fixes are all as
+described in [Version 1.1.4](#version-114). 1.1.5 exists so the published binaries carry the
+current version string and a clean tag/build.
+
 ### Version 1.1.4
 
-Released 2026-11-06. The Windows artifacts are `MultiGo-Neo-1.1.4-setup.exe` and
+Released 2026-11-06. The Windows artifacts were `MultiGo-Neo-1.1.4-setup.exe` and
 `MultiGo-Neo-1.1.4-portable.exe`.
 
 - **GTP engines** — attach GNU Go or KataGo, generate moves, stream analysis into the board
@@ -994,7 +1004,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.4-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.5-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1002,7 +1012,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.4-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.5-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1066,8 +1076,8 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.4-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.4-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.5-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.5-portable.exe` — single-file portable build.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
