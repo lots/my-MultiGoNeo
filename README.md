@@ -127,6 +127,12 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   survives both page reloads and loading a different SGF.
 - The docked **Score** tab has the same independent **A− / A+** control, also **12–36 px** and
   persisted only in app preferences.
+- While the comment field has focus, **Ctrl+Shift+↑/↓** move to the parent/first child and
+  **Ctrl+Shift+←/→** move to the previous/next branch at the current level (landing on the last
+  node when the target branch is shorter). The current comment is committed first and focus
+  stays in the comment field for continuous entry.
+- **Ctrl+S** and **Ctrl+Shift+S** work even while a comment or game-info field has focus; the
+  pending comment is committed before the SGF is serialised.
 
 ![Comment display font-size controls and rendered Markdown](preview/preview-comment-font.png)
 - Edit tool strip: black/white stones, eraser, cross, triangle, square, circle, line, arrow,
@@ -1087,6 +1093,8 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Read Only | Edit → Read Only; navigation only, save disabled |
 | Comment editor | Comment tab; three-line editor, vertically resizable, height remembered; rendered Markdown below |
 | Comment display size | A− / A+ in the Comment header; 12–36 px, persisted per app and never written to the SGF |
+| Navigate while commenting | `Ctrl+Shift+↑/↓` parent/first child; `Ctrl+Shift+←/→` previous/next branch; comment focus stays |
+| Save while typing | `Ctrl+S` / `Ctrl+Shift+S` from comment or game-info fields; pending comment is committed first |
 | Score display size | A− / A+ in the Score tab header; 12–36 px, independent app preference |
 | Edit Game Info | Edit → Edit Game Info; maximizes the Info panel and focuses Black; **Done** restores the previous layout |
 | Responsive layout | View → Responsive Layout (auto below 1120 px) |
@@ -1232,6 +1240,7 @@ scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper 
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
 scripts/verify-comment-font-ui.mjs CDP test for adjustable comment font persistence
+scripts/verify-comment-nav-ui.mjs CDP test for comment-focused branch navigation, focus retention and Ctrl+S
 scripts/verify-themes-ui.mjs CDP capture of the four 13x13 theme screenshots
 scripts/verify-count-ui.mjs CDP test for dual-rule Estimate/Score, dead stones, markers, bowls, RE and double passes
 scripts/verify-capture-sound-ui.mjs CDP test that a real capture creates the bowl sound

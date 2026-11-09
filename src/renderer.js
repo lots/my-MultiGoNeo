@@ -1081,6 +1081,40 @@
     if (next) selectNode(next.id);
   }
 
+  function goToBranch(direction) {
+    let branchStart = currentNode();
+    if (!branchStart) return;
+    let offset = 0;
+    // Walk up to the nearest branch point. The target branch is a sibling of
+    // the child that starts the current branch, and the target lands at the
+    // same offset when possible; a shorter branch lands on its last node.
+    while (branchStart.parentId != null) {
+      const parent = tree.get(branchStart.parentId);
+      if (!parent) return;
+      if (parent.children.length > 1) break;
+      branchStart = parent;
+      offset += 1;
+    }
+    if (branchStart.parentId == null) {
+      log('No previous or next branch at this level.', 'warn');
+      return;
+    }
+    const parent = tree.get(branchStart.parentId);
+    const index = parent.children.findIndex((child) => child.id === branchStart.id);
+    const target = parent.children[index + direction];
+    if (!target) {
+      log(direction < 0 ? 'No previous branch at this level.' : 'No next branch at this level.', 'warn');
+      return;
+    }
+    let targetNode = target;
+    for (let step = 0; step < offset; step += 1) {
+      const child = preferredChild(targetNode);
+      if (!child) break;
+      targetNode = child;
+    }
+    selectNode(targetNode.id);
+  }
+
   function fastNavigate(direction) {
     let node = currentNode();
     if (!node) return;
@@ -3411,6 +3445,21 @@
     commentPreview.innerHTML = markdownToHtml(text);
   }
 
+  function commitCommentInput() {
+    if (!tree || readOnly) return false;
+    const targetId = commentNodeId ?? nodeId;
+    const node = tree.get(targetId);
+    if (!node) return false;
+    const value = commentInput.value;
+    if ((node.data.C?.[0] || '') === value) return false;
+    commentNodeId = targetId;
+    mutateTree((draft) => {
+      if (value.trim()) draft.updateProperty(targetId, 'C', [value]);
+      else draft.removeProperty(targetId, 'C');
+    }, { message: null });
+    return true;
+  }
+
   function renderComment() {
     const node = currentNode();
     if (!node) return;
@@ -4174,6 +4223,7 @@
 
   async function saveSgf(saveAs = false) {
     if (readOnly) { log('Read Only: saving is disabled.', 'warn'); return; }
+    commitCommentInput();
     let content;
     try { content = S.sgf.stringify([tree.root], { linebreak: '\n', indent: '  ' }); }
     catch (error) { log(`Could not build the SGF: ${error.message}`, 'error'); return; }
@@ -5271,14 +5321,15 @@
   scoreFontInc.addEventListener('click', () => changeScoreFontSize(1));
   commentInput.addEventListener('change', () => {
     const value = commentInput.value;
-    const node = currentNode();
+    const targetId = commentNodeId ?? nodeId;
+    const node = tree?.get(targetId);
     if (!node) return;
     if ((node.data.C?.[0] || '') === value) return;
     mutateTree((draft) => {
-      if (value.trim()) draft.updateProperty(nodeId, 'C', [value]);
-      else draft.removeProperty(nodeId, 'C');
+      if (value.trim()) draft.updateProperty(targetId, 'C', [value]);
+      else draft.removeProperty(targetId, 'C');
     }, { message: 'Comment updated.' });
-    commentNodeId = nodeId;
+    commentNodeId = targetId;
     renderComment();
   });
   tabInfo.addEventListener('click', () => setTab('info'));
@@ -5973,7 +6024,40 @@
     if (document.querySelector('dialog[open]')) return;
     if (event.key === 'F1') { event.preventDefault(); showShortcuts(); return; }
     if (event.key === 'F11') { event.preventDefault(); runAction(toggleFullScreen); return; }
-    if (isTypingTarget(event.target) || isTypingTarget(document.activeElement)) return;
+    const typing = isTypingTarget(event.target) || isTypingTarget(document.activeElement);
+    if (typing) {
+      const typingModifier = isMac ? event.metaKey : event.ctrlKey;
+      // Saving must work while an input still has focus. saveSgf() commits the
+      // pending comment before serialising the tree.
+      if (typingModifier && !event.altKey && (event.key === 's' || event.key === 'S')) {
+        event.preventDefault();
+        if (event.target !== commentInput && typeof event.target.blur === 'function') {
+          event.target.blur();
+        }
+        runAction(() => saveSgf(event.shiftKey));
+        return;
+      }
+      const commentFocused = document.activeElement === commentInput || event.target === commentInput;
+      if (commentFocused && typingModifier && event.shiftKey && !event.altKey) {
+        const branchAction = {
+          ArrowDown: goToChild,
+          ArrowUp: goToParent,
+          ArrowLeft: () => goToBranch(-1),
+          ArrowRight: () => goToBranch(1),
+        }[event.key];
+        if (branchAction) {
+          event.preventDefault();
+          const focusWasInComment = document.activeElement === commentInput;
+          commitCommentInput();
+          branchAction();
+          if (focusWasInComment) {
+            requestAnimationFrame(() => commentInput.focus({ preventScroll: true }));
+          }
+          return;
+        }
+      }
+      return;
+    }
     if (activeMenu) {
       if (event.key === 'Escape') { event.preventDefault(); closeMenus({ restoreFocus: true }); }
       return;
