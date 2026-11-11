@@ -1046,6 +1046,29 @@ npm start         # Electron window
 `npm ci` restores `node_modules/` from `package-lock.json`. `src/sabaki-bundle.js` is
 committed, so the browser preview works without a build step.
 
+## Portable web build (USB)
+
+`npm run dist:web` assembles a self-contained browser copy in `web-portable/`:
+
+```
+web-portable/
+  index.html          <- open this
+  styles.css  themes/  *.js
+  README.txt  LICENSE
+  Open MultiGo Neo.cmd
+```
+
+Copy the whole folder to a USB stick and double-click `index.html` on any Windows PC with
+Chrome or Edge. No installation, no local server and no internet connection are needed: every
+stylesheet, theme and script is referenced relatively inside the folder, and nothing is fetched
+at runtime.
+
+Browser-only limits: GTP engines, native Open/Save dialogs, the `.sgf` Explorer association and
+the installers are Electron-only. Open/Save use the browser's file picker and downloads;
+settings, theme, recent files and layout live in the browser's `localStorage` for that folder.
+The generated folder is git-ignored (`web-portable/`); run `npm run dist:web` again after source
+changes.
+
 ## Run
 
 ```powershell

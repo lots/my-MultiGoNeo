@@ -23,7 +23,8 @@
     "dist": "electron-builder --config electron-builder.config.js",
     "dist:win": "electron-builder --win --config electron-builder.config.js",
     "dist:mac": "electron-builder --mac --config electron-builder.config.js",
-    "dist:linux": "electron-builder --linux --config electron-builder.config.js"
+    "dist:linux": "electron-builder --linux --config electron-builder.config.js",
+    "dist:web": "node scripts/build-web-portable.mjs"
   },
   "devDependencies": {
     "@sabaki/go-board": "^1.4.3",

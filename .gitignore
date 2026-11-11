@@ -1,6 +1,7 @@
 node_modules/
 release/
 dist/
+web-portable/
 .npm-cache/
 .electron-cache/
 .electron-builder-cache/
