@@ -1096,7 +1096,8 @@ Browser-only limits: GTP engines, native Open/Save dialogs, the `.sgf` Explorer 
 the installers are Electron-only. Open/Save use the browser's file picker and downloads;
 settings, theme, recent files and layout live in the browser's `localStorage` for that folder.
 The generated folder is git-ignored (`web-portable/`); run `npm run dist:web` again after source
-changes.
+changes. Each GitHub release also attaches the same folder as
+`MultiGo-Neo-<version>-web.zip`.
 
 ### Bundled SGF study records
 
