@@ -21,11 +21,13 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.5 build** repackages the 1.1.4 feature set and adds the **main-branch tree layout**:
-the Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
-**Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch
-import**, **PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
-**native fullscreen** and one shared lighter icon.
+The **1.1.6 build** adds the configurable **SGF size limit**, bundles the 13×13 study records and
+ships the portable web copy as a download. It keeps the 1.1.5 **main-branch tree layout** and the
+Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
+**Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2
+release brought **Reload-in-place**, **multi-file branch import**, **PNG board export**, the
+**UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen** and one shared
+lighter icon.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
@@ -36,6 +38,19 @@ boards [below](#board-themes-and-responsive-layout).
 
 ## What is implemented
 
+### Version 1.1.6
+
+Released 2026-11-13. The Windows artifacts are `MultiGo-Neo-1.1.6-setup.exe` and
+`MultiGo-Neo-1.1.6-portable.exe`, plus `MultiGo-Neo-1.1.6-web.zip` for the browser build.
+
+- **Largest SGF to open** — **Preferences → Edit** has a size limit (5 MB by default, 1–500 MB)
+  that caps opening, importing and saving. The main process enforces it, and imports report the
+  files they skip instead of dropping them silently.
+- **Bundled study records** — the installer and the portable/web builds include the 13×13 study
+  SGFs under `sgf\十三路打谱操`; rebuilding refreshes them.
+- **Portable web distribution** — `npm run dist:web` builds a self-contained folder that runs
+  from `index.html`; a zipped copy ships with this release.
+
 ### Version 1.1.5
 
 Released 2026-11-09. The Windows artifacts are `MultiGo-Neo-1.1.5-setup.exe` and
@@ -44,9 +59,10 @@ Released 2026-11-09. The Windows artifacts are `MultiGo-Neo-1.1.5-setup.exe` and
 Maintenance repackaging of the 1.1.4 feature set, plus a clearer game tree: the first-child
 **main variation is the leftmost column**, every branch uses the same **1.32× vertical row
 pitch** (31.68 px instead of 24 px), and side variations stay on the same height levels as the
-main line. Branch columns are widened to **64 px** so adjacent levels do not visually touch; light halos behind the bones keep crossings visually separate.
-The docked Score tab, GTP engines, Estimate/Score modes, captured-stone bowls and small-board
-fixes are all as described in [Version 1.1.4](#version-114).
+main line. Branch columns are widened to **64 px** so adjacent levels do not visually touch;
+light halos behind the bones keep crossings visually separate. The docked Score tab, GTP
+engines, Estimate/Score modes, captured-stone bowls and small-board fixes are all as described
+in [Version 1.1.4](#version-114).
 
 ### Version 1.1.4
 
@@ -762,7 +778,9 @@ Preferences dialog follows the MultiGo Options categories:
 - **Other** — show the game result in the window/file title.
 - **Traverse** — move and capture sounds, auto-play interval, and “visit variation branch first”.
 - **Edit** — default Komi, White moves first in new games, right-click board removes the
-  current move, and open existing files as Read Only.
+  current move, and open existing files as Read Only. **Largest SGF to open** (5 MB by
+  default, 1–500 MB) caps opening, importing and saving; the main process enforces it,
+  and imports report the files they skip instead of dropping them silently.
 
 Options take effect on **OK**; **Cancel** discards changes, and **Reset Defaults** only resets
 the dialog controls until OK is pressed. Values persist in `localStorage`.
@@ -1015,7 +1033,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.5-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.6-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1023,7 +1041,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.5-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.6-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1080,6 +1098,20 @@ settings, theme, recent files and layout live in the browser's `localStorage` fo
 The generated folder is git-ignored (`web-portable/`); run `npm run dist:web` again after source
 changes.
 
+### Bundled SGF study records
+
+Both distribution paths include the 13×13 study records from `AQ\sgf\十三路打谱操` under
+`sgf\十三路打谱操`:
+
+- **Installer** — `<install folder>\sgf\十三路打谱操` next to `MultiGo Neo.exe`.
+- **Portable exe** — inside the extracted app folder at `sgf\十三路打谱操`.
+- **Web build** — `web-portable\sgf\十三路打谱操`.
+
+The source folder is local and git-ignored, so a clean clone or CI build simply omits the
+records. Both builders copy the folder fresh on every run: update the SGFs in
+`AQ\sgf\十三路打谱操`, then run `npm run dist:web` and `npm run dist:win` to refresh the
+packages.
+
 ## Run
 
 ```powershell
@@ -1110,8 +1142,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.5-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.5-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.6-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.6-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.6-web.zip` — portable web build (same files as `web-portable/`).
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
@@ -1267,6 +1300,8 @@ scripts/test-path.js      5 position-path tests
 scripts/test-scoring.js   13 territory/area scoring and estimator tests, including the MultiGo 7×7 reference and standard Area/handicap checks
 scripts/test-gtp.js       GTP controller, analysis parsing and sync-command tests
 scripts/test-engine-config.js  engine JSON load/save/path tests
+scripts/test-sgf-limit.js  SGF size-ceiling resolution, fallback and clamping tests
+scripts/test-sgf-guard.js  IPC size guard, import skip report and save-ceiling tests
 scripts/fixtures/fake-gtp-engine.js  deterministic GTP engine for tests and CDP runs
 scripts/test-engine.js    legacy coordinate/rules tests
 scripts/verify-port-ui.mjs CDP test for the seven ported ideas and screenshots

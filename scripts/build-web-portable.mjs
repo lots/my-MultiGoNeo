@@ -86,6 +86,20 @@ async function copyFile(relativePath) {
   return relativePath
 }
 
+async function walkFiles(dir, prefix = '') {
+  const entries = await fs.readdir(dir, { withFileTypes: true })
+  const result = []
+  for (const entry of entries) {
+    const relative = path.join(prefix, entry.name)
+    if (entry.isDirectory()) {
+      result.push(...(await walkFiles(path.join(dir, entry.name), relative)))
+    } else {
+      result.push(relative)
+    }
+  }
+  return result
+}
+
 await fs.rm(out, { recursive: true, force: true })
 await fs.mkdir(out, { recursive: true })
 
@@ -99,10 +113,24 @@ for (const dir of dirs) {
   }
 }
 
+// Optional SGF study records (git-ignored, refreshed on every build).
+const sgfSource = path.join(root, 'AQ', 'sgf', '十三路打谱操')
+const sgfTarget = path.join(out, 'sgf', '十三路打谱操')
+let sgfFiles = 0
+try {
+  await fs.cp(sgfSource, sgfTarget, { recursive: true })
+  sgfFiles = (await walkFiles(sgfTarget)).length
+} catch {
+  // No local SGF folder (clean clone / CI): build without the records.
+}
+
 await fs.copyFile(path.join(root, 'LICENSE'), path.join(out, 'LICENSE'))
 // license.html is checked in under src/ rather than generated here, so hosts
 // that publish the source tree directly still serve the MIT notice.
-await fs.writeFile(path.join(out, 'README.txt'), readme, 'utf8')
+const sgfNote = sgfFiles
+  ? `\nBundled study records: ${sgfFiles} SGF files in sgf/十三路打谱操.\n`
+  : ''
+await fs.writeFile(path.join(out, 'README.txt'), readme + sgfNote, 'utf8')
 await fs.writeFile(path.join(out, 'Open MultiGo Neo.cmd'), launcher.replace(/\n/g, '\r\n'), 'utf8')
 
 // Sanity check: every relative href/src in index.html must exist in the output.
@@ -122,19 +150,11 @@ if (missing.length) {
   throw new Error(`Missing output files referenced by index.html: ${missing.join(', ')}`)
 }
 
-const all = []
-for (const entry of await fs.readdir(out, { withFileTypes: true })) {
-  if (entry.isDirectory()) {
-    for (const child of await fs.readdir(path.join(out, entry.name))) {
-      all.push(path.join(entry.name, child))
-    }
-  } else {
-    all.push(entry.name)
-  }
-}
+const all = await walkFiles(out)
 let bytes = 0
 for (const file of all) bytes += (await fs.stat(path.join(out, file))).size
 
 console.log(`Built ${path.relative(root, out)} with ${all.length} files (${(bytes / 1024 / 1024).toFixed(2)} MB).`)
 console.log(`Open: ${path.join(out, 'index.html')}`)
 console.log(`Resources checked: ${references.length}, missing: ${missing.length}`)
+console.log(`Bundled SGF records: ${sgfFiles}`)

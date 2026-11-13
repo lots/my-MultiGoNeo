@@ -1,7 +1,7 @@
 {
   "name": "multigo-neo",
   "productName": "MultiGo Neo",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "A tree-based Go SGF editor and player modelled on the MultiGo workspace.",
   "main": "electron/main.js",
   "author": "ILLEGEAR",
@@ -10,7 +10,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "test": "node scripts/test-tree.js && node scripts/test-path.js && node scripts/test-scoring.js && node scripts/test-gtp.js && node scripts/test-engine-config.js",
+    "test": "node scripts/test-tree.js && node scripts/test-path.js && node scripts/test-scoring.js && node scripts/test-gtp.js && node scripts/test-engine-config.js && node scripts/test-sgf-limit.js && node scripts/test-sgf-guard.js",
     "test:path": "node scripts/test-path.js",
     "test:scoring": "node scripts/test-scoring.js",
     "test:gtp": "node scripts/test-gtp.js",

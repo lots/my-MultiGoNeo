@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const { EngineManager } = require('./engine-manager');
 const { EngineConfig, chooseConfigPath } = require('./engine-config');
+const { sgfByteLimit, megabytes } = require('./sgf-limit');
 
 const isMac = process.platform === 'darwin';
 const APP_ID = 'com.illegear.multigoneo';
@@ -197,7 +198,7 @@ function registerIpc() {
     const saveAs = Boolean(payload && payload.saveAs);
     let filePath = payload && typeof payload.filePath === 'string' ? payload.filePath : null;
 
-    if (typeof content !== 'string' || content.length > 5_000_000) {
+    if (typeof content !== 'string' || content.length > sgfByteLimit(payload)) {
       throw new Error('Invalid SGF payload.');
     }
 
@@ -227,7 +228,8 @@ function registerIpc() {
     return { canceled: false, filePath };
   });
 
-  ipcMain.handle('game:open', async (event) => {
+  ipcMain.handle('game:open', async (event, payload) => {
+    const limit = sgfByteLimit(payload);
     const options = {
       title: 'Open SGF',
       defaultPath: dialogDefaultPath(),
@@ -246,14 +248,17 @@ function registerIpc() {
 
     const filePath = result.filePaths[0];
     const stats = await fs.stat(filePath);
-    if (stats.size > 5_000_000) throw new Error('That SGF file is too large to open.');
+    if (stats.size > limit) {
+      throw new Error(`That SGF file is too large to open (${megabytes(stats.size)} exceeds the ${megabytes(limit)} limit).`);
+    }
 
     const content = await fs.readFile(filePath, 'utf8');
     rememberDialogDirectory(filePath);
     return { canceled: false, filePath, content };
   });
 
-  ipcMain.handle('game:import', async (event) => {
+  ipcMain.handle('game:import', async (event, payload) => {
+    const limit = sgfByteLimit(payload);
     const options = {
       title: 'Import SGF Files as Branches',
       defaultPath: dialogDefaultPath(),
@@ -269,13 +274,21 @@ function registerIpc() {
       : await dialog.showOpenDialog(options);
     if (result.canceled || result.filePaths.length === 0) return { canceled: true };
     const files = [];
+    const skipped = [];
     for (const filePath of result.filePaths) {
       const stats = await fs.stat(filePath);
-      if (!stats.isFile() || stats.size > 5_000_000) continue;
+      if (!stats.isFile()) {
+        skipped.push({ filePath, size: stats.size, reason: 'not a file' });
+        continue;
+      }
+      if (stats.size > limit) {
+        skipped.push({ filePath, size: stats.size, reason: 'too large' });
+        continue;
+      }
       files.push({ filePath, content: await fs.readFile(filePath, 'utf8') });
     }
     if (files.length) rememberDialogDirectory(files[files.length - 1].filePath);
-    return { canceled: false, files };
+    return { canceled: false, files, skipped };
   });
 
   ipcMain.handle('board:choose-picture', async (event, payload) => {
@@ -336,9 +349,12 @@ function registerIpc() {
   ipcMain.handle('game:open-path', async (_event, payload) => {
     const filePath = payload && typeof payload.filePath === 'string' ? payload.filePath : '';
     if (!filePath) throw new Error('No file path was provided.');
+    const limit = sgfByteLimit(payload);
     const stats = await fs.stat(filePath);
     if (!stats.isFile()) throw new Error('That recent entry is not a file.');
-    if (stats.size > 5_000_000) throw new Error('That SGF file is too large to open.');
+    if (stats.size > limit) {
+      throw new Error(`That SGF file is too large to open (${megabytes(stats.size)} exceeds the ${megabytes(limit)} limit).`);
+    }
     const content = await fs.readFile(filePath, 'utf8');
     rememberDialogDirectory(filePath);
     return { canceled: false, filePath, content };
@@ -440,3 +456,7 @@ if (!hasSingleInstanceLock) {
     if (!isMac) app.quit();
   });
 }
+
+// Exported so the IPC handlers can be exercised without launching Electron;
+// the entry point itself never reads this.
+module.exports = { registerIpc };

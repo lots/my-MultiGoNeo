@@ -285,6 +285,7 @@
   const setupWhiteFirst = $('#setup-white-first');
   const setupRightClickUndo = $('#setup-right-click-undo');
   const setupOpenReadOnly = $('#setup-open-readonly');
+  const setupMaxSgf = $('#setup-max-sgf');
   const setupTabs = $$('.setup-tab');
   const setupPanels = $$('.setup-panel');
   const pictureDialog = $('#picture-dialog');
@@ -368,6 +369,7 @@
     whiteFirst: false,
     rightClickUndo: false,
     openReadOnly: false,
+    maxSgfMb: 5,
     engines: [],
     selectedEngineId: null,
     engineAnalysis: false,
@@ -442,6 +444,7 @@
         whiteFirst: parsed.whiteFirst === true,
         rightClickUndo: parsed.rightClickUndo === true,
         openReadOnly: parsed.openReadOnly === true,
+        maxSgfMb: clamp(Math.round(Number(parsed.maxSgfMb) || 5), 1, 500),
         engines: Array.isArray(parsed.engines)
           ? parsed.engines
             .filter((engine) => engine && typeof engine === 'object')
@@ -467,6 +470,30 @@
 
   function saveSettings() {
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* session only */ }
+  }
+
+  // The "largest SGF" preference is stored in MB so the preference reads the way
+  // a person expects (5 MB, not 5000000), and the main process receives bytes.
+  // Saves measure the encoded form, so the same ceiling governs both directions
+  // and cannot produce a file that this app then refuses to reopen.
+  function sgfByteLimit() {
+    return Math.round(clamp(Number(settings.maxSgfMb) || DEFAULT_SETTINGS.maxSgfMb, 1, 500) * 1_000_000);
+  }
+
+  function formatMegabytes(bytes) {
+    const mb = bytes / 1_000_000;
+    return mb >= 10 ? `${Math.round(mb)} MB` : `${mb.toFixed(1)} MB`;
+  }
+
+  // The desktop build enforces the ceiling in the main process; the browser
+  // build has no main process, so the file object is measured here instead.
+  function sgfTooLarge(file) {
+    if (!file || file.size <= sgfByteLimit()) return false;
+    log(
+      `"${file.name}" is ${formatMegabytes(file.size)}; the limit is ${settings.maxSgfMb} MB. Raise it in Preferences → Edit → Documents.`,
+      'error',
+    );
+    return true;
   }
 
   // Recent files ---------------------------------------------------------
@@ -680,6 +707,7 @@
     'Default Komi': '默认贴目', 'New games': '新对局', 'White move first': '白方先行',
     'Play mode': '对局模式', 'Right-click board removes the current move': '右键移除当前着法',
     Documents: '文档', 'Open existing file as Read Only': '以只读方式打开现有文件',
+    'Largest SGF to open': '可打开的最大 SGF 文件',
     'Reset Defaults': '重置默认', OK: '确定',
     'Remember Last Board Size': '记住上次棋盘尺寸',
     'Autoplay Delay': '自动播放间隔',
@@ -3263,6 +3291,8 @@
       const d = Math.abs(x1 - x2) < 0.5
         ? `M${x1} ${y1}V${y2}`
         : `M${x1} ${y1}V${y1 + (y2 - y1) / 2}H${x2}V${y2}`;
+      // A light halo behind each bone makes crossings read as one line passing
+      // over another instead of merging into a single grey blob.
       const halo = document.createElementNS(svgNs, 'path');
       halo.setAttribute('d', d);
       halo.setAttribute('fill', 'none');
@@ -3939,7 +3969,7 @@
     if (!filePath || !isElectron) return false;
     if (dirty && !(await askConfirm('Open another game? Unsaved changes will be lost.', 'Open'))) return false;
     try {
-      const result = await desktop.openRecent(filePath);
+      const result = await desktop.openRecent(filePath, { maxBytes: sgfByteLimit() });
       if (!result || result.canceled) return false;
       if (applySgfText(result.content, result.filePath)) {
         rememberRecent(result.filePath, result.content);
@@ -3955,7 +3985,7 @@
   async function openSgf() {
     if (dirty && !(await askConfirm('Open another game? Unsaved changes will be lost.', 'Open'))) return;
     if (isElectron) {
-      const result = await desktop.openGame();
+      const result = await desktop.openGame({ maxBytes: sgfByteLimit() });
       if (!result || result.canceled) { log('Open canceled.', 'warn'); return; }
       if (applySgfText(result.content, result.filePath)) {
         rememberRecent(result.filePath, result.content);
@@ -3968,6 +3998,7 @@
           types: [{ description: 'SGF files', accept: { 'application/x-go-sgf': ['.sgf'] } }],
         });
         const file = await handle.getFile();
+        if (sgfTooLarge(file)) return;
         const text = await file.text();
         if (applySgfText(text, handle.name, { browser: true, handle: true })) {
           browserSaveHandle = handle;
@@ -4002,7 +4033,7 @@
           log('Reopening recent files is not available in this build.', 'warn');
           return;
         }
-        const result = await desktop.openRecent(entry.path);
+        const result = await desktop.openRecent(entry.path, { maxBytes: sgfByteLimit() });
         if (!result || result.canceled) { log('Open canceled.', 'warn'); return; }
         if (applySgfText(result.content, result.filePath)) {
           rememberRecent(result.filePath, result.content);
@@ -4019,6 +4050,7 @@
               if (permission !== 'granted') throw new Error('permission was denied');
             }
             const file = await handle.getFile();
+            if (sgfTooLarge(file)) return;
             const text = await file.text();
             if (applySgfText(text, entry.name, { browser: true, handle: true })) {
               browserSaveHandle = handle;
@@ -4086,9 +4118,24 @@
         return;
       }
       try {
-        const result = await desktop.importGames();
+        const result = await desktop.importGames({ maxBytes: sgfByteLimit() });
         if (!result || result.canceled) { log('Import canceled.', 'warn'); return; }
-        importSgfDocuments(result.files.map((file) => ({ name: basename(file.filePath), content: file.content })));
+        const files = Array.isArray(result.files) ? result.files : [];
+        const skipped = Array.isArray(result.skipped) ? result.skipped : [];
+        if (skipped.length) {
+          const detail = skipped
+            .map((entry) => `${basename(entry.filePath)} (${entry.reason === 'too large' ? formatMegabytes(entry.size) : entry.reason})`)
+            .join(', ');
+          log(
+            `Skipped ${skipped.length} file${skipped.length === 1 ? '' : 's'}: ${detail}. The limit is ${settings.maxSgfMb} MB; raise it in Preferences → Edit → Documents.`,
+            'warn',
+          );
+        }
+        if (!files.length) {
+          if (!skipped.length) log('No files were imported.', 'warn');
+          return;
+        }
+        importSgfDocuments(files.map((file) => ({ name: basename(file.filePath), content: file.content })));
       } catch (error) {
         log(`Could not import files: ${error.message}`, 'error');
       }
@@ -4103,6 +4150,7 @@
     if (!files.length) return;
     const documents = [];
     for (const file of files) {
+      if (sgfTooLarge(file)) continue;
       try {
         documents.push({ name: file.name, content: await file.text() });
       } catch (error) {
@@ -4123,7 +4171,7 @@
         return;
       }
       try {
-        const result = await desktop.openRecent(filePath);
+        const result = await desktop.openRecent(filePath, { maxBytes: sgfByteLimit() });
         if (!result || result.canceled) { log('Reload canceled.', 'warn'); return; }
         if (applySgfText(result.content, result.filePath)) {
           const restored = !positionSpec || restorePositionSpec(positionSpec);
@@ -4181,6 +4229,7 @@
   sgfFileInput.addEventListener('change', async () => {
     const file = sgfFileInput.files?.[0];
     if (!file) return;
+    if (sgfTooLarge(file)) return;
     try {
       const text = await file.text();
       if (applySgfText(text, file.name, { browser: true })) rememberRecent(file.name, text);
@@ -4267,9 +4316,18 @@
     let content;
     try { content = S.sgf.stringify([tree.root], { linebreak: '\n', indent: '  ' }); }
     catch (error) { log(`Could not build the SGF: ${error.message}`, 'error'); return; }
+    const maxBytes = sgfByteLimit();
+    const encodedBytes = new TextEncoder().encode(content).byteLength;
+    if (encodedBytes > maxBytes) {
+      log(
+        `This game is too large to save: ${formatMegabytes(encodedBytes)} exceeds the ${settings.maxSgfMb} MB limit. Raise it in Preferences → Edit → Documents.`,
+        'error',
+      );
+      return;
+    }
     if (isElectron) {
       const result = await desktop.saveGame({
-        content, filePath, saveAs, suggestedName: saveSuggestion(),
+        content, filePath, saveAs, suggestedName: saveSuggestion(), maxBytes,
       });
       if (!result || result.canceled) { log('Save canceled.', 'warn'); return; }
       filePath = result.filePath;
@@ -5730,6 +5788,7 @@
     setupWhiteFirst.checked = settings.whiteFirst;
     setupRightClickUndo.checked = settings.rightClickUndo;
     setupOpenReadOnly.checked = settings.openReadOnly;
+    setupMaxSgf.value = String(settings.maxSgfMb);
     setSetupTab('board');
     if (!setupDialog.open) setupDialog.showModal();
   }
@@ -5765,6 +5824,7 @@
       whiteFirst: setupWhiteFirst.checked,
       rightClickUndo: setupRightClickUndo.checked,
       openReadOnly: setupOpenReadOnly.checked,
+      maxSgfMb: clamp(Math.round(Number(setupMaxSgf.value) || DEFAULT_SETTINGS.maxSgfMb), 1, 500),
     });
     settings.defaultSize = defaultSize;
     if (defaultSize !== previousDefaultSize) {
@@ -5807,6 +5867,7 @@
     setupWhiteFirst.checked = DEFAULT_SETTINGS.whiteFirst;
     setupRightClickUndo.checked = DEFAULT_SETTINGS.rightClickUndo;
     setupOpenReadOnly.checked = DEFAULT_SETTINGS.openReadOnly;
+    setupMaxSgf.value = String(DEFAULT_SETTINGS.maxSgfMb);
   }
 
   for (const button of setupTabs) button.addEventListener('click', () => setSetupTab(button.dataset.setupTab));

@@ -926,7 +926,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.5</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.6</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">
@@ -1130,7 +1130,10 @@
           <div class="setup-row"><label for="setup-open-readonly">Documents</label>
             <label class="check"><input id="setup-open-readonly" type="checkbox"> Open existing file as Read Only</label>
           </div>
-          <p class="setup-note">BIG5 auto-detection, new-file templates and automatic branch merging are not implemented.</p>
+          <div class="setup-row"><label for="setup-max-sgf">Largest SGF to open</label>
+            <div class="input-suffix"><input id="setup-max-sgf" type="number" min="1" max="500" step="1"> <span>MB</span></div>
+          </div>
+          <p class="setup-note">BIG5 auto-detection, new-file templates and automatic branch merging are not implemented. The size limit applies to opening, importing, and saving.</p>
         </section>
       </div>
     </div>
