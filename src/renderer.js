@@ -3163,6 +3163,30 @@
       }
     };
     inner(tree.root, 0, 0);
+
+    // The first continuation at every branch point is the main variation and
+    // occupies the leftmost column. Give that line three times the vertical
+    // room of a side variation; side branches keep the compact 1-cell rhythm.
+    const mainIds = new Set();
+    let mainNode = tree.root;
+    while (mainNode) {
+      mainIds.add(mainNode.id);
+      mainNode = mainNode.children[0] || null;
+    }
+    for (const [id, [x, y]] of Object.entries(positions)) {
+      if (mainIds.has(Number(id))) {
+        positions[id] = [x, y * 3];
+        continue;
+      }
+      let ancestor = tree.get(tree.get(Number(id))?.parentId);
+      let ancestorDepth = y - 1;
+      while (ancestor && !mainIds.has(ancestor.id)) {
+        ancestor = tree.get(ancestor.parentId);
+        ancestorDepth -= 1;
+      }
+      const anchorDepth = ancestor ? ancestorDepth : 0;
+      positions[id] = [x, anchorDepth * 3 + (y - anchorDepth)];
+    }
     return { matrix, positions };
   }
 

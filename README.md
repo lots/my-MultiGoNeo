@@ -21,9 +21,9 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.5 build** repackages the 1.1.4 feature set: the Sabaki-derived **GTP engine layer**,
-Sabaki-style **scoring territory** with **Play → Estimate / Score**, live captured-stone bowls
-and small-board edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch
+The **1.1.5 build** repackages the 1.1.4 feature set and adds the **main-branch tree layout**:
+the Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
+**Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch
 import**, **PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
 **native fullscreen** and one shared lighter icon.
 
@@ -41,10 +41,10 @@ boards [below](#board-themes-and-responsive-layout).
 Released 2026-11-09. The Windows artifacts are `MultiGo-Neo-1.1.5-setup.exe` and
 `MultiGo-Neo-1.1.5-portable.exe`.
 
-Maintenance repackaging of the 1.1.4 feature set with no functional changes: the docked Score
-tab, GTP engines, Estimate/Score modes, captured-stone bowls and small-board fixes are all as
-described in [Version 1.1.4](#version-114). 1.1.5 exists so the published binaries carry the
-current version string and a clean tag/build.
+Maintenance repackaging of the 1.1.4 feature set, plus a clearer game tree: the first-child
+**main variation is the leftmost column** and its vertical node pitch is **3×** the side-branch
+pitch. The docked Score tab, GTP engines, Estimate/Score modes, captured-stone bowls and
+small-board fixes are all as described in [Version 1.1.4](#version-114).
 
 ### Version 1.1.4
 
@@ -105,6 +105,9 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   comment badges, click to select).
 - Connectors are **orthogonal tree bones** rather than long diagonal parent-child lines:
   vertical runs through a sequence plus a single clean elbow at branches.
+- The first-child **main variation is always the leftmost column**. Its vertical node pitch is
+  **three times** the side-branch pitch, so the main line reads as the primary study path while
+  variations stay compact.
 - Every branch node has a grey **`+` / `−` collapse toggle** (MultiGo-style). Collapsing hides the
   subtree, compacts the remaining layout, keeps the selected node visible, and shows the
   visible/total node count in the panel header.
@@ -122,6 +125,8 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 - New games get `GM[1] FF[4] CA[UTF-8] AP[MultiGo Neo:1.0] SZ[…]`.
 
 ![Orthogonal Sabaki-style game tree with branch collapse toggles](preview/preview-tree-expanded.png)
+
+![Leftmost main variation with 3x vertical node pitch and compact side branches](preview/preview-tree-main.png)
 
 ![Collapsed branch showing the plus toggle and compact 2/6 node count](preview/preview-tree-collapsed.png)
 
@@ -1269,6 +1274,7 @@ scripts/verify-edit-ui.mjs CDP test for Edit operations, panel limits and move m
 scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info and comment editor
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
+scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation and 3x main-branch pitch
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
