@@ -3204,7 +3204,10 @@
       while (hasCollisions) {
         hasCollisions = false;
         for (let y = 0; y <= sequence.length; y += 1) {
-          if (xshift >= matrix[yshift + y].length - (y === sequence.length)) continue;
+          // Reserve the whole child row too: a branch may not be placed in the
+          // last occupied slot of the row below, which is what caused an
+          // expanded middle branch to overlap the next branch's upper node.
+          if (xshift >= matrix[yshift + y].length) continue;
           hasCollisions = true;
           xshift += 1;
           break;

@@ -126,7 +126,9 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 - The first-child **main variation is always the leftmost column**. Every branch uses the same
   **1.32× vertical row pitch** (31.68 px), so nodes at the same move depth share a height level
   across the main line and its side variations. Branch columns are **64 px** apart, giving lower
-  levels room beside higher levels in the adjacent branch.
+  levels room beside higher levels in the adjacent branch. Column allocation reserves the full
+  child row, so expanding a middle branch shifts later branches right instead of overlapping an
+  upper-level node with the previous branch's bone.
 - On first load, the main line and its **first-level variation branches** are expanded; deeper
   branch points start collapsed so a large game tree does not open as an unreadable wall of
   nodes. The user can expand those deeper branches normally.

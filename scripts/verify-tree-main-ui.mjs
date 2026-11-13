@@ -140,7 +140,21 @@ const collapsedDefaults = await evaluate(`(() => {
   };
 })()`)
 
-console.log(JSON.stringify({ layout, collapsedDefaults, errors }, null, 2))
+const collisionFree = await evaluate(`(() => {
+  const dense = '(;GM[1]FF[4]SZ[9];B[aa](;W[bb](;B[cc];W[dd])(;B[ee])(;B[ff]))(;W[gg])(;W[hh])(;W[ii]))';
+  __figdesk.applySgfText(dense, 'tree-dense.sgf');
+  const buttons = [...document.querySelectorAll('.tree-node')];
+  const seen = new Set();
+  let duplicates = 0;
+  for (const button of buttons) {
+    const key = button.style.left + '|' + button.style.top;
+    if (seen.has(key)) duplicates += 1;
+    seen.add(key);
+  }
+  return { nodes: buttons.length, unique: seen.size, duplicates };
+})()`)
+
+console.log(JSON.stringify({ layout, collapsedDefaults, collisionFree, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
   && Math.abs(layout.mainPitch - layout.sidePitch) <= 1
@@ -150,4 +164,5 @@ process.exitCode = errors.length === 0
   && layout.toggle.centered
   && layout.toggle.atBottom
   && collapsedDefaults.hidden
-  && collapsedDefaults.collapsedToggle ? 0 : 1
+  && collapsedDefaults.collapsedToggle
+  && collisionFree.duplicates === 0 ? 0 : 1
