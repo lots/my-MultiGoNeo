@@ -112,6 +112,7 @@ const layout = await evaluate(`(() => {
     sidePitch: sidePoint ? sidePoint.top - sideParent.top : null,
     leftmost: Math.min(...nodes.map((entry) => read(entry.id).left)),
     mainLeft: mainPoints[0].left,
+    horizontalGap: sidePoint ? sidePoint.left - sideParent.left : null,
     toggle: {
       nodeBottom: Math.round(nodeRect.bottom),
       top: Math.round(toggleRect.top),
@@ -122,11 +123,31 @@ const layout = await evaluate(`(() => {
 })()`)
 await shot('preview-tree-main.png')
 
-console.log(JSON.stringify({ layout, errors }, null, 2))
+const collapsedDefaults = await evaluate(`(() => {
+  const nested = '(;GM[1]FF[4]SZ[9];B[aa](;W[bb];B[cc])(;W[dd](;B[ee])(;B[ff];W[gg])))';
+  __figdesk.applySgfText(nested, 'tree-nested.sgf');
+  const nodes = [...__figdesk.tree.listNodes()];
+  const find = (prop, value) => nodes.find((node) => node.data[prop]?.[0] === value);
+  const hidden = find('W', 'gg');
+  const branch = find('B', 'ff');
+  const toggle = document.querySelector('.tree-toggle[data-toggle-node-id="' + branch.id + '"]');
+  return {
+    total: nodes.length,
+    visible: document.querySelectorAll('.tree-node').length,
+    hidden: !document.querySelector('.tree-node[data-node-id="' + hidden.id + '"]'),
+    collapsedToggle: Boolean(toggle?.classList.contains('is-collapsed')),
+    meta: document.getElementById('tree-meta').textContent,
+  };
+})()`)
+
+console.log(JSON.stringify({ layout, collapsedDefaults, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
-  && layout.mainPitch === layout.sidePitch
-  && Math.abs(layout.mainPitch - 28.8) <= 0.6
+  && Math.abs(layout.mainPitch - layout.sidePitch) <= 1
+  && Math.abs(layout.mainPitch - 31.68) <= 0.6
   && layout.mainLeft === layout.leftmost
+  && layout.horizontalGap === 36
   && layout.toggle.centered
-  && layout.toggle.atBottom ? 0 : 1
+  && layout.toggle.atBottom
+  && collapsedDefaults.hidden
+  && collapsedDefaults.collapsedToggle ? 0 : 1

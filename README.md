@@ -42,9 +42,9 @@ Released 2026-11-09. The Windows artifacts are `MultiGo-Neo-1.1.5-setup.exe` and
 `MultiGo-Neo-1.1.5-portable.exe`.
 
 Maintenance repackaging of the 1.1.4 feature set, plus a clearer game tree: the first-child
-**main variation is the leftmost column**, every branch uses the same **1.2× vertical row
-pitch** (28.8 px instead of 24 px), and side variations stay on the same height levels as the
-main line. The docked Score tab, GTP engines, Estimate/Score modes, captured-stone bowls and
+**main variation is the leftmost column**, every branch uses the same **1.32× vertical row
+pitch** (31.68 px instead of 24 px), and side variations stay on the same height levels as the
+main line. Branch columns are widened to **36 px** so adjacent levels do not visually touch. The docked Score tab, GTP engines, Estimate/Score modes, captured-stone bowls and
 small-board fixes are all as described in [Version 1.1.4](#version-114).
 
 ### Version 1.1.4
@@ -107,8 +107,12 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 - Connectors are **orthogonal tree bones** rather than long diagonal parent-child lines:
   vertical runs through a sequence plus a single clean elbow at branches.
 - The first-child **main variation is always the leftmost column**. Every branch uses the same
-  **1.2× vertical row pitch** (28.8 px), so nodes at the same move depth share a height level
-  across the main line and its side variations.
+  **1.32× vertical row pitch** (31.68 px), so nodes at the same move depth share a height level
+  across the main line and its side variations. Branch columns are **36 px** apart, giving lower
+  levels room beside higher levels in the adjacent branch.
+- On first load, the main line and its **first-level variation branches** are expanded; deeper
+  branch points start collapsed so a large game tree does not open as an unreadable wall of
+  nodes. The user can expand those deeper branches normally.
 - Every branch node has a small grey **`+` / `−` collapse toggle** centred at the **bottom** of
   the node (MultiGo-style). Collapsing hides the subtree, compacts the remaining layout, keeps
   the selected node visible, and shows the visible/total node count in the panel header.
@@ -127,7 +131,7 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 
 ![Orthogonal Sabaki-style game tree with branch collapse toggles](preview/preview-tree-expanded.png)
 
-![Leftmost main variation with 1.2x vertical row pitch and aligned side branches](preview/preview-tree-main.png)
+![Leftmost main variation with 1.32x vertical row pitch and aligned side branches](preview/preview-tree-main.png)
 
 ![Collapsed branch showing the plus toggle and compact 2/6 node count](preview/preview-tree-collapsed.png)
 
@@ -1275,7 +1279,7 @@ scripts/verify-edit-ui.mjs CDP test for Edit operations, panel limits and move m
 scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info and comment editor
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
-scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation and uniform 1.2x row pitch
+scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation, 1.32x row pitch, 36 px columns, bottom toggles and initial collapse
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q

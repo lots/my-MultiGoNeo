@@ -922,6 +922,7 @@
       }
     }
     tree = new S.GameTree({ root, getId, merger: S.nodeMerger });
+    resetInitialTreeCollapse();
     nodeId = root.id;
     currentBoard = null;
     undoStack = [];
@@ -3124,6 +3125,37 @@
     }
   }
 
+  function defaultCollapsedBranches() {
+    const collapsed = new Set();
+    const walkBranch = (start, level) => {
+      let node = start;
+      while (node) {
+        const children = node.children;
+        if (!children.length) return;
+        for (let index = 1; index < children.length; index += 1) {
+          const sibling = children[index];
+          if (level + 1 >= 2) {
+            // Keep the first two branch levels open; deeper branch points start
+            // collapsed so a loaded game is not an overwhelming full tree.
+            if (sibling.children.length) collapsed.add(sibling.id);
+          } else {
+            walkBranch(sibling, level + 1);
+          }
+        }
+        node = children[0];
+      }
+    };
+    walkBranch(tree.root, 0);
+    return collapsed;
+  }
+
+  function resetInitialTreeCollapse() {
+    if (!tree) return;
+    collapsedTreeRootId = tree.root.id;
+    collapsedNodeIds.clear();
+    for (const id of defaultCollapsedBranches()) collapsedNodeIds.add(id);
+  }
+
   function visibleTreeLayout() {
     // The matrix layout is a local, collapse-aware copy of the Sabaki
     // getMatrixDict layout. Hiding a node's children compacts the remaining
@@ -3163,13 +3195,6 @@
       }
     };
     inner(tree.root, 0, 0);
-
-    // Increase the previous 24 px row pitch by 50% (to 36 px). Every branch
-    // uses the same row grid, so side variations stay on the same height levels
-    // as the leftmost main variation.
-    for (const [id, [x, y]] of Object.entries(positions)) {
-      positions[id] = [x, y * 1.2];
-    }
     return { matrix, positions };
   }
 
@@ -3206,12 +3231,13 @@
     const allNodes = [...tree.listNodes()];
     const nodes = allNodes.filter((node) => positions[node.id]);
     const pathIds = new Set(S.getPath(tree, nodeId).map((node) => node.id));
-    const cell = 24;
+    const cellX = 36;
+    const cellY = 31.68;
     const padding = 12;
     const maxX = Math.max(0, ...Object.values(positions).map(([x]) => x));
     const maxY = Math.max(0, ...Object.values(positions).map(([, y]) => y));
-    const width = padding * 2 + maxX * cell + 20;
-    const height = padding * 2 + maxY * cell + 20;
+    const width = padding * 2 + maxX * cellX + 20;
+    const height = padding * 2 + maxY * cellY + 20;
 
     const canvas = document.createElement('div');
     canvas.className = 'tree-canvas';
@@ -3228,10 +3254,10 @@
       const from = positions[node.id];
       const to = positions[node.parentId];
       if (!from || !to) continue;
-      const x1 = padding + to[0] * cell + 10;
-      const y1 = padding + to[1] * cell + 10;
-      const x2 = padding + from[0] * cell + 10;
-      const y2 = padding + from[1] * cell + 10;
+      const x1 = padding + to[0] * cellX + 10;
+      const y1 = padding + to[1] * cellY + 10;
+      const x2 = padding + from[0] * cellX + 10;
+      const y2 = padding + from[1] * cellY + 10;
       // Orthogonal Sabaki-style bones: vertical through a sequence and one
       // clean elbow at a branch, instead of long diagonal parent-child lines.
       const d = Math.abs(x1 - x2) < 0.5
@@ -3261,8 +3287,8 @@
       button.type = 'button';
       button.className = 'tree-node';
       button.dataset.nodeId = String(node.id);
-      button.style.left = `${padding + x * cell}px`;
-      button.style.top = `${padding + y * cell}px`;
+      button.style.left = `${padding + x * cellX}px`;
+      button.style.top = `${padding + y * cellY}px`;
       if (node.parentId == null) button.classList.add('is-root');
       else if (node.data.B) button.classList.add('is-black');
       else if (node.data.W) button.classList.add('is-white');
@@ -3285,8 +3311,8 @@
         toggle.type = 'button';
         toggle.className = `tree-toggle${collapsed ? ' is-collapsed' : ''}`;
         toggle.dataset.toggleNodeId = String(node.id);
-        toggle.style.left = `${padding + x * cell + 5}px`;
-        toggle.style.top = `${padding + y * cell + 18}px`;
+        toggle.style.left = `${padding + x * cellX + 5}px`;
+        toggle.style.top = `${padding + y * cellY + 20}px`;
         toggle.textContent = collapsed ? '+' : '−';
         toggle.title = collapsed ? 'Expand this branch' : 'Collapse this branch';
         toggle.setAttribute('aria-label', collapsed ? 'Expand branch' : 'Collapse branch');
@@ -4711,6 +4737,7 @@
     browserSaveHandle = null;
     try { tree = new S.GameTree({ root: roots[0], getId, merger: S.nodeMerger }); }
     catch (error) { log(`Could not build the game tree: ${error.message}`, 'error'); return false; }
+    resetInitialTreeCollapse();
     nodeId = tree.root.id;
     S.clearBoardCache();
     currentBoard = null;
