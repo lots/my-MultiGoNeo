@@ -662,7 +662,8 @@
     Undo: '撤销', Redo: '重做', 'Edit Mode': '编辑模式', 'Read Only': '只读', 'READ ONLY': '只读', 'Delete Node': '删除节点',
     'Make Main Variation': '设为主变化', 'Shift Variation Left': '左移变化', 'Shift Variation Right': '右移变化',
     'Remove Other Variations': '删除其他变化', 'Clear Node Markup': '清除节点标记', 'Edit Game Info': '编辑对局信息',
-    'Edit Node Comment': '编辑节点注释', 'Cut Current Node': '剪切当前节点',
+    'Edit Node Comment': '编辑节点注释', 'Edit Node Name': '编辑节点名称',
+    'Node name': '节点名称', 'Cut Current Node': '剪切当前节点',
     'Cut All After Current': '剪切当前之后全部',
     'Copy Current Variation': '复制当前变化', 'Paste Variation as Child': '粘贴为子变化',
     'Duplicate Current Node': '复制当前节点', 'Insert Empty Node': '插入空节点',
@@ -818,6 +819,7 @@
   let tree = null;
   let collapsedTreeRootId = null;
   const collapsedNodeIds = new Set();
+  let nodeNameEditor = null;
   let nodeId = null;
   let mode = 'play';
   let selectedTool = 'stone_1';
@@ -3267,7 +3269,8 @@
     const padding = 12;
     const maxX = Math.max(0, ...Object.values(positions).map(([x]) => x));
     const maxY = Math.max(0, ...Object.values(positions).map(([, y]) => y));
-    const width = padding * 2 + maxX * cellX + 20;
+    const hasNames = nodes.some((node) => String(node.data.N?.[0] || '').trim());
+    const width = padding * 2 + maxX * cellX + 20 + (hasNames ? 200 : 0);
     const height = padding * 2 + maxY * cellY + 20;
 
     const canvas = document.createElement('div');
@@ -3341,10 +3344,20 @@
       if (isPass) button.classList.add('is-pass');
       if (collapsed) button.classList.add('is-collapsed');
       button.textContent = node.parentId == null ? 'S' : isMove ? (isPass ? 'p' : String(moveNumber)) : '·';
-      button.title = `${nodeLabel(node, dims)}${node.data.C?.[0] ? ` — ${node.data.C[0]}` : ''}${collapsed ? ' — collapsed' : ''}`;
+      const nodeName = String(node.data.N?.[0] || '').trim();
+      button.title = `${nodeLabel(node, dims)}${nodeName ? ` — ${nodeName}` : ''}${node.data.C?.[0] ? ` — ${node.data.C[0]}` : ''}${collapsed ? ' — collapsed' : ''}`;
       button.setAttribute('role', 'treeitem');
-      button.setAttribute('aria-label', `Node ${S.getMoveNumber(tree, node.id)}: ${nodeLabel(node, dims)}${collapsed ? ', collapsed' : ''}`);
+      button.setAttribute('aria-label', `Node ${S.getMoveNumber(tree, node.id)}: ${nodeLabel(node, dims)}${nodeName ? `, ${nodeName}` : ''}${collapsed ? ', collapsed' : ''}`);
       canvas.append(button);
+      if (nodeName) {
+        const name = document.createElement('span');
+        name.className = 'tree-node-name';
+        name.textContent = nodeName;
+        name.title = nodeName;
+        name.style.left = `${padding + x * cellX + 24}px`;
+        name.style.top = `${padding + y * cellY + 1}px`;
+        canvas.append(name);
+      }
 
       if (node.children.length > 1 || collapsed) {
         const toggle = document.createElement('button');
@@ -3369,6 +3382,85 @@
     const current = gameTree.querySelector('.tree-node.is-current');
     if (current) current.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
+
+  function closeNodeNameEditor() {
+    if (nodeNameEditor) {
+      nodeNameEditor.remove();
+      nodeNameEditor = null;
+    }
+  }
+
+  function openNodeNameEditor(id = nodeId) {
+    if (!tree || !tree.get(id)) return;
+    if (readOnly) { log('Read Only: node names are disabled.', 'warn'); return; }
+    if (countState.active) exitCount();
+    if (id !== nodeId) selectNode(id);
+    closeNodeNameEditor();
+    const button = gameTree.querySelector(`.tree-node[data-node-id="${id}"]`);
+    const canvas = gameTree.querySelector('.tree-canvas');
+    if (!button || !canvas) return;
+    const node = tree.get(id);
+    const form = document.createElement('form');
+    form.className = 'tree-name-editor';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 120;
+    input.value = node.data.N?.[0] || '';
+    input.placeholder = t('Node name');
+    input.setAttribute('aria-label', t('Node name'));
+    const save = document.createElement('button');
+    save.type = 'submit';
+    save.className = 'btn btn-primary';
+    save.textContent = t('Save');
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'btn';
+    cancel.textContent = t('Cancel');
+    form.append(input, save, cancel);
+    form.style.left = `${button.offsetLeft + 24}px`;
+    form.style.top = `${button.offsetTop - 3}px`;
+    form.addEventListener('pointerdown', (event) => event.stopPropagation());
+    form.addEventListener('click', (event) => event.stopPropagation());
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const value = input.value.trim();
+      const previous = (node.data.N?.[0] || '').trim();
+      nodeNameEditor = null;
+      form.remove();
+      if (value !== previous) {
+        mutateTree((draft) => {
+          if (value) draft.updateProperty(id, 'N', [value]);
+          else draft.removeProperty(id, 'N');
+        }, { message: value ? 'Node name updated.' : 'Node name removed.' });
+      }
+    });
+    cancel.addEventListener('click', closeNodeNameEditor);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeNodeNameEditor();
+      }
+    });
+    nodeNameEditor = form;
+    canvas.append(form);
+    input.focus();
+    input.select();
+  }
+
+  gameTree.addEventListener('dblclick', (event) => {
+    const button = event.target.closest('.tree-node');
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    openNodeNameEditor(Number(button.dataset.nodeId));
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (nodeNameEditor && !nodeNameEditor.contains(event.target)) {
+      closeNodeNameEditor();
+    }
+  }, true);
 
   gameTree.addEventListener('click', (event) => {
     const toggle = event.target.closest('.tree-toggle');
@@ -5327,6 +5419,7 @@
     'copy-variation': copyVariation, 'paste-variation': pasteVariation,
     'duplicate-node': duplicateNode, 'insert-node': insertEmptyNode,
     'flatten-variation': flattenVariation, 'focus-comment': focusComment,
+    'node-name': () => openNodeNameEditor(),
     'shift-left': () => shiftVariation('left'), 'shift-right': () => shiftVariation('right'),
     'remove-siblings': removeOtherVariations, 'clear-markup': clearNodeMarkup,
     'focus-info': focusGameInfo,
@@ -6129,6 +6222,7 @@
     if (document.querySelector('dialog[open]')) return;
     if (event.key === 'F1') { event.preventDefault(); showShortcuts(); return; }
     if (event.key === 'F11') { event.preventDefault(); runAction(toggleFullScreen); return; }
+    if (event.key === 'F2') { event.preventDefault(); runAction(() => openNodeNameEditor()); return; }
     const typing = isTypingTarget(event.target) || isTypingTarget(document.activeElement);
     if (typing) {
       const typingModifier = isMac ? event.metaKey : event.ctrlKey;

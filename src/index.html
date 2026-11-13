@@ -153,6 +153,9 @@
           <button type="button" class="menu-item" role="menuitem" data-action="focus-comment">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Edit Node Comment</span>
           </button>
+          <button type="button" class="menu-item" role="menuitem" data-action="node-name">
+            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Edit Node Name</span><kbd>F2</kbd>
+          </button>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="cut-variation">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Cut Current Node</span><kbd data-accel="Ctrl+Alt+X">Ctrl+Alt+X</kbd>
@@ -926,7 +929,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.6</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.7</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">
@@ -958,6 +961,7 @@
         <div><dt><kbd data-accel="Ctrl+Z">Ctrl+Z</kbd></dt><dd>Undo</dd></div>
         <div><dt><kbd data-accel="Ctrl+Shift+Z">Ctrl+Shift+Z</kbd></dt><dd>Redo</dd></div>
         <div><dt><kbd data-accel="Ctrl+E">Ctrl+E</kbd></dt><dd>Toggle edit mode</dd></div>
+        <div><dt><kbd>F2</kbd></dt><dd>Edit the selected node's name in the game tree</dd></div>
         <div><dt><kbd>↑</kbd> / <kbd>↓</kbd></dt><dd>Parent node / first child</dd></div>
         <div><dt><kbd>←</kbd> / <kbd>→</kbd></dt><dd>Previous / next sibling variation</dd></div>
         <div><dt><kbd>Ctrl+Shift+↑</kbd> / <kbd>Ctrl+Shift+↓</kbd></dt><dd>Commenting: move to parent / first child and keep comment focus</dd></div>

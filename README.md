@@ -21,8 +21,9 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.6 build** adds the configurable **SGF size limit**, bundles the 13×13 study records and
-ships the portable web copy as a download. It keeps the 1.1.5 **main-branch tree layout** and the
+The **1.1.7 build** adds MultiGo-style **editable node names** in the game tree. The 1.1.6 build
+adds the configurable **SGF size limit**, bundles the 13×13 study records and ships the portable
+web copy as a download. It keeps the 1.1.5 **main-branch tree layout** and the
 Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
 **Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2
 release brought **Reload-in-place**, **multi-file branch import**, **PNG board export**, the
@@ -37,6 +38,17 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.7
+
+Released 2026-11-13. The Windows artifacts are `MultiGo-Neo-1.1.7-setup.exe` and
+`MultiGo-Neo-1.1.7-portable.exe`, plus `MultiGo-Neo-1.1.7-web.zip` for the browser build.
+
+- **Node names** — add or edit a node's FF[4] `N` property directly in the game tree.
+  Double-click a node, press **F2**, or choose **Edit → Edit Node Name**; a small editor opens
+  beside that node. Enter/Save stores the name in the SGF, an empty value removes it, and Escape
+  cancels. Named nodes show their name beside the node in the tree, so the name is visible again
+  when the file is reopened.
 
 ### Version 1.1.6
 
@@ -135,6 +147,12 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 - Every branch node has a small grey **`+` / `−` collapse toggle** centred at the **bottom** of
   the node (MultiGo-style). Collapsing hides the subtree, compacts the remaining layout, keeps
   the selected node visible, and shows the visible/total node count in the panel header.
+- Nodes can carry a MultiGo-style **node name** stored as the standard FF[4] `N` property.
+  Double-click a node, press **F2**, or choose **Edit → Edit Node Name**; the editor opens in the
+  tree beside that node. Save/Enter stores it, an empty value removes it, and Escape cancels. A
+  named node displays its name beside the circle, including after reopening the SGF.
+
+![Editable node names displayed in the game tree](preview/preview-node-name.png)
 - Expanding restores the subtree; collapse state is kept while editing the same game.
 - Play a move, create a variation by playing a different move from an earlier node, pass,
   and switch the player to move.
@@ -1035,7 +1053,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.6-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.7-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1043,7 +1061,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.6-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.7-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1145,9 +1163,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.6-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.6-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.6-web.zip` — portable web build (same files as `web-portable/`).
+- `release/MultiGo-Neo-1.1.7-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.7-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.7-web.zip` — portable web build (same files as `web-portable/`).
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
@@ -1319,6 +1337,7 @@ scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info a
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
 scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation, 1.32x row pitch, 64 px columns, bottom toggles and initial collapse
+scripts/verify-node-name-ui.mjs CDP test for N-property labels and the inline game-tree name editor
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
