@@ -101,6 +101,10 @@ const layout = await evaluate(`(() => {
   const sideParent = read(find('B', 'aa').id);
   const sidePoint = side ? read(side.id) : null;
   const mainPitch = mainPoints.length > 1 ? mainPoints[1].top - mainPoints[0].top : null;
+  const branchButton = document.querySelector('.tree-node[data-node-id="' + find('B', 'aa').id + '"]');
+  const branchToggle = document.querySelector('.tree-toggle[data-toggle-node-id="' + find('B', 'aa').id + '"]');
+  const nodeRect = branchButton.getBoundingClientRect();
+  const toggleRect = branchToggle.getBoundingClientRect();
   return {
     mainIds: main,
     mainPoints,
@@ -108,6 +112,12 @@ const layout = await evaluate(`(() => {
     sidePitch: sidePoint ? sidePoint.top - sideParent.top : null,
     leftmost: Math.min(...nodes.map((entry) => read(entry.id).left)),
     mainLeft: mainPoints[0].left,
+    toggle: {
+      nodeBottom: Math.round(nodeRect.bottom),
+      top: Math.round(toggleRect.top),
+      centered: Math.abs((toggleRect.left + toggleRect.width / 2) - (nodeRect.left + nodeRect.width / 2)) < 1,
+      atBottom: toggleRect.top > nodeRect.top + nodeRect.height - 3,
+    },
   };
 })()`)
 await shot('preview-tree-main.png')
@@ -117,4 +127,6 @@ ws.close()
 process.exitCode = errors.length === 0
   && layout.mainPitch === layout.sidePitch
   && Math.abs(layout.mainPitch - 28.8) <= 0.6
-  && layout.mainLeft === layout.leftmost ? 0 : 1
+  && layout.mainLeft === layout.leftmost
+  && layout.toggle.centered
+  && layout.toggle.atBottom ? 0 : 1

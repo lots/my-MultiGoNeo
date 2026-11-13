@@ -109,9 +109,9 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
 - The first-child **main variation is always the leftmost column**. Every branch uses the same
   **1.2× vertical row pitch** (28.8 px), so nodes at the same move depth share a height level
   across the main line and its side variations.
-- Every branch node has a grey **`+` / `−` collapse toggle** (MultiGo-style). Collapsing hides the
-  subtree, compacts the remaining layout, keeps the selected node visible, and shows the
-  visible/total node count in the panel header.
+- Every branch node has a small grey **`+` / `−` collapse toggle** centred at the **bottom** of
+  the node (MultiGo-style). Collapsing hides the subtree, compacts the remaining layout, keeps
+  the selected node visible, and shows the visible/total node count in the panel header.
 - Expanding restores the subtree; collapse state is kept while editing the same game.
 - Play a move, create a variation by playing a different move from an earlier node, pass,
   and switch the player to move.

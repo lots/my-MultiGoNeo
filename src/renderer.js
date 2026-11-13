@@ -3285,8 +3285,8 @@
         toggle.type = 'button';
         toggle.className = `tree-toggle${collapsed ? ' is-collapsed' : ''}`;
         toggle.dataset.toggleNodeId = String(node.id);
-        toggle.style.left = `${padding + x * cell - 8}px`;
-        toggle.style.top = `${padding + y * cell + 4}px`;
+        toggle.style.left = `${padding + x * cell + 5}px`;
+        toggle.style.top = `${padding + y * cell + 18}px`;
         toggle.textContent = collapsed ? '+' : '−';
         toggle.title = collapsed ? 'Expand this branch' : 'Collapse this branch';
         toggle.setAttribute('aria-label', collapsed ? 'Expand branch' : 'Collapse branch');
