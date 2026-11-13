@@ -3231,7 +3231,7 @@
     const allNodes = [...tree.listNodes()];
     const nodes = allNodes.filter((node) => positions[node.id]);
     const pathIds = new Set(S.getPath(tree, nodeId).map((node) => node.id));
-    const cellX = 36;
+    const cellX = 48;
     const cellY = 31.68;
     const padding = 12;
     const maxX = Math.max(0, ...Object.values(positions).map(([x]) => x));
