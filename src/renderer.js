@@ -3168,7 +3168,7 @@
     // uses the same row grid, so side variations stay on the same height levels
     // as the leftmost main variation.
     for (const [id, [x, y]] of Object.entries(positions)) {
-      positions[id] = [x, y * 1.5];
+      positions[id] = [x, y * 1.2];
     }
     return { matrix, positions };
   }
