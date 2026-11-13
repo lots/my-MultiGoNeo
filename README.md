@@ -44,7 +44,7 @@ Released 2026-11-09. The Windows artifacts are `MultiGo-Neo-1.1.5-setup.exe` and
 Maintenance repackaging of the 1.1.4 feature set, plus a clearer game tree: the first-child
 **main variation is the leftmost column**, every branch uses the same **1.32× vertical row
 pitch** (31.68 px instead of 24 px), and side variations stay on the same height levels as the
-main line. Branch columns are widened to **48 px** so adjacent levels do not visually touch.
+main line. Branch columns are widened to **64 px** so adjacent levels do not visually touch; light halos behind the bones keep crossings visually separate.
 The docked Score tab, GTP engines, Estimate/Score modes, captured-stone bowls and small-board
 fixes are all as described in [Version 1.1.4](#version-114).
 
@@ -109,7 +109,7 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   vertical runs through a sequence plus a single clean elbow at branches.
 - The first-child **main variation is always the leftmost column**. Every branch uses the same
   **1.32× vertical row pitch** (31.68 px), so nodes at the same move depth share a height level
-  across the main line and its side variations. Branch columns are **48 px** apart, giving lower
+  across the main line and its side variations. Branch columns are **64 px** apart, giving lower
   levels room beside higher levels in the adjacent branch.
 - On first load, the main line and its **first-level variation branches** are expanded; deeper
   branch points start collapsed so a large game tree does not open as an unreadable wall of
@@ -1280,7 +1280,7 @@ scripts/verify-edit-ui.mjs CDP test for Edit operations, panel limits and move m
 scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info and comment editor
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
-scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation, 1.32x row pitch, 48 px columns, bottom toggles and initial collapse
+scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation, 1.32x row pitch, 64 px columns, bottom toggles and initial collapse
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q

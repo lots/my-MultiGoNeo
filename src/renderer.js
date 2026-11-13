@@ -3231,7 +3231,7 @@
     const allNodes = [...tree.listNodes()];
     const nodes = allNodes.filter((node) => positions[node.id]);
     const pathIds = new Set(S.getPath(tree, nodeId).map((node) => node.id));
-    const cellX = 48;
+    const cellX = 64;
     const cellY = 31.68;
     const padding = 12;
     const maxX = Math.max(0, ...Object.values(positions).map(([x]) => x));
@@ -3263,6 +3263,13 @@
       const d = Math.abs(x1 - x2) < 0.5
         ? `M${x1} ${y1}V${y2}`
         : `M${x1} ${y1}V${y1 + (y2 - y1) / 2}H${x2}V${y2}`;
+      const halo = document.createElementNS(svgNs, 'path');
+      halo.setAttribute('d', d);
+      halo.setAttribute('fill', 'none');
+      halo.setAttribute('stroke-linecap', 'round');
+      halo.setAttribute('stroke-linejoin', 'round');
+      halo.setAttribute('class', 'tree-link-halo');
+      svg.append(halo);
       const path = document.createElementNS(svgNs, 'path');
       path.setAttribute('d', d);
       path.setAttribute('fill', 'none');

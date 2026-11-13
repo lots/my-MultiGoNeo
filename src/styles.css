@@ -941,6 +941,11 @@ button {
   overflow: visible;
 }
 
+.tree-link-halo {
+  stroke: #fff;
+  stroke-width: 3.2;
+}
+
 .tree-link {
   stroke: #c8c8c8;
   stroke-width: 1;

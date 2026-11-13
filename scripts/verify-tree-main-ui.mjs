@@ -146,7 +146,7 @@ process.exitCode = errors.length === 0
   && Math.abs(layout.mainPitch - layout.sidePitch) <= 1
   && Math.abs(layout.mainPitch - 31.68) <= 0.6
   && layout.mainLeft === layout.leftmost
-  && layout.horizontalGap === 48
+  && layout.horizontalGap === 64
   && layout.toggle.centered
   && layout.toggle.atBottom
   && collapsedDefaults.hidden
