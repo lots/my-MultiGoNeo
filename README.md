@@ -21,9 +21,10 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.7 build** adds MultiGo-style **editable node names** in the game tree. The 1.1.6 build
-adds the configurable **SGF size limit**, bundles the 13×13 study records and ships the portable
-web copy as a download. It keeps the 1.1.5 **main-branch tree layout** and the
+The **1.1.8 build** keeps the 1.1.7 **editable node names** and now builds the portable web
+folder and its matching `web.zip` in one step, so the two distribution forms stay identical. The
+1.1.6 build added the configurable **SGF size limit**, bundled the 13×13 study records and
+introduced the web download. It keeps the 1.1.5 **main-branch tree layout** and the
 Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
 **Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2
 release brought **Reload-in-place**, **multi-file branch import**, **PNG board export**, the
@@ -38,6 +39,16 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.8
+
+Released 2026-11-13. The Windows artifacts are `MultiGo-Neo-1.1.8-setup.exe` and
+`MultiGo-Neo-1.1.8-portable.exe`, plus `MultiGo-Neo-1.1.8-web.zip` for the browser build.
+
+Maintenance release with no application changes: `npm run dist:web` now builds the
+`web-portable/` folder **and** writes the matching `release/MultiGo-Neo-<version>-web.zip` from
+it, so the folder and the release archive cannot drift apart. The README explains which form to
+use: the folder for direct USB copying, the zip for downloads and archiving.
 
 ### Version 1.1.7
 
@@ -1053,7 +1064,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.7-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.8-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1061,7 +1072,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.7-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.8-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1115,9 +1126,11 @@ at runtime.
 Browser-only limits: GTP engines, native Open/Save dialogs, the `.sgf` Explorer association and
 the installers are Electron-only. Open/Save use the browser's file picker and downloads;
 settings, theme, recent files and layout live in the browser's `localStorage` for that folder.
-The generated folder is git-ignored (`web-portable/`); run `npm run dist:web` again after source
-changes. Each GitHub release also attaches the same folder as
-`MultiGo-Neo-<version>-web.zip`.
+The generated folder is git-ignored (`web-portable/`); run `npm run dist:web` after source
+changes. The same command also writes the matching `release/MultiGo-Neo-<version>-web.zip` from
+the freshly built folder, and that is the file attached to each GitHub release. Use the folder
+for direct USB copying and the zip for downloads or archiving; because both are produced by one
+command, they cannot drift apart.
 
 ### Bundled SGF study records
 
@@ -1163,9 +1176,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.7-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.7-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.7-web.zip` — portable web build (same files as `web-portable/`).
+- `release/MultiGo-Neo-1.1.8-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.8-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.8-web.zip` — portable web build, written by `npm run dist:web`.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;

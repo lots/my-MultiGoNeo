@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import zlib from 'node:zlib'
 import { fileURLToPath } from 'node:url'
 
 /**
@@ -15,6 +16,9 @@ import { fileURLToPath } from 'node:url'
  *     README.txt
  *     Open MultiGo Neo.cmd
  *
+ * Also writes release/MultiGo-Neo-<version>-web.zip from the finished folder so
+ * the folder and the release archive always match.
+ *
  * Everything is referenced relatively and nothing is fetched at runtime, so the
  * folder can be copied to a USB stick and opened from file:// on another PC.
  *
@@ -25,6 +29,99 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const src = path.join(root, 'src')
 const out = path.resolve(process.argv[2] ?? path.join(root, 'web-portable'))
 const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'))
+
+// Minimal ZIP writer (deflate + UTF-8 names) so `npm run dist:web` can emit the
+// release archive without depending on PowerShell, 7-Zip or an npm package.
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256)
+  for (let index = 0; index < 256; index += 1) {
+    let value = index
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1
+    }
+    table[index] = value >>> 0
+  }
+  return table
+})()
+
+function crc32(buffer) {
+  let value = 0xffffffff
+  for (let index = 0; index < buffer.length; index += 1) {
+    value = CRC_TABLE[(value ^ buffer[index]) & 0xff] ^ (value >>> 8)
+  }
+  return (value ^ 0xffffffff) >>> 0
+}
+
+function dosDateTime(date) {
+  const year = Math.max(1980, date.getFullYear())
+  return {
+    time: (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2),
+    date: ((year - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate(),
+  }
+}
+
+function createZip(entries) {
+  const locals = []
+  const central = []
+  let offset = 0
+  for (const entry of entries) {
+    const name = Buffer.from(entry.name, 'utf8')
+    const crc = crc32(entry.data)
+    const deflated = zlib.deflateRawSync(entry.data, { level: 9 })
+    const useDeflate = deflated.length < entry.data.length
+    const payload = useDeflate ? deflated : entry.data
+    const method = useDeflate ? 8 : 0
+    const stamp = dosDateTime(entry.date ?? new Date())
+
+    const local = Buffer.alloc(30)
+    local.writeUInt32LE(0x04034b50, 0)
+    local.writeUInt16LE(20, 4)
+    local.writeUInt16LE(0x0800, 6)
+    local.writeUInt16LE(method, 8)
+    local.writeUInt16LE(stamp.time, 10)
+    local.writeUInt16LE(stamp.date, 12)
+    local.writeUInt32LE(crc, 14)
+    local.writeUInt32LE(payload.length, 18)
+    local.writeUInt32LE(entry.data.length, 22)
+    local.writeUInt16LE(name.length, 26)
+    local.writeUInt16LE(0, 28)
+    locals.push(local, name, payload)
+
+    const directory = Buffer.alloc(46)
+    directory.writeUInt32LE(0x02014b50, 0)
+    directory.writeUInt16LE(20, 4)
+    directory.writeUInt16LE(20, 6)
+    directory.writeUInt16LE(0x0800, 8)
+    directory.writeUInt16LE(method, 10)
+    directory.writeUInt16LE(stamp.time, 12)
+    directory.writeUInt16LE(stamp.date, 14)
+    directory.writeUInt32LE(crc, 16)
+    directory.writeUInt32LE(payload.length, 20)
+    directory.writeUInt32LE(entry.data.length, 24)
+    directory.writeUInt16LE(name.length, 28)
+    directory.writeUInt16LE(0, 30)
+    directory.writeUInt16LE(0, 32)
+    directory.writeUInt16LE(0, 34)
+    directory.writeUInt16LE(0, 36)
+    directory.writeUInt32LE(0, 38)
+    directory.writeUInt32LE(offset, 42)
+    central.push(directory, name)
+
+    offset += local.length + name.length + payload.length
+  }
+
+  const centralSize = central.reduce((total, buffer) => total + buffer.length, 0)
+  const end = Buffer.alloc(22)
+  end.writeUInt32LE(0x06054b50, 0)
+  end.writeUInt16LE(0, 4)
+  end.writeUInt16LE(0, 6)
+  end.writeUInt16LE(entries.length, 8)
+  end.writeUInt16LE(entries.length, 10)
+  end.writeUInt32LE(centralSize, 12)
+  end.writeUInt32LE(offset, 16)
+  end.writeUInt16LE(0, 20)
+  return Buffer.concat([...locals, ...central, end])
+}
 
 const files = [
   'index.html',
@@ -133,6 +230,20 @@ const sgfNote = sgfFiles
 await fs.writeFile(path.join(out, 'README.txt'), readme + sgfNote, 'utf8')
 await fs.writeFile(path.join(out, 'Open MultiGo Neo.cmd'), launcher.replace(/\n/g, '\r\n'), 'utf8')
 
+// Release archive: same files, same names, written from the finished folder.
+const zipPath = path.join(root, 'release', `MultiGo-Neo-${pkg.version}-web.zip`)
+const zipEntries = []
+for (const relative of await walkFiles(out)) {
+  const full = path.join(out, relative)
+  zipEntries.push({
+    name: relative.split(path.sep).join('/'),
+    data: await fs.readFile(full),
+    date: (await fs.stat(full)).mtime,
+  })
+}
+await fs.mkdir(path.dirname(zipPath), { recursive: true })
+await fs.writeFile(zipPath, createZip(zipEntries))
+
 // Sanity check: every relative href/src in index.html must exist in the output.
 const index = await fs.readFile(path.join(out, 'index.html'), 'utf8')
 const references = [...index.matchAll(/(?:href|src)="([^"#:]+)"/g)]
@@ -155,6 +266,7 @@ let bytes = 0
 for (const file of all) bytes += (await fs.stat(path.join(out, file))).size
 
 console.log(`Built ${path.relative(root, out)} with ${all.length} files (${(bytes / 1024 / 1024).toFixed(2)} MB).`)
+console.log(`Web zip: ${path.relative(root, zipPath)} (${((await fs.stat(zipPath)).size / 1024 / 1024).toFixed(2)} MB)`)
 console.log(`Open: ${path.join(out, 'index.html')}`)
 console.log(`Resources checked: ${references.length}, missing: ${missing.length}`)
 console.log(`Bundled SGF records: ${sgfFiles}`)
