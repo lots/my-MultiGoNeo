@@ -1,5 +1,5 @@
 // Checks that the first-child main variation is the leftmost tree column and
-// that its vertical node pitch is three times the side-branch pitch.
+// that every branch shares the same 1.5x vertical node pitch.
 // Usage: node scripts/verify-tree-main-ui.mjs [port] [appUrl] [outDir]
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -115,5 +115,6 @@ await shot('preview-tree-main.png')
 console.log(JSON.stringify({ layout, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
-  && layout.mainPitch === layout.sidePitch * 3
+  && layout.mainPitch === layout.sidePitch
+  && layout.mainPitch === 36
   && layout.mainLeft === layout.leftmost ? 0 : 1
