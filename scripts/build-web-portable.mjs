@@ -67,6 +67,9 @@ Files loaded by index.html:
   styles.css, themes/*.css,
   sabaki-bundle.js, path-spec.js, scoring.js, engine-core.js, engine.js,
   renderer.js
+
+The MIT licence is in LICENSE, and also as license.html for hosts that publish
+only html/css/js assets.
 `
 
 const launcher = `@echo off
@@ -96,6 +99,39 @@ for (const dir of dirs) {
 }
 
 await fs.copyFile(path.join(root, 'LICENSE'), path.join(out, 'LICENSE'))
+
+// The MIT notice also ships as a page. Some hosts (Cloudflare Workers static
+// assets among them) publish only html/css/js, so a bare LICENSE file can 404
+// while <site>/license.html stays reachable and is linked from the About dialog.
+const licenseText = await fs.readFile(path.join(root, 'LICENSE'), 'utf8')
+const escapeHtml = (value) =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const licenseHtml = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MultiGo Neo ${pkg.version} — MIT License</title>
+<style>
+  body { margin: 0; padding: 2rem 1rem; background: #f6f3ee; color: #23201c;
+         font: 15px/1.6 Inter, "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.15rem; margin: 0 0 1rem; }
+  pre { white-space: pre-wrap; background: #fff; border: 1px solid #ddd6c9;
+        border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: 13px; }
+  a { color: #8a5f2b; }
+</style>
+</head>
+<body>
+<main>
+<h1>MultiGo Neo ${pkg.version} — MIT License</h1>
+<pre>${escapeHtml(licenseText.trimEnd())}</pre>
+<p><a href="index.html">Back to MultiGo Neo</a></p>
+</main>
+</body>
+</html>
+`
+await fs.writeFile(path.join(out, 'license.html'), licenseHtml, 'utf8')
 await fs.writeFile(path.join(out, 'README.txt'), readme, 'utf8')
 await fs.writeFile(path.join(out, 'Open MultiGo Neo.cmd'), launcher.replace(/\n/g, '\r\n'), 'utf8')
 

@@ -1054,7 +1054,7 @@ committed, so the browser preview works without a build step.
 web-portable/
   index.html          <- open this
   styles.css  themes/  *.js
-  README.txt  LICENSE
+  README.txt  LICENSE  license.html
   Open MultiGo Neo.cmd
 ```
 
