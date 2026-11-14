@@ -12,8 +12,8 @@
   --success: #1a7f37;
   --warn: #9a6700;
   --error: #cf222e;
-  --menubar-height: 54px;
-  --toolbar-height: 46px;
+  --menubar-height: 49px;
+  --toolbar-height: 41px;
   --statusbar-height: 24px;
   --default-left: 72.5694%;
   --default-top: 36%;
@@ -303,19 +303,15 @@ button {
   position: relative;
   z-index: 30;
   display: flex;
-  flex: 0 0 var(--toolbar-height);
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-content: center;
   align-items: center;
   gap: 2px;
-  padding: 0 10px;
+  min-height: var(--toolbar-height);
+  padding: 3px 10px;
   border-bottom: 1px solid #cfcfcf;
   background: var(--toolbar);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-
-.toolbar::-webkit-scrollbar {
-  display: none;
 }
 
 .tool-group {

@@ -189,6 +189,9 @@ const portrait = await evaluate(`(() => {
     messageHeight: Math.round(document.getElementById('pane-message').getBoundingClientRect().height),
     infoFlex: getComputedStyle(document.getElementById('pane-info')).flex,
     bowlsShown: __figdesk.count().bowls.shown,
+    toolbarRows: new Set([...document.querySelectorAll('.toolbar .tool')].map((item) => item.getBoundingClientRect().top)).size,
+    toolbarHeight: Math.round(document.querySelector('.toolbar').getBoundingClientRect().height),
+    menubarHeight: Math.round(document.querySelector('.menubar').getBoundingClientRect().height),
   };
 })()`)
 await shot('preview-portrait.png')
@@ -223,6 +226,8 @@ const portraitMobile = await evaluate(`(() => {
     bowlsShown: __figdesk.count().bowls.shown,
     menuRows: new Set([...document.querySelectorAll('.menu-trigger')].map((item) => item.getBoundingClientRect().top)).size,
     menubarHeight: Math.round(document.querySelector('.menubar').getBoundingClientRect().height),
+    toolbarRows: new Set([...document.querySelectorAll('.toolbar .tool')].map((item) => item.getBoundingClientRect().top)).size,
+    toolbarHeight: Math.round(document.querySelector('.toolbar').getBoundingClientRect().height),
   };
 })()`)
 await shot('preview-portrait-mobile.png')
