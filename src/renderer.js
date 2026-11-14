@@ -5283,6 +5283,7 @@
 
   // Menus ----------------------------------------------------------------
   const menuEls = $$('.menu');
+  const menubar = $('.menubar');
   let activeMenu = null;
   const menuItems = (menu) => $$('.menu-item:not(:disabled)', menu);
 
@@ -5299,6 +5300,12 @@
 
   function openMenu(menu, { focus = null } = {}) {
     setMenuOpen(menu, true);
+    // Open below the complete menu bar, including a wrapped second row.
+    const popup = $('.menu-popup', menu);
+    const barRect = menubar.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    popup.style.top = `${Math.max(0, Math.round(barRect.bottom - menuRect.top))}px`;
+    popup.style.maxHeight = `${Math.max(160, Math.round(window.innerHeight - barRect.bottom - 8))}px`;
     if (focus) {
       const items = menuItems(menu);
       (focus === 'last' ? items[items.length - 1] : items[0])?.focus({ preventScroll: true });
@@ -6573,7 +6580,10 @@
     });
     new ResizeObserver(() => { updateBowls(); resizeBoard(); }).observe(paneBoard);
     new ResizeObserver(() => scheduleResponsiveLayout()).observe(workspace);
-    window.addEventListener('resize', scheduleResponsiveLayout);
+    window.addEventListener('resize', () => {
+    if (activeMenu) closeMenus();
+    scheduleResponsiveLayout();
+  });
     window.addEventListener('beforeunload', (event) => {
       if (!dirty || allowDirtyUnload) return;
       event.preventDefault();

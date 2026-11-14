@@ -128,8 +128,10 @@ button {
   position: relative;
   z-index: 40;
   display: flex;
-  flex: 0 0 var(--menubar-height);
+  flex: 0 0 auto;
+  flex-wrap: wrap;
   align-items: stretch;
+  min-height: var(--menubar-height);
   background: var(--chrome);
 }
 
@@ -167,7 +169,7 @@ button {
 
 .menu-popup {
   position: absolute;
-  top: var(--menubar-height);
+  top: 100%;
   left: 0;
   z-index: 50;
   min-width: 286px;

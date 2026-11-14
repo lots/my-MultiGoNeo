@@ -221,6 +221,8 @@ const portraitMobile = await evaluate(`(() => {
     treeHeight: Math.round(document.getElementById('pane-moves').getBoundingClientRect().height),
     messageHeight: Math.round(document.getElementById('pane-message').getBoundingClientRect().height),
     bowlsShown: __figdesk.count().bowls.shown,
+    menuRows: new Set([...document.querySelectorAll('.menu-trigger')].map((item) => item.getBoundingClientRect().top)).size,
+    menubarHeight: Math.round(document.querySelector('.menubar').getBoundingClientRect().height),
   };
 })()`)
 await shot('preview-portrait-mobile.png')

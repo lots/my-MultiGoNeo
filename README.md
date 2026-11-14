@@ -53,6 +53,8 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
 - **Node names** — the 1.1.7 editable `N` labels remain available from the tree.
 - **Resizable window** — the Electron minimum is now **360×480**, so the OS window can reach the
   phone layout instead of stopping at 960×640.
+- **Wrapping menu bar** — when the top menu labels no longer fit on one line, they wrap onto a
+  second row (for example Options and Help at 390 px) instead of running off the window.
 
 ### Version 1.1.8
 
@@ -762,6 +764,8 @@ a 32 px header, one panel is open at a time (Game Tree by default), and the open
 remaining height. Go bowls are hidden in portrait; the layout returns to the remembered
 landscape proportions, with bowls, when the window grows again. The desktop window can be
 resized down to **360×480**, matching the phone layout, instead of stopping at 960×640.
+When the menu labels no longer fit, the menu bar wraps onto a second row rather than clipping;
+popup menus still open below the complete bar.
 
 ![Portrait workspace at 980×900](preview/preview-portrait.png)
 
