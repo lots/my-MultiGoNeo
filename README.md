@@ -51,6 +51,8 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
   visible, tapping a header opens that panel and collapses the other two, and the Game Tree is
   open by default. Go bowls are disabled in portrait and return automatically in landscape.
 - **Node names** — the 1.1.7 editable `N` labels remain available from the tree.
+- **Resizable window** — the Electron minimum is now **360×480**, so the OS window can reach the
+  phone layout instead of stopping at 960×640.
 
 ### Version 1.1.8
 
@@ -758,7 +760,8 @@ Below **1120 px** the workspace switches to a portrait column: the board sits on
 width instead of leaving an empty strip. The three lower panels become an accordion: each keeps
 a 32 px header, one panel is open at a time (Game Tree by default), and the open panel takes the
 remaining height. Go bowls are hidden in portrait; the layout returns to the remembered
-landscape proportions, with bowls, when the window grows again.
+landscape proportions, with bowls, when the window grows again. The desktop window can be
+resized down to **360×480**, matching the phone layout, instead of stopping at 960×640.
 
 ![Portrait workspace at 980×900](preview/preview-portrait.png)
 

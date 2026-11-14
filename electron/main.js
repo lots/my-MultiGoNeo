@@ -92,8 +92,10 @@ function createWindow(initialFile = null) {
     width: 1440,
     height: 1024,
     useContentSize: true,
-    minWidth: 960,
-    minHeight: 640,
+    // Portrait/mobile widths are supported by the responsive layout, so do not
+    // block the OS window from reaching a phone-sized width.
+    minWidth: 360,
+    minHeight: 480,
     show: false,
     backgroundColor: '#ffffff',
     title: 'MultiGo Neo',
