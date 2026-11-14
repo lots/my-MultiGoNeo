@@ -192,6 +192,24 @@ const portrait = await evaluate(`(() => {
   };
 })()`)
 await shot('preview-portrait.png')
+const accordion = {}
+for (const [name, headId] of [['info', 'info-head'], ['message', 'message-head'], ['tree', 'tree-head']]) {
+  await evaluate(`document.getElementById('${headId}').click()`)
+  await sleep(120)
+  accordion[name] = await evaluate(`(() => ({
+    infoOpen: document.getElementById('pane-info').classList.contains('is-portrait-open'),
+    treeOpen: document.getElementById('pane-moves').classList.contains('is-portrait-open'),
+    messageOpen: document.getElementById('pane-message').classList.contains('is-portrait-open'),
+    infoHeight: Math.round(document.getElementById('pane-info').getBoundingClientRect().height),
+    treeHeight: Math.round(document.getElementById('pane-moves').getBoundingClientRect().height),
+    messageHeight: Math.round(document.getElementById('pane-message').getBoundingClientRect().height),
+  }))()`)
+}
+await evaluate(`document.getElementById('info-head').click()`)
+await sleep(120)
+await shot('preview-portrait-accordion.png')
+await evaluate(`document.getElementById('tree-head').click()`)
+await sleep(80)
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false })
 await sleep(450)
 const portraitMobile = await evaluate(`(() => {
@@ -250,6 +268,7 @@ console.log(JSON.stringify({
   darkTheme,
   viewMenu,
   portrait,
+  accordion,
   portraitMobile,
   restored,
   deeplink,

@@ -2121,30 +2121,59 @@ kbd {
   min-height: 0;
 }
 
-/* Portrait/mobile: give the board the screen and reduce the side panels to
-   compact strips. Info keeps its tab bar plus a short scroll area; Message is
-   the header strip only; Game Tree takes the remaining panel height. */
-.workspace.is-portrait .pane-info {
-  flex: 0 0 72px;
-  min-height: 0;
+/* Portrait/mobile: the side panels become an accordion of header strips.
+   Exactly the open panel takes the remaining panel height; the other two stay
+   32 px high. The board keeps its maximized height above them. */
+.workspace.is-portrait .pane-info,
+.workspace.is-portrait .pane-moves,
+.workspace.is-portrait .pane-message {
+  flex: 0 0 32px;
+  min-height: 32px;
+  overflow: hidden;
+}
+
+.workspace.is-portrait .pane-info.is-portrait-open,
+.workspace.is-portrait .pane-moves.is-portrait-open,
+.workspace.is-portrait .pane-message.is-portrait-open {
+  flex: 1 1 auto;
+  min-height: 64px;
+}
+
+.workspace.is-portrait .pane-info:not(.is-portrait-open) .tab-panel,
+.workspace.is-portrait .pane-moves:not(.is-portrait-open) .game-tree,
+.workspace.is-portrait .pane-message:not(.is-portrait-open) .statuslog {
+  display: none;
 }
 
 .workspace.is-portrait .pane-info .tab-panel {
   overflow: auto;
 }
 
-.workspace.is-portrait .pane-message {
-  flex: 0 0 32px !important;
-  min-height: 32px;
-  overflow: hidden;
+.workspace.is-portrait .pane-message.is-portrait-open {
+  overflow: auto;
 }
 
-.workspace.is-portrait .pane-message .statuslog {
-  display: none;
+.workspace.is-portrait .pane-info .panel-head,
+.workspace.is-portrait .pane-moves .panel-head,
+.workspace.is-portrait .pane-message .panel-head {
+  cursor: pointer;
+  user-select: none;
 }
 
-.workspace.is-portrait .pane-moves {
-  min-height: 64px;
+.workspace.is-portrait .pane-info .panel-head::after,
+.workspace.is-portrait .pane-moves .panel-head::after,
+.workspace.is-portrait .pane-message .panel-head::after {
+  content: '▸';
+  flex: 0 0 auto;
+  margin-left: 4px;
+  color: #777;
+  font-size: 10px;
+}
+
+.workspace.is-portrait .pane-info.is-portrait-open .panel-head::after,
+.workspace.is-portrait .pane-moves.is-portrait-open .panel-head::after,
+.workspace.is-portrait .pane-message.is-portrait-open .panel-head::after {
+  content: '▾';
 }
 
 .workspace.is-portrait #splitter-v {

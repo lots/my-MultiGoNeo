@@ -109,6 +109,9 @@
   const paneInfo = $('#pane-info');
   const paneMoves = $('#pane-moves');
   const paneMessage = $('#pane-message');
+  const infoHead = $('#info-head');
+  const treeHead = $('#tree-head');
+  const messageHead = $('#message-head');
   const rightColumn = $('#right-column');
   const verticalSplitter = $('#splitter-v');
   const horizontalSplitter = $('#splitter-h');
@@ -846,6 +849,7 @@
   let currentBoard = null;
   let lastBoardError = '';
   let portraitLayout = false;
+  let portraitOpenPanel = 'tree';
   let responsiveFrame = 0;
 
   const startupParams = new URLSearchParams(window.location.search);
@@ -3654,6 +3658,10 @@
 
   function setTab(tab) {
     activeTab = tab;
+    if (portraitLayout) {
+      portraitOpenPanel = 'info';
+      applyPortraitAccordion();
+    }
     if (tab !== 'engine' && window.MultiGoEngine && window.MultiGoEngine.closeConsole) {
       window.MultiGoEngine.closeConsole();
     }
@@ -5792,6 +5800,58 @@
     paneBoard.style.height = `${height}px`;
   }
 
+  function applyPortraitAccordion() {
+    const panels = [
+      ['info', paneInfo, infoHead],
+      ['tree', paneMoves, treeHead],
+      ['message', paneMessage, messageHead],
+    ];
+    for (const [name, pane, head] of panels) {
+      const open = portraitLayout && portraitOpenPanel === name;
+      pane.classList.toggle('is-portrait-open', open);
+      if (portraitLayout) {
+        pane.style.flex = open ? '1 1 auto' : '0 0 32px';
+        head.setAttribute('aria-expanded', String(open));
+        head.tabIndex = 0;
+      } else {
+        head.removeAttribute('aria-expanded');
+        head.removeAttribute('tabindex');
+      }
+    }
+    if (!portraitLayout) paneMoves.style.flex = '';
+  }
+
+  function togglePortraitPanel(name) {
+    if (!portraitLayout) return;
+    portraitOpenPanel = portraitOpenPanel === name ? null : name;
+    applyPortraitAccordion();
+    if (portraitOpenPanel) requestAnimationFrame(resizeBoard);
+  }
+
+  infoHead.addEventListener('click', (event) => {
+    if (!portraitLayout) return;
+    if (event.target.closest('.tab')) {
+      portraitOpenPanel = 'info';
+      applyPortraitAccordion();
+      return;
+    }
+    if (event.target.closest('button')) return;
+    togglePortraitPanel('info');
+  });
+  treeHead.addEventListener('click', () => togglePortraitPanel('tree'));
+  messageHead.addEventListener('click', (event) => {
+    if (event.target.closest('button')) return;
+    togglePortraitPanel('message');
+  });
+  for (const [head, name] of [[infoHead, 'info'], [treeHead, 'tree'], [messageHead, 'message']]) {
+    head.addEventListener('keydown', (event) => {
+      if (event.target !== head) return;
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      togglePortraitPanel(name);
+    });
+  }
+
   function updateResponsiveLayout() {
     if (!tree) return;
     const shouldPortrait = settings.autoLayout !== false && workspace.clientWidth > 0 && workspace.clientWidth < 1120;
@@ -5807,8 +5867,7 @@
     if (shouldPortrait) {
       verticalSplitter.hidden = true;
       paneBoard.style.flex = '0 0 auto';
-      paneInfo.style.flex = '0 0 72px';
-      paneMessage.style.flex = '0 0 32px';
+      if (!portraitOpenPanel) portraitOpenPanel = 'tree';
       sizePortraitBoard();
     } else {
       verticalSplitter.hidden = false;
@@ -5816,6 +5875,7 @@
       document.documentElement.style.removeProperty('--portrait-board-height');
       applyLayout(layout, { persist: false });
     }
+    applyPortraitAccordion();
     updateBowls();
     syncMenuState();
     requestAnimationFrame(resizeBoard);
@@ -5835,10 +5895,12 @@
     horizontalSplitter.hidden = !settings.showTree;
     paneMessage.hidden = false;
     messageSplitter.hidden = false;
-    paneInfo.style.flex = portraitLayout
-      ? '0 0 72px'
-      : (settings.showTree ? `0 0 ${layout.topPct}%` : '1 1 auto');
-    paneMessage.style.flex = portraitLayout ? '0 0 32px' : `0 0 ${layout.messagePct}%`;
+    if (portraitLayout) {
+      applyPortraitAccordion();
+    } else {
+      paneInfo.style.flex = settings.showTree ? `0 0 ${layout.topPct}%` : '1 1 auto';
+      paneMessage.style.flex = `0 0 ${layout.messagePct}%`;
+    }
     paneBoard.classList.toggle('is-zoomed', settings.zoom > 1.001);
     resizeBoard();
   }

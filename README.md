@@ -47,8 +47,9 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
 
 - **Phone/portrait layout** — below 1120 px the goban takes up to 72% of the workspace height
   and the full available width, with a width cap that removes the empty strip below the board on
-  phones. Info is reduced to a 72 px strip, Message to its 32 px header, and the Game Tree keeps
-  the rest. Go bowls are disabled in portrait and return automatically in landscape.
+  phones. Info, Game Tree and Message become an **accordion**: their 32 px header strips stay
+  visible, tapping a header opens that panel and collapses the other two, and the Game Tree is
+  open by default. Go bowls are disabled in portrait and return automatically in landscape.
 - **Node names** — the 1.1.7 editable `N` labels remain available from the tree.
 
 ### Version 1.1.8
@@ -754,13 +755,16 @@ screenshots against a DevTools-enabled Chromium.
 
 Below **1120 px** the workspace switches to a portrait column: the board sits on top at up to
 72% of the workspace height, capped by the available width so a phone uses the full screen
-width instead of leaving an empty strip. Info is a 72 px strip, Message is its 32 px header,
-and the Game Tree takes the rest. Go bowls are hidden in portrait; the layout returns to the
-remembered landscape proportions, with bowls, when the window grows again.
+width instead of leaving an empty strip. The three lower panels become an accordion: each keeps
+a 32 px header, one panel is open at a time (Game Tree by default), and the open panel takes the
+remaining height. Go bowls are hidden in portrait; the layout returns to the remembered
+landscape proportions, with bowls, when the window grows again.
 
 ![Portrait workspace at 980×900](preview/preview-portrait.png)
 
 ![Phone portrait workspace at 390×844](preview/preview-portrait-mobile.png)
+
+![Portrait accordion with the Info panel open](preview/preview-portrait-accordion.png)
 
 ![四4 coordinates with Chinese row numerals](preview/preview-cjk.png)
 
