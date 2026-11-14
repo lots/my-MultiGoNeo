@@ -184,9 +184,28 @@ const portrait = await evaluate(`(() => {
     boardHeight: Math.round(board.getBoundingClientRect().height),
     splitterHidden: document.getElementById('splitter-v').hidden,
     boardWidth: Math.round(document.getElementById('board').getBoundingClientRect().width),
+    infoHeight: Math.round(document.getElementById('pane-info').getBoundingClientRect().height),
+    treeHeight: Math.round(document.getElementById('pane-moves').getBoundingClientRect().height),
+    messageHeight: Math.round(document.getElementById('pane-message').getBoundingClientRect().height),
+    infoFlex: getComputedStyle(document.getElementById('pane-info')).flex,
+    bowlsShown: __figdesk.count().bowls.shown,
   };
 })()`)
 await shot('preview-portrait.png')
+await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: false })
+await sleep(450)
+const portraitMobile = await evaluate(`(() => {
+  const board = document.getElementById('pane-board').getBoundingClientRect();
+  return {
+    boardHeight: Math.round(board.height),
+    boardWidth: Math.round(document.getElementById('board').getBoundingClientRect().width),
+    infoHeight: Math.round(document.getElementById('pane-info').getBoundingClientRect().height),
+    treeHeight: Math.round(document.getElementById('pane-moves').getBoundingClientRect().height),
+    messageHeight: Math.round(document.getElementById('pane-message').getBoundingClientRect().height),
+    bowlsShown: __figdesk.count().bowls.shown,
+  };
+})()`)
+await shot('preview-portrait-mobile.png')
 await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1024, deviceScaleFactor: 1, mobile: false })
 await sleep(450)
 const restored = await evaluate(`(() => ({
@@ -231,6 +250,7 @@ console.log(JSON.stringify({
   darkTheme,
   viewMenu,
   portrait,
+  portraitMobile,
   restored,
   deeplink,
   embed,

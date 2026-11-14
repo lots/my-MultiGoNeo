@@ -2111,13 +2111,40 @@ kbd {
 .workspace.is-portrait .pane-board {
   flex: 0 0 auto;
   width: 100%;
-  height: var(--portrait-board-height, 52vh);
+  height: var(--portrait-board-height, 72vh);
+  padding: 6px;
 }
 
 .workspace.is-portrait .right-column {
   flex: 1 1 auto;
   width: 100%;
   min-height: 0;
+}
+
+/* Portrait/mobile: give the board the screen and reduce the side panels to
+   compact strips. Info keeps its tab bar plus a short scroll area; Message is
+   the header strip only; Game Tree takes the remaining panel height. */
+.workspace.is-portrait .pane-info {
+  flex: 0 0 72px;
+  min-height: 0;
+}
+
+.workspace.is-portrait .pane-info .tab-panel {
+  overflow: auto;
+}
+
+.workspace.is-portrait .pane-message {
+  flex: 0 0 32px !important;
+  min-height: 32px;
+  overflow: hidden;
+}
+
+.workspace.is-portrait .pane-message .statuslog {
+  display: none;
+}
+
+.workspace.is-portrait .pane-moves {
+  min-height: 64px;
 }
 
 .workspace.is-portrait #splitter-v {

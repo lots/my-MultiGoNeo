@@ -60,6 +60,10 @@ Released 2026-11-13. The Windows artifacts are `MultiGo-Neo-1.1.7-setup.exe` and
   beside that node. Enter/Save stores the name in the SGF, an empty value removes it, and Escape
   cancels. Named nodes show their name beside the node in the tree, so the name is visible again
   when the file is reopened.
+- **Phone/portrait layout** — below 1120 px the board takes 72% of the workspace height (and uses
+  the full width on phones). Info is a fixed 72 px strip, Message collapses to its 32 px header,
+  and the Game Tree keeps the remaining panel height. Go bowls are disabled in portrait so they
+  never shrink the goban; they return automatically in landscape.
 
 ### Version 1.1.6
 
@@ -737,11 +741,15 @@ renderer reads their custom properties on each switch, so the canvas stays trans
 the CSS surface. `node scripts/verify-themes-ui.mjs <port> preview` regenerates the four
 screenshots against a DevTools-enabled Chromium.
 
-Below **1120 px** the workspace switches to a portrait column: the board sits on top at 58%
-of the available height, the panel column fills the rest, and the vertical splitter hides.
-The layout returns to the remembered landscape proportions when the window grows again.
+Below **1120 px** the workspace switches to a portrait column: the board sits on top at up to
+72% of the workspace height, capped by the available width so a phone uses the full screen
+width instead of leaving an empty strip. Info is a 72 px strip, Message is its 32 px header,
+and the Game Tree takes the rest. Go bowls are hidden in portrait; the layout returns to the
+remembered landscape proportions, with bowls, when the window grows again.
 
 ![Portrait workspace at 980×900](preview/preview-portrait.png)
+
+![Phone portrait workspace at 390×844](preview/preview-portrait-mobile.png)
 
 ![四4 coordinates with Chinese row numerals](preview/preview-cjk.png)
 

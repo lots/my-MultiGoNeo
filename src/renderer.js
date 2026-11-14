@@ -1618,7 +1618,7 @@
     // Bowls are live during play (Japanese rules) and while counting; the
     // scoring card only adds dead stones to the prisoner totals.
     const rules = countState.active ? countState.rules : gameRules();
-    const show = settings.showBowls !== false && rules === 'japanese' && bowlRoom();
+    const show = !portraitLayout && settings.showBowls !== false && rules === 'japanese' && bowlRoom();
     const changed = bowlBlack.hidden === show;
     bowlBlack.hidden = !show;
     bowlWhite.hidden = !show;
@@ -1829,6 +1829,10 @@
   }
 
   function toggleGoBowls() {
+    if (portraitLayout) {
+      log('Go bowls are hidden in the portrait layout to keep the board large.', 'warn');
+      return;
+    }
     settings.showBowls = settings.showBowls === false;
     saveSettings();
     refreshCountLayout();
@@ -2292,8 +2296,9 @@
     const { cols, rows } = transformedBoardSize(sourceCols, sourceRows);
     const bowlReserve = (bowlBlack.hidden ? 0 : COUNT_BOWL_SPACE)
       + (bowlWhite.hidden ? 0 : COUNT_BOWL_SPACE);
-    const fitWidth = Math.max(60, rect.width - 28 - bowlReserve);
-    const fitHeight = Math.max(60, rect.height - 28);
+    const boardPadding = portraitLayout ? 12 : 28;
+    const fitWidth = Math.max(60, rect.width - boardPadding - bowlReserve);
+    const fitHeight = Math.max(60, rect.height - boardPadding);
     const zoom = settings.zoom || 1;
     const baseMargin = Math.max(19, Math.round(Math.min(fitWidth, fitHeight) * 0.055)) * zoom;
     // Small boards get very large spacing, and a stone radius that overflows the
@@ -3772,7 +3777,8 @@
     setMenuItemChecked('toggle-siblings', settings.showSiblings);
     setMenuItemChecked('estimate', countState.active && countState.mode === 'estimate');
     setMenuItemChecked('score', countState.active && countState.mode === 'score');
-    setMenuItemChecked('toggle-bowls', settings.showBowls !== false);
+    setMenuItemChecked('toggle-bowls', !portraitLayout && settings.showBowls !== false);
+    setMenuItemDisabled('toggle-bowls', portraitLayout);
     setMenuItemChecked('toggle-auto-layout', settings.autoLayout !== false);
     setMenuItemChecked('toggle-tree', settings.showTree);
     setMenuItemChecked('toggle-remember-size', settings.rememberBoardSize !== false);
@@ -5776,11 +5782,12 @@
   }
 
   function sizePortraitBoard() {
-    const height = clamp(
-      Math.round(workspace.clientHeight * 0.58),
-      220,
-      Math.max(220, workspace.clientHeight - 280),
-    );
+    // On phones the board is the app: leave only a compact tree/info strip.
+    // A square board cannot use more height than the available width; avoid a
+    // large empty strip below it on narrow (phone) screens.
+    const byHeight = Math.round(workspace.clientHeight * 0.72);
+    const byWidth = Math.round(paneBoard.clientWidth || workspace.clientWidth);
+    const height = clamp(Math.min(byHeight, byWidth), 260, Math.max(260, workspace.clientHeight - 190));
     document.documentElement.style.setProperty('--portrait-board-height', `${height}px`);
     paneBoard.style.height = `${height}px`;
   }
@@ -5800,6 +5807,8 @@
     if (shouldPortrait) {
       verticalSplitter.hidden = true;
       paneBoard.style.flex = '0 0 auto';
+      paneInfo.style.flex = '0 0 72px';
+      paneMessage.style.flex = '0 0 32px';
       sizePortraitBoard();
     } else {
       verticalSplitter.hidden = false;
@@ -5807,6 +5816,8 @@
       document.documentElement.style.removeProperty('--portrait-board-height');
       applyLayout(layout, { persist: false });
     }
+    updateBowls();
+    syncMenuState();
     requestAnimationFrame(resizeBoard);
   }
 
@@ -5824,8 +5835,10 @@
     horizontalSplitter.hidden = !settings.showTree;
     paneMessage.hidden = false;
     messageSplitter.hidden = false;
-    paneInfo.style.flex = settings.showTree ? `0 0 ${layout.topPct}%` : '1 1 auto';
-    paneMessage.style.flex = `0 0 ${layout.messagePct}%`;
+    paneInfo.style.flex = portraitLayout
+      ? '0 0 72px'
+      : (settings.showTree ? `0 0 ${layout.topPct}%` : '1 1 auto');
+    paneMessage.style.flex = portraitLayout ? '0 0 32px' : `0 0 ${layout.messagePct}%`;
     paneBoard.classList.toggle('is-zoomed', settings.zoom > 1.001);
     resizeBoard();
   }
