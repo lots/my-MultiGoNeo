@@ -21,10 +21,10 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.8 build** keeps the 1.1.7 **editable node names** and now builds the portable web
-folder and its matching `web.zip` in one step, so the two distribution forms stay identical. The
-1.1.6 build added the configurable **SGF size limit**, bundled the 13×13 study records and
-introduced the web download. It keeps the 1.1.5 **main-branch tree layout** and the
+The **1.1.9 build** adds the **phone/portrait layout** with a maximized board, compact Info and
+Message strips, hidden bowls and a full-width goban. It keeps the 1.1.7 **editable node names**
+and the 1.1.8 one-step portable web folder and `web.zip`. The 1.1.6 build added the configurable
+**SGF size limit**, bundled the 13×13 study records and introduced the web download. It keeps the 1.1.5 **main-branch tree layout** and the
 Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
 **Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2
 release brought **Reload-in-place**, **multi-file branch import**, **PNG board export**, the
@@ -39,6 +39,17 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.9
+
+Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
+`MultiGo-Neo-1.1.9-portable.exe`, plus `MultiGo-Neo-1.1.9-web.zip` for the browser build.
+
+- **Phone/portrait layout** — below 1120 px the goban takes up to 72% of the workspace height
+  and the full available width, with a width cap that removes the empty strip below the board on
+  phones. Info is reduced to a 72 px strip, Message to its 32 px header, and the Game Tree keeps
+  the rest. Go bowls are disabled in portrait and return automatically in landscape.
+- **Node names** — the 1.1.7 editable `N` labels remain available from the tree.
 
 ### Version 1.1.8
 
@@ -1072,7 +1083,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.8-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.9-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1080,7 +1091,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.8-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.9-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1184,9 +1195,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.8-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.8-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.8-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.9-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.9-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.9-web.zip` — portable web build, written by `npm run dist:web`.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
