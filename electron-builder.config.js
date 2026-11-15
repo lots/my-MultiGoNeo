@@ -26,6 +26,17 @@ if (extraFiles.length > 0) {
 module.exports = {
   ...pkg.build,
   extraFiles,
+  // Maximum 7-Zip compression for the installer and portable payload.
+  compression: 'maximum',
+  // Electron ships 55 locale packs (~44 MB). The app's own English/Chinese UI is
+  // translated in renderer code, so Chromium only needs the English locale.
+  electronLanguages: ['en-US'],
+  async afterPack(context) {
+    // This is the stock Electron default-app stub, not part of MultiGo Neo. The
+    // packaged app loads resources/app.asar instead.
+    const stub = path.join(context.appOutDir, 'resources', 'default_app.asar')
+    fs.rmSync(stub, { force: true })
+  },
   async beforeBuild() {
     const runtimeDependencies = Object.keys(pkg.dependencies || {})
     if (runtimeDependencies.length > 0) {

@@ -1215,6 +1215,12 @@ Artifacts:
 - `release/MultiGo-Neo-1.1.9-web.zip` — portable web build, written by `npm run dist:web`.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
+The package contains only the app sources in `resources/app.asar` plus the Electron runtime;
+it does not embed `node_modules`, build caches, test folders or `.git`. Packaging keeps only the
+`en-US` Chromium locale (dropping 54 language packs, about 44 MB unpacked) and removes the unused
+`resources/default_app.asar` stub. The inspected 1.1.9 build is about **289 MB unpacked**, with a
+**92.6 MB** installer and **85.2 MB** portable exe.
+
 The first build downloads the NSIS toolchain once into `ELECTRON_BUILDER_CACHE`;
 `electronDist` points at `node_modules/electron/dist`, so the Electron binary is not
 downloaded again. Code signing is skipped unless a certificate is configured
