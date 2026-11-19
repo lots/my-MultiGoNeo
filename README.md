@@ -21,16 +21,17 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.10 build** repackages 1.1.9 with no application changes. 1.1.9 added the
-**phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
-and a full-width goban. It keeps the 1.1.7 **editable node names** and the 1.1.8 one-step
-portable web folder and `web.zip`. The 1.1.6 build added the configurable **SGF size limit**,
-bundled the 13×13 study records and introduced the web download. It keeps the 1.1.5
-**main-branch tree layout** and the Sabaki-derived **GTP engine layer**, Sabaki-style
-**scoring territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board
-edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**,
-**PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
-**native fullscreen** and one shared lighter icon.
+The **1.1.11 build** adds click-to-toggle **double-size coordinates**. The 1.1.10 build
+repackaged 1.1.9 with no application changes. 1.1.9 added the **phone/portrait layout** with a
+maximized board, compact Info and Message strips, hidden bowls and a full-width goban. It keeps
+the 1.1.7 **editable node names** and the 1.1.8 one-step portable web folder and `web.zip`. The
+1.1.6 build added the configurable **SGF size limit**, bundled the 13×13 study records and
+introduced the web download. It keeps the 1.1.5 **main-branch tree layout** and the
+Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
+**Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2
+release brought **Reload-in-place**, **multi-file branch import**, **PNG board export**, the
+**UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen** and one shared
+lighter icon.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
@@ -40,6 +41,16 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.11
+
+Released 2026-11-20. The Windows artifacts are `MultiGo-Neo-1.1.11-setup.exe` and
+`MultiGo-Neo-1.1.11-portable.exe`, plus `MultiGo-Neo-1.1.11-web.zip` for the browser build.
+
+- **Double-size coordinates** — clicking a coordinate letter/number, or the margin outside the
+  stones, toggles the labels between the normal size and double size. The board margin grows so
+  the larger labels stay inside the board and clear of edge stones, then shrinks back. The
+  choice is remembered across launches, and clicking an intersection still plays a move.
 
 ### Version 1.1.10
 
@@ -1134,7 +1145,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.10-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.11-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1142,7 +1153,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.10-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.11-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1246,9 +1257,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.10-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.10-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.10-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.11-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.11-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.11-web.zip` — portable web build, written by `npm run dist:web`.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The package contains only the app sources in `resources/app.asar` plus the Electron runtime;
