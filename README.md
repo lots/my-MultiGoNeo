@@ -451,6 +451,14 @@ Move-number display is controlled by the **View → Move Numbers** dropdown:
 
 ![Only the last ten moves carry numbers](preview/preview-move-numbers.png)
 
+### Coordinate labels
+
+The alphabet/number gutter is clickable: click anywhere in the margin outside the stones, or
+directly on a label, to toggle the coordinate labels between the normal size and **double size**.
+Clicking an intersection still plays a move. The choice is remembered across launches, and the
+board margin grows automatically so the larger labels stay inside the board and clear of the
+edge stones.
+
 ### Fast navigation
 
 The toolbar now has **←←** / **→→** fast-rewind and fast-forward buttons, plus Play-menu
