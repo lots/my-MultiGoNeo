@@ -88,6 +88,28 @@ const loaded = await evaluate(`(() => {
   };
 })()`)
 
+const sections = await evaluate(`(() => {
+  const parent = __figdesk.tree.root.children[0];
+  __figdesk.selectNode(parent.id);
+  document.getElementById('node-name-head').click();
+  const sectionsEl = document.getElementById('branch-panels');
+  const treeHead = document.getElementById('tree-head');
+  const rows = [...document.querySelectorAll('#variations-list .variations-row:not(.is-head)')];
+  const rowText = rows.map((row) => row.textContent);
+  const input = document.getElementById('branch-node-name');
+  const before = __figdesk.nodeId;
+  rows[0]?.click();
+  const after = __figdesk.nodeId;
+  return {
+    nameValue: input.value,
+    rows: rowText,
+    aboveTree: Boolean(sectionsEl.compareDocumentPosition(treeHead) & Node.DOCUMENT_POSITION_FOLLOWING),
+    before,
+    after,
+    nodeNameOpen: !document.getElementById('node-name-body').hidden,
+  };
+})()`)
+
 const existing = await evaluate(`(() => {
   const node = __figdesk.tree.root.children[0].children[0];
   __figdesk.selectNode(node.id);
@@ -133,6 +155,20 @@ const saved = await evaluate(`(() => {
     editorClosed: !document.querySelector('.tree-name-editor'),
   };
 })()`)
+const branchSections = await evaluate(`(() => {
+  const parent = __figdesk.tree.root.children[0];
+  __figdesk.selectNode(parent.id);
+  const nodeNameBody = document.getElementById('node-name-body');
+  if (nodeNameBody.hidden) document.getElementById('node-name-head').click();
+  const variationsBody = document.getElementById('variations-body');
+  if (variationsBody.hidden) document.getElementById('variations-head').click();
+  return {
+    nameValue: document.getElementById('branch-node-name').value,
+    variations: [...document.querySelectorAll('#variations-list .variations-row:not(.is-head)')].map((row) => row.textContent),
+  };
+})()`)
+await shot('preview-branch-panels.png')
+
 const f2 = await evaluate(`(() => {
   const node = __figdesk.tree.root.children[0].children[0];
   __figdesk.selectNode(node.id);
@@ -145,7 +181,7 @@ const f2 = await evaluate(`(() => {
 })()`)
 await shot('preview-node-name.png')
 
-console.log(JSON.stringify({ loaded, existing, editor, saved, f2, errors }, null, 2))
+console.log(JSON.stringify({ loaded, sections, existing, editor, saved, branchSections, f2, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
   && loaded.labels.length === 2

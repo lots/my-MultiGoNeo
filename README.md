@@ -58,6 +58,10 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
   The toolbar wraps the same way into additional rows at narrow widths.
 - **Slightly shorter chrome** — the menu row is **49 px** (was 54) and the toolbar row is
   **41 px** (was 46), about a 10% reduction, leaving more height for the board.
+- **Node name and Variations panels** — two collapsible sections sit directly above the Game
+  Tree. Node name edits the current node's `N` value; Variations lists the immediate next moves
+  with their move coordinate and branch name, and clicking a row navigates to it. Each header
+  collapses/restores its section, and the state persists.
 
 ### Version 1.1.8
 
@@ -185,6 +189,12 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   Double-click a node, press **F2**, or choose **Edit → Edit Node Name**; the editor opens in the
   tree beside that node. Save/Enter stores it, an empty value removes it, and Escape cancels. A
   named node displays its name beside the circle, including after reopening the SGF.
+- Above the Game Tree, **Node name** shows the current node's `N` in an editable field, and
+  **Variations** lists every immediate next move with its move coordinate and branch name.
+  Clicking a variation row navigates to that child. Both section headers collapse and restore
+  their bodies, and the open/closed state is remembered.
+
+![Node name and Variations sections above the Game Tree](preview/preview-branch-panels.png)
 
 ![Editable node names displayed in the game tree](preview/preview-node-name.png)
 - Expanding restores the subtree; collapse state is kept while editing the same game.
@@ -1390,7 +1400,7 @@ scripts/verify-review-ui.mjs CDP test for sibling badges, Read Only, game info a
 scripts/verify-r17-ui.mjs CDP test for player columns, compact panes, single-branch hints, fast/steps, delete and comment height
 scripts/verify-tree-collapse-ui.mjs CDP test for orthogonal tree bones and branch expand/collapse
 scripts/verify-tree-main-ui.mjs CDP test for leftmost main variation, 1.32x row pitch, 64 px columns, bottom toggles and initial collapse
-scripts/verify-node-name-ui.mjs CDP test for N-property labels and the inline game-tree name editor
+scripts/verify-node-name-ui.mjs CDP test for N labels, the inline tree editor, and the Node name/Variations sections above the Game Tree
 scripts/verify-paper-theme-ui.mjs CDP test for flat printed stones in the Paper theme
 scripts/verify-dirty-transform-ui.mjs CDP test for unsaved prompts, board transforms, G reset and fullscreen
 scripts/verify-file-tools-ui.mjs CDP test for Reload, branch imports, board PNG export and Ctrl-Q
