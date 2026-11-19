@@ -62,6 +62,9 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
   Tree. Node name edits the current node's `N` value; Variations lists the immediate next moves
   with their move coordinate and branch name, and clicking a row navigates to it. Each header
   collapses/restores its section, and the state persists.
+- **Collapsible Game Tree and Message** — their headers now toggle their bodies. A collapsed
+  Game Tree keeps the Node name/Variations strips visible and releases the remaining height;
+  Message collapses to its 32 px header. Both states are remembered.
 
 ### Version 1.1.8
 
@@ -193,6 +196,9 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   **Variations** lists every immediate next move with its move coordinate and branch name.
   Clicking a variation row navigates to that child. Both section headers collapse and restore
   their bodies, and the open/closed state is remembered.
+- The **Game Tree** header collapses the tree canvas to a header while leaving the Node
+  name/Variations strips available; **Message** collapses to its 32 px header. Click either
+  header again to restore it. Both open/closed states persist across sessions.
 
 ![Node name and Variations sections above the Game Tree](preview/preview-branch-panels.png)
 

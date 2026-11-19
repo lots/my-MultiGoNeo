@@ -169,6 +169,32 @@ const branchSections = await evaluate(`(() => {
 })()`)
 await shot('preview-branch-panels.png')
 
+const collapseRestore = await evaluate(`(() => {
+  const treePane = document.getElementById('pane-moves');
+  const messagePane = document.getElementById('pane-message');
+  document.getElementById('tree-head').click();
+  document.getElementById('message-head').click();
+  const collapsed = {
+    treeClass: treePane.classList.contains('is-tree-collapsed'),
+    messageClass: messagePane.classList.contains('is-message-collapsed'),
+    treeHeight: Math.round(treePane.getBoundingClientRect().height),
+    messageHeight: Math.round(messagePane.getBoundingClientRect().height),
+    gameTreeHidden: getComputedStyle(document.getElementById('game-tree')).display === 'none',
+    logHidden: getComputedStyle(document.getElementById('statuslog')).display === 'none',
+  };
+  document.getElementById('tree-head').click();
+  document.getElementById('message-head').click();
+  return {
+    collapsed,
+    restored: {
+      treeClass: treePane.classList.contains('is-tree-collapsed'),
+      messageClass: messagePane.classList.contains('is-message-collapsed'),
+      treeHeight: Math.round(treePane.getBoundingClientRect().height),
+      messageHeight: Math.round(messagePane.getBoundingClientRect().height),
+    },
+  };
+})()`)
+
 const f2 = await evaluate(`(() => {
   const node = __figdesk.tree.root.children[0].children[0];
   __figdesk.selectNode(node.id);
@@ -181,7 +207,7 @@ const f2 = await evaluate(`(() => {
 })()`)
 await shot('preview-node-name.png')
 
-console.log(JSON.stringify({ loaded, sections, existing, editor, saved, branchSections, f2, errors }, null, 2))
+console.log(JSON.stringify({ loaded, sections, existing, editor, saved, branchSections, collapseRestore, f2, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
   && loaded.labels.length === 2

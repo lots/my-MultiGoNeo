@@ -342,6 +342,8 @@
     showSiblings: false,
     zoom: 1,
     showTree: true,
+    treeOpen: true,
+    messageOpen: true,
     nodeNameOpen: false,
     variationsOpen: true,
     language: 'en',
@@ -409,6 +411,8 @@
         showSiblings: parsed.showSiblings === true,
         zoom: clamp(Number(parsed.zoom) || 1, 0.5, 2),
         showTree: parsed.showTree !== false,
+        treeOpen: parsed.treeOpen !== false,
+        messageOpen: parsed.messageOpen !== false,
         nodeNameOpen: parsed.nodeNameOpen === true,
         variationsOpen: parsed.variationsOpen !== false,
         language: parsed.language === 'zh' ? 'zh' : 'en',
@@ -5938,6 +5942,31 @@
     if (!portraitLayout) paneMoves.style.flex = '';
   }
 
+  function applyPanelCollapseState() {
+    const treeCollapsed = !settings.treeOpen;
+    const messageCollapsed = !settings.messageOpen;
+    paneMoves.classList.toggle('is-tree-collapsed', !portraitLayout && treeCollapsed);
+    paneMessage.classList.toggle('is-message-collapsed', !portraitLayout && messageCollapsed);
+    if (portraitLayout) return;
+    if (treeCollapsed && messageCollapsed) {
+      paneInfo.style.flex = '1 1 auto';
+      paneMoves.style.flex = '0 0 auto';
+      paneMessage.style.flex = '0 0 32px';
+    } else if (treeCollapsed) {
+      paneInfo.style.flex = `0 0 ${layout.topPct}%`;
+      paneMoves.style.flex = '0 0 auto';
+      paneMessage.style.flex = '1 1 auto';
+    } else if (messageCollapsed) {
+      paneInfo.style.flex = `0 0 ${layout.topPct}%`;
+      paneMoves.style.flex = '1 1 auto';
+      paneMessage.style.flex = '0 0 32px';
+    } else {
+      paneInfo.style.flex = settings.showTree ? `0 0 ${layout.topPct}%` : '1 1 auto';
+      paneMoves.style.flex = '1 1 auto';
+      paneMessage.style.flex = `0 0 ${layout.messagePct}%`;
+    }
+  }
+
   function togglePortraitPanel(name) {
     if (!portraitLayout) return;
     portraitOpenPanel = portraitOpenPanel === name ? null : name;
@@ -5955,10 +5984,24 @@
     if (event.target.closest('button')) return;
     togglePortraitPanel('info');
   });
-  treeHead.addEventListener('click', () => togglePortraitPanel('tree'));
+  treeHead.addEventListener('click', () => {
+    if (portraitLayout) {
+      togglePortraitPanel('tree');
+      return;
+    }
+    settings.treeOpen = !settings.treeOpen;
+    saveSettings();
+    applyPanelCollapseState();
+  });
   messageHead.addEventListener('click', (event) => {
     if (event.target.closest('button')) return;
-    togglePortraitPanel('message');
+    if (portraitLayout) {
+      togglePortraitPanel('message');
+      return;
+    }
+    settings.messageOpen = !settings.messageOpen;
+    saveSettings();
+    applyPanelCollapseState();
   });
   for (const [head, name] of [[infoHead, 'info'], [treeHead, 'tree'], [messageHead, 'message']]) {
     head.addEventListener('keydown', (event) => {
@@ -5995,6 +6038,7 @@
     }
     applyPortraitAccordion();
     applyBranchSectionState();
+    applyPanelCollapseState();
     updateBowls();
     syncMenuState();
     requestAnimationFrame(resizeBoard);
@@ -6017,8 +6061,7 @@
     if (portraitLayout) {
       applyPortraitAccordion();
     } else {
-      paneInfo.style.flex = settings.showTree ? `0 0 ${layout.topPct}%` : '1 1 auto';
-      paneMessage.style.flex = `0 0 ${layout.messagePct}%`;
+      applyPanelCollapseState();
     }
     paneBoard.classList.toggle('is-zoomed', settings.zoom > 1.001);
     resizeBoard();
