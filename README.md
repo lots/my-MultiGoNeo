@@ -33,6 +33,9 @@ release brought **Reload-in-place**, **multi-file branch import**, **PNG board e
 **UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen** and one shared
 lighter icon.
 
+A tabulated register of the requested features and the notable extras is in
+[Features.md](Features.md).
+
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
 [Modified FF[4]](#modified-ff4)). The board ships in **four themes**, previewed on 13×13
