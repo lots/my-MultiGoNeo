@@ -10,6 +10,11 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
+> **Latest feature (1.1.11): enlarge/restore the goban coordinate font.** Click any coordinate
+> letter or number, or the margin outside the stones, to switch the labels to **double size**;
+> click again to **restore** the normal size. The board margin grows and shrinks with them, and
+> the choice is remembered. See request 9, §1.1 and §2.2.1.
+
 ---
 
 ## 1. Requested features
@@ -24,7 +29,7 @@ installer, portable build and web zip.
 | 6 | **Drop the "Count Territory" command** and keep only **Play → Estimate / Play → Score**. | Removed the Tools item, its menu action, `Ctrl+K`, and its strings; the two Play modes are the only scoring entry points. | ✅ | 1.1.4 |
 | 7 | Provide a **portable web copy for a USB stick**: copy the folder, open the root `index.html` on another PC. | `web-portable/` with `index.html` at the root, every asset relative, a `README.txt` and a Windows launcher; runs from `file://` with no server or network. | ✅🧪📦 | 1.1.6 |
 | 8 | **Bundle the SGF study records** from `AQ\sgf\十三路打谱操` into the installer and web build under `sgf\十三路打谱操`, refreshed on every build. | Installer uses `extraFiles`; web builder copies the folder; 17 SGFs verified in setup, portable and web zip. Rebuild refreshes added/changed/deleted records. | ✅🧪📦 | 1.1.6 |
-| 9 | Make the **coordinate font larger**, toggled by clicking the coordinate margin, between the current size and **double**. | Clicking a letter/number or the margin outside the stones doubles labels (11 → 22 px on 13×13); the board margin grows to fit and shrinks back; the choice persists; intersections still play moves. | ✅🧪📦 | 1.1.11 |
+| 9 | **Enlarge/restore the goban coordinate font** by clicking the coordinate margin, toggling between the current size and **double**. | Clicking a letter/number or the margin outside the stones doubles labels (11 → 22 px on 13×13); clicking again restores them. The board margin grows to fit and shrinks back; the choice persists; intersections still play moves. | ✅🧪📦 | 1.1.11 |
 | 10 | **Version bump (z), update releases and distribution, publish** — repeated through the project. | Patch releases 1.1.5 → 1.1.11 with rebuilt setup/portable/web assets, README notes and verified SHA-256 digests. | ✅📦 | ongoing |
 | 11 | Two consecutive passes should **end the game and offer to count** it. | Pass/pass prompt offers **Count Result** or **Keep Playing**; accepting opens the scoring card. | ✅🧪 | 1.1.3 |
 | 12 | Bowls must be **light wood matching the goban**, must not duplicate the count number, and black stones must stay visible. | Light kaya bowls, no number badge (status bar already shows `Captures: B n · W n`), shaded stones with highlights; dark theme uses the rosewood palette. | ✅🧪 | 1.1.3 |
@@ -91,13 +96,29 @@ detailed section in [README.md](README.md).
 | Four board themes | Classic, Flat, Dark and Paper, CSS-only; the dark theme recolours the board, stones and bowls. | [README § Board themes](README.md#board-themes-and-responsive-layout) |
 | Rotation and flips | Display-only 90° rotations and horizontal/vertical flips with transformed hit testing; `G` resets. | [README § Board orientation](README.md#board-orientation) |
 | Zoom | Scales the board canvas and spacing, independent of window size. | [README § Workspace](README.md#workspace) |
-| Coordinate systems | **A1**, **1-1** and **CJK 四4** styles on all four sides; Coords toggle; click the ring for double size. | [README § Coordinate labels](README.md#coordinate-labels) |
+| Coordinate systems | **A1**, **1-1** and **CJK 四4** styles on all four sides; Coords toggle. | [README § Coordinate labels](README.md#coordinate-labels) |
+| Coordinate font enlarge/restore | Click a label or the margin outside the stones to double the coordinate font; click again to restore. Margin grows/shrinks, preference persists, intersections still play. | [README § Coordinate labels](README.md#coordinate-labels) |
 | Move numbers | None, all, last 10/25/50 or custom, numbered from game or variation start. | [README § Move numbers](README.md#move-numbers) |
 | Variation badges and next moves | Lettered badges on candidate points, optional sibling/next-move hints, per-tool hover ghosts. | [README § Variation badges](README.md#variation-badges) |
 | Focus and last-move markers | Triangle/dot focus marker in configurable colours; last move highlighted. | [README § View menu](README.md#view-menu) |
 | Seat labels and bowls | BLACK/WHITE labels; bowls swap with View → Swap Player Sides; bowls hide in portrait. | [README § Estimate and Score](README.md#estimate-and-score) |
 | Position links | A URL with `?sgf=…&path=…` reproduces the game and selected branch/node. | [README § Position links](README.md#position-links) |
 | Embeddable viewer | Zero-JS `data-*` attributes render a board from an embedded SGF. | [README § Embeddable viewer](README.md#embeddable-viewer) |
+
+#### 2.2.1 Coordinate font enlarge/restore (1.1.11)
+
+The coordinate gutter is interactive in every coordinate style (**A1**, **1-1** and **CJK 四4**):
+
+1. Make sure **Coords** is active in the toolbar.
+2. Click a coordinate letter/number, or the margin outside the stones.
+3. The labels switch to **double size** (for example 11 → 22 px on 13×13), the board margin grows
+   so they stay inside the board and clear of edge stones, and the Message panel logs
+   *"Coordinate labels enlarged. Click the margin again to restore them."*
+4. Click again to **restore** the normal size; the margin shrinks back.
+
+The choice is stored in settings and restored on the next launch. Clicking an intersection still
+plays a move — the toggle only fires in the label margin. The interaction is covered by
+`scripts/verify-coord-font-ui.mjs`.
 
 ### 2.3 Play, scoring and engines
 
