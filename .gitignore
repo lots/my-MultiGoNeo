@@ -12,4 +12,6 @@ web-portable/
 # Local SGF collections and scratch folders, not part of the app
 /AQ/
 test_error_report/
+# Ad-hoc test/console logs are collected under log/ and never committed
+/log/
 *.log
