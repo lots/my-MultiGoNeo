@@ -99,6 +99,9 @@ const helpDocs = await evaluate(`(() => {
   window.open = original;
   return opened;
 })()`)
+if (helpDocs.join('|') !== 'README.pdf|Features.pdf|Tutorial.pdf') {
+  errors.push(`Help documentation links: ${helpDocs.join(', ')}`)
+}
 
 const sections = await evaluate(`(() => {
   const parent = __figdesk.tree.root.children[0];

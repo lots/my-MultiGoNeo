@@ -21,9 +21,9 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.13 build** adds **Help → README / Features / Tutorial** links to the bundled manuals.
-The 1.1.12 build packaged **README.md**, **Features.md** and **Tutorial.md** with the installer,
-portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
+The **1.1.14 build** adds **PDF editions** of the README, Features register and Tutorial, and
+the Help menu now opens those PDFs. The 1.1.13 build added **Help → README / Features / Tutorial**
+links; 1.1.12 packaged the Markdown manuals with the installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
 coordinates**. The 1.1.10 build repackaged 1.1.9 with no application changes. 1.1.9 added the
 **phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
 and a full-width goban. It keeps the 1.1.7 **editable node names** and the 1.1.8 one-step
@@ -47,6 +47,17 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.14
+
+Released 2026-11-21. The Windows artifacts are `MultiGo-Neo-1.1.14-setup.exe` and
+`MultiGo-Neo-1.1.14-portable.exe`, plus `MultiGo-Neo-1.1.14-web.zip` for the browser build.
+
+- **PDF manuals** — `README.pdf`, `Features.pdf` and `Tutorial.pdf` are generated from the
+  Markdown sources with the print stylesheet in `scripts/build-docs-pdf.mjs`.
+- **Help links** — Help now opens the PDF editions (`README (PDF)`, `Features (PDF)`,
+  `Tutorial (PDF)`). The PDFs and the Markdown sources are both bundled with the desktop and
+  web builds.
 
 ### Version 1.1.13
 
@@ -1177,7 +1188,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.13-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.14-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1185,7 +1196,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.13-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.14-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1261,14 +1272,23 @@ packages.
 
 ### Documentation in the package
 
-Every distribution form carries three documents at its root, so they can be read offline:
+Every distribution form carries the Markdown sources and their PDF editions at its root, so the
+manuals can be read offline:
 
-- **`README.md`** — the full manual, menus, shortcuts and SGF details.
-- **`Features.md`** — the tabulated feature register.
-- **`Tutorial.md`** — the beginner tutorial.
+- **`README.md` / `README.pdf`** — the full manual, menus, shortcuts and SGF details.
+- **`Features.md` / `Features.pdf`** — the tabulated feature register.
+- **`Tutorial.md` / `Tutorial.pdf`** — the beginner tutorial.
 
 The installed app places them next to `MultiGo Neo.exe`; the portable build has them at the
-extracted app root; the web folder/zip has them beside `index.html`.
+extracted app root; the web folder/zip has them beside `index.html`. Regenerate the PDFs after
+editing the Markdown with:
+
+```powershell
+node scripts/build-docs-pdf.mjs
+```
+
+The generator uses marked for Markdown and Chrome DevTools print-to-PDF, with A4 print CSS in
+`scripts/build-docs-pdf.mjs`.
 
 ## Run
 
@@ -1300,9 +1320,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.13-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.13-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.13-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.14-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.14-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.14-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 

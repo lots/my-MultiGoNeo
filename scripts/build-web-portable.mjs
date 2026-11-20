@@ -224,7 +224,7 @@ try {
 
 await fs.copyFile(path.join(root, 'LICENSE'), path.join(out, 'LICENSE'))
 // Manual, feature register and tutorial, for offline reading beside index.html.
-const documentationFiles = ['README.md', 'Features.md', 'Tutorial.md']
+const documentationFiles = ['README.md', 'Features.md', 'Tutorial.md', 'README.pdf', 'Features.pdf', 'Tutorial.pdf']
   .filter((file) => existsSync(path.join(root, file)))
 for (const file of documentationFiles) {
   await fs.copyFile(path.join(root, file), path.join(out, file))
