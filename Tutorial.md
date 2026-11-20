@@ -104,6 +104,10 @@ This is the heart of a study tool: you can explore without destroying the record
 2. Open the **Comment** tab on the right.
 3. Type a note in the editor. It is stored in the SGF with that move.
 4. Use **A− / A+** in the Comment header to make the text bigger or smaller.
+5. You can keep editing while moving through the game: with the cursor still in the comment box,
+   press **Ctrl+Shift+↑ / ↓** to go to the parent or first child, and **Ctrl+Shift+← / →** to
+   switch between sibling branches. The pending comment is committed first and focus stays in
+   the editor, so you can keep typing at the new node without clicking back into the box.
 
 Comments support simple Markdown (bold, italics, lists and links).
 
@@ -170,6 +174,7 @@ The dialog remembers your last selection and folder next time.
 | New game | `Ctrl+N` |
 | Open SGF | `Ctrl+O` |
 | Save / Save As | `Ctrl+S` / `Ctrl+Shift+S` |
+| Navigate while typing a comment | `Ctrl+Shift+↑/↓` parent / first child; `Ctrl+Shift+←/→` sibling branches |
 | Next / previous move | `↓` / `↑` |
 | Start / end | `Home` / `End` |
 | Sibling variation | `←` / `→` |
