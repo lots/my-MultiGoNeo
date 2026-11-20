@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.11 · **Updated:** 2026-11-20 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.11](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.11)
+**Version:** 1.1.12 · **Updated:** 2026-11-20 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.12](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.12)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,10 +10,9 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest feature (1.1.11): enlarge/restore the goban coordinate font.** Click any coordinate
-> letter or number, or the margin outside the stones, to switch the labels to **double size**;
-> click again to **restore** the normal size. The board margin grows and shrinks with them, and
-> the choice is remembered. See request 9, §1.1 and §2.2.1.
+> **Latest (1.1.12): packaged documentation.** `README.md`, `Features.md` and `Tutorial.md` now
+> ship at the root of the installer, portable build and web folder. The 1.1.11 feature —
+> click to enlarge/restore the goban coordinate font — remains detailed below.
 
 ---
 
@@ -34,6 +33,7 @@ installer, portable build and web zip.
 | 11 | Two consecutive passes should **end the game and offer to count** it. | Pass/pass prompt offers **Count Result** or **Keep Playing**; accepting opens the scoring card. | ✅🧪 | 1.1.3 |
 | 12 | Bowls must be **light wood matching the goban**, must not duplicate the count number, and black stones must stay visible. | Light kaya bowls, no number badge (status bar already shows `Captures: B n · W n`), shaded stones with highlights; dark theme uses the rosewood palette. | ✅🧪 | 1.1.3 |
 | 13 | Clarify how the **installer handles different versions** of the same app. | Documented as one product identity: newer installers upgrade/replace older ones (same appId/registry keys), settings preserved; side-by-side requires portable copies or a separate appId. | ✅ docs | 1.1.11 |
+| 14 | Include **README.md, Features.md and Tutorial.md** in the installation root folder of every distribution. | Both packagers copy the three documents to the root of the installer/portable app and of the web folder/zip. | ✅📦 | 1.1.12 |
 
 ### 1.1 Request notes
 
@@ -161,6 +161,7 @@ plays a move — the toggle only fires in the label margin. The interaction is c
 | `MultiGo-Neo-<version>-setup.exe` | Per-user NSIS installer; shortcuts, Apps entry and `.sgf` association. |
 | `MultiGo-Neo-<version>-portable.exe` | Single-file portable Electron build; no installation. |
 | `MultiGo-Neo-<version>-web.zip` (or `web-portable/`) | Browser build; unzip/copy and open `index.html`. |
+| `README.md`, `Features.md`, `Tutorial.md` | Manual, feature register and beginner tutorial at the root of every package. |
 | `sgf\十三路打谱操` | 17 study SGF records in the installer, portable and web builds. |
 
 ### 3.2 Multiple versions and upgrades
@@ -204,5 +205,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.11. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.12. For usage, shortcuts and SGF details see
 [README.md](README.md).*

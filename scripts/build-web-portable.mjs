@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
 import { fileURLToPath } from 'node:url'
@@ -222,12 +223,21 @@ try {
 }
 
 await fs.copyFile(path.join(root, 'LICENSE'), path.join(out, 'LICENSE'))
+// Manual, feature register and tutorial, for offline reading beside index.html.
+const documentationFiles = ['README.md', 'Features.md', 'Tutorial.md']
+  .filter((file) => existsSync(path.join(root, file)))
+for (const file of documentationFiles) {
+  await fs.copyFile(path.join(root, file), path.join(out, file))
+}
 // license.html is checked in under src/ rather than generated here, so hosts
 // that publish the source tree directly still serve the MIT notice.
+const docsNote = documentationFiles.length
+  ? `\nDocumentation in this folder: ${documentationFiles.join(', ')}.\n`
+  : ''
 const sgfNote = sgfFiles
   ? `\nBundled study records: ${sgfFiles} SGF files in sgf/十三路打谱操.\n`
   : ''
-await fs.writeFile(path.join(out, 'README.txt'), readme + sgfNote, 'utf8')
+await fs.writeFile(path.join(out, 'README.txt'), readme + docsNote + sgfNote, 'utf8')
 await fs.writeFile(path.join(out, 'Open MultiGo Neo.cmd'), launcher.replace(/\n/g, '\r\n'), 'utf8')
 
 // Release archive: same files, same names, written from the finished folder.

@@ -21,17 +21,18 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.11 build** adds click-to-toggle **double-size coordinates**. The 1.1.10 build
-repackaged 1.1.9 with no application changes. 1.1.9 added the **phone/portrait layout** with a
-maximized board, compact Info and Message strips, hidden bowls and a full-width goban. It keeps
-the 1.1.7 **editable node names** and the 1.1.8 one-step portable web folder and `web.zip`. The
-1.1.6 build added the configurable **SGF size limit**, bundled the 13×13 study records and
-introduced the web download. It keeps the 1.1.5 **main-branch tree layout** and the
-Sabaki-derived **GTP engine layer**, Sabaki-style **scoring territory** with
-**Play → Estimate / Score**, live captured-stone bowls and small-board edge fixes. The 1.1.2
-release brought **Reload-in-place**, **multi-file branch import**, **PNG board export**, the
-**UNSAVED** guard, display-only **board rotation/flips**, **native fullscreen** and one shared
-lighter icon.
+The **1.1.12 build** adds packaged **README.md**, **Features.md** and **Tutorial.md** to the
+installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
+coordinates**. The 1.1.10 build repackaged 1.1.9 with no application changes. 1.1.9 added the
+**phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
+and a full-width goban. It keeps the 1.1.7 **editable node names** and the 1.1.8 one-step
+portable web folder and `web.zip`. The 1.1.6 build added the configurable **SGF size limit**,
+bundled the 13×13 study records and introduced the web download. It keeps the 1.1.5
+**main-branch tree layout** and the Sabaki-derived **GTP engine layer**, Sabaki-style
+**scoring territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board
+edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**,
+**PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
+**native fullscreen** and one shared lighter icon.
 
 A tabulated register of the requested features and the notable extras is in
 [Features.md](Features.md). New to the app? [Tutorial.md](Tutorial.md) walks through opening a
@@ -45,6 +46,18 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.12
+
+Released 2026-11-20. The Windows artifacts are `MultiGo-Neo-1.1.12-setup.exe` and
+`MultiGo-Neo-1.1.12-portable.exe`, plus `MultiGo-Neo-1.1.12-web.zip` for the browser build.
+
+- **Packaged documentation** — every distribution form now carries `README.md`, `Features.md`
+  and `Tutorial.md` at its root:
+  - installed app: next to `MultiGo Neo.exe`;
+  - portable exe: at the extracted app root;
+  - web folder/zip: beside `index.html`.
+- No application behaviour changes; this is a documentation/distribution release.
 
 ### Version 1.1.11
 
@@ -1150,7 +1163,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.11-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.12-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1158,7 +1171,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.11-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.12-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1232,6 +1245,17 @@ records. Both builders copy the folder fresh on every run: update the SGFs in
 `AQ\sgf\十三路打谱操`, then run `npm run dist:web` and `npm run dist:win` to refresh the
 packages.
 
+### Documentation in the package
+
+Every distribution form carries three documents at its root, so they can be read offline:
+
+- **`README.md`** — the full manual, menus, shortcuts and SGF details.
+- **`Features.md`** — the tabulated feature register.
+- **`Tutorial.md`** — the beginner tutorial.
+
+The installed app places them next to `MultiGo Neo.exe`; the portable build has them at the
+extracted app root; the web folder/zip has them beside `index.html`.
+
 ## Run
 
 ```powershell
@@ -1262,9 +1286,10 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.11-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.11-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.11-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.12-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.12-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.12-web.zip` — portable web build, written by `npm run dist:web`.
+- `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The package contains only the app sources in `resources/app.asar` plus the Electron runtime;

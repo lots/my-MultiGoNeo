@@ -3,23 +3,34 @@
 // electron-builder configuration.
 //
 // The `build` block in package.json stays the single source of truth; this file
-// adds the `beforeBuild` hook (which cannot be expressed in JSON) and the
-// optional bundled study records.
+// adds the `beforeBuild` hook (which cannot be expressed in JSON), the packaged
+// documentation and the optional bundled study records.
 
 const fs = require('node:fs')
 const path = require('node:path')
 
 const pkg = require('./package.json')
 
+// Manual, feature register and beginner tutorial, copied to the install root so
+// they are available offline beside MultiGo Neo.exe.
+const documentationFiles = ['README.md', 'Features.md', 'Tutorial.md']
+  .filter((file) => fs.existsSync(path.join(__dirname, file)))
+
 // Local SGF study records. The folder is git-ignored, so a clean clone or CI
 // build simply omits it; a local build picks up whatever is there at build time.
 // Rebuilding is all that is needed to refresh the bundled files.
 const bundledSgfSource = path.join(__dirname, 'AQ', 'sgf', '十三路打谱操')
-const extraFiles = fs.existsSync(bundledSgfSource)
-  ? [{ from: bundledSgfSource, to: 'sgf/十三路打谱操' }]
-  : []
+const extraFiles = [
+  ...documentationFiles.map((file) => ({ from: path.join(__dirname, file), to: file })),
+  ...(fs.existsSync(bundledSgfSource)
+    ? [{ from: bundledSgfSource, to: 'sgf/十三路打谱操' }]
+    : []),
+]
 
-if (extraFiles.length > 0) {
+if (documentationFiles.length > 0) {
+  console.log(`[electron-builder] bundling documentation: ${documentationFiles.join(', ')}`)
+}
+if (fs.existsSync(bundledSgfSource)) {
   console.log(`[electron-builder] bundling SGF records from ${path.relative(__dirname, bundledSgfSource)}`)
 }
 
