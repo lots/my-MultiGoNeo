@@ -34,7 +34,8 @@ release brought **Reload-in-place**, **multi-file branch import**, **PNG board e
 lighter icon.
 
 A tabulated register of the requested features and the notable extras is in
-[Features.md](Features.md).
+[Features.md](Features.md). New to the app? [Tutorial.md](Tutorial.md) walks through opening a
+game, replaying it, trying a variation, saving, scoring and exporting a picture.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
