@@ -87,6 +87,8 @@ function sgfPathFromArgs(argv) {
 
 let pendingOpenFile = sgfPathFromArgs(process.argv);
 
+const DOCUMENTATION_FILES = new Set(['README.md', 'Features.md', 'Tutorial.md']);
+
 function createWindow(initialFile = null) {
   const win = new BrowserWindow({
     width: 1440,
@@ -181,6 +183,15 @@ function registerIpc() {
 
   ipcMain.handle('app:new-window', () => {
     createWindow();
+  });
+
+  ipcMain.handle('app:open-doc', async (_event, name) => {
+    if (!DOCUMENTATION_FILES.has(name)) return { ok: false, error: 'Unknown documentation file.' };
+    const docPath = app.isPackaged
+      ? path.join(path.dirname(process.execPath), name)
+      : path.join(__dirname, '..', name);
+    const error = await shell.openPath(docPath);
+    return error ? { ok: false, error } : { ok: true, path: docPath };
   });
 
   ipcMain.handle('window:is-fullscreen', (event) => {

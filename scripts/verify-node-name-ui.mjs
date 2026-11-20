@@ -88,6 +88,18 @@ const loaded = await evaluate(`(() => {
   };
 })()`)
 
+const helpDocs = await evaluate(`(() => {
+  const opened = [];
+  const original = window.open;
+  window.open = (url) => { opened.push(url); return null; };
+  document.getElementById('menu-help').click();
+  for (const action of ['doc-readme', 'doc-features', 'doc-tutorial']) {
+    document.querySelector('[data-action="' + action + '"]').click();
+  }
+  window.open = original;
+  return opened;
+})()`)
+
 const sections = await evaluate(`(() => {
   const parent = __figdesk.tree.root.children[0];
   __figdesk.selectNode(parent.id);
@@ -207,7 +219,7 @@ const f2 = await evaluate(`(() => {
 })()`)
 await shot('preview-node-name.png')
 
-console.log(JSON.stringify({ loaded, sections, existing, editor, saved, branchSections, collapseRestore, f2, errors }, null, 2))
+console.log(JSON.stringify({ loaded, helpDocs, sections, existing, editor, saved, branchSections, collapseRestore, f2, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
   && loaded.labels.length === 2

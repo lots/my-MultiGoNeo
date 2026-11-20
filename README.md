@@ -21,8 +21,9 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.12 build** adds packaged **README.md**, **Features.md** and **Tutorial.md** to the
-installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
+The **1.1.13 build** adds **Help → README / Features / Tutorial** links to the bundled manuals.
+The 1.1.12 build packaged **README.md**, **Features.md** and **Tutorial.md** with the installer,
+portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
 coordinates**. The 1.1.10 build repackaged 1.1.9 with no application changes. 1.1.9 added the
 **phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
 and a full-width goban. It keeps the 1.1.7 **editable node names** and the 1.1.8 one-step
@@ -46,6 +47,16 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.13
+
+Released 2026-11-20. The Windows artifacts are `MultiGo-Neo-1.1.13-setup.exe` and
+`MultiGo-Neo-1.1.13-portable.exe`, plus `MultiGo-Neo-1.1.13-web.zip` for the browser build.
+
+- **Help documentation links** — **Help → README**, **Features** and **Tutorial** open the
+  bundled manuals. The desktop app opens the copy beside `MultiGo Neo.exe`; the portable web
+  build opens the copy beside `index.html`.
+- All three files remain included in the installer, portable exe and web zip.
 
 ### Version 1.1.12
 
@@ -105,6 +116,9 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
 - **Collapsible Game Tree and Message** — their headers now toggle their bodies. A collapsed
   Game Tree keeps the Node name/Variations strips visible and releases the remaining height;
   Message collapses to its 32 px header. Both states are remembered.
+- **Help → documentation** — the Help menu now opens the bundled **README**, **Features** and
+  **Tutorial** files. The desktop app opens the copies beside the executable; the portable web
+  build opens the copies beside `index.html`.
 
 ### Version 1.1.8
 
@@ -1163,7 +1177,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.12-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.13-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1171,7 +1185,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.12-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.13-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1286,9 +1300,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.12-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.12-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.12-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.13-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.13-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.13-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
