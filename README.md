@@ -261,10 +261,11 @@ See [Reload, imports and picture export](#reload-imports-and-picture-export),
   survives both page reloads and loading a different SGF.
 - The docked **Score** tab has the same independent **A− / A+** control, also **12–36 px** and
   persisted only in app preferences.
-- While the comment field has focus, **Ctrl+Shift+↑/↓** move to the parent/first child and
-  **Ctrl+Shift+←/→** move to the previous/next branch at the current level (landing on the last
-  node when the target branch is shorter). The current comment is committed first and focus
-  stays in the comment field for continuous entry.
+- While the comment field has focus, **Ctrl+Shift+↑/↓** move up and down the **current branch**
+  (previous/next move), and **Ctrl+Shift+←/→** switch to the previous/next branch at the current
+  level (landing on the last node when the target branch is shorter). The arrows do not change
+  branch on their own. The current comment is committed first and focus stays in the comment
+  field for continuous entry.
 - **Ctrl+S** and **Ctrl+Shift+S** work even while a comment or game-info field has focus; the
   pending comment is committed before the SGF is serialised.
 
@@ -1295,7 +1296,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Read Only | Edit → Read Only; navigation only, save disabled |
 | Comment editor | Comment tab; three-line editor, vertically resizable, height remembered; rendered Markdown below |
 | Comment display size | A− / A+ in the Comment header; 12–36 px, persisted per app and never written to the SGF |
-| Navigate while commenting | `Ctrl+Shift+↑/↓` parent/first child; `Ctrl+Shift+←/→` previous/next branch; comment focus stays |
+| Navigate while commenting | `Ctrl+Shift+↑/↓` previous/next move in the current branch; `Ctrl+Shift+←/→` previous/next branch; comment focus stays |
 | Save while typing | `Ctrl+S` / `Ctrl+Shift+S` from comment or game-info fields; pending comment is committed first |
 | Score display size | A− / A+ in the Score tab header; 12–36 px, independent app preference |
 | Edit Game Info | Edit → Edit Game Info; maximizes the Info panel and focuses Black; **Done** restores the previous layout |
