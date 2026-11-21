@@ -458,7 +458,7 @@ position-rebuild helpers.
 
 ![GNU Go 3.8 attached and answering a move on a 13×13 board](preview/gnugo-game.png)
 
-![Engine playing Black automatically and answering White](preview/engine-auto.png)
+![Engine playing Black automatically](preview/engine-auto.png)
 
 Limitations: GNU Go is playable but implements no analysis command, so its Analysis checkbox
 stays disabled; KataGo is the intended analysis engine. Rectangular boards are sent as
