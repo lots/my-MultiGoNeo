@@ -21,8 +21,7 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.14 build** adds **PDF editions** of the README, Features register and Tutorial, and
-the Help menu now opens those PDFs. The 1.1.13 build added **Help → README / Features / Tutorial**
+The **1.1.15 build** tightens the grey menu bar from 49 px to **36 px**, removing the empty space above and below the labels. The 1.1.14 build adds **PDF editions** of the README, Features register and Tutorial, and the Help menu now opens those PDFs. The 1.1.13 build added **Help → README / Features / Tutorial**
 links; 1.1.12 packaged the Markdown manuals with the installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
 coordinates**. The 1.1.10 build repackaged 1.1.9 with no application changes. 1.1.9 added the
 **phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
@@ -47,6 +46,15 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.15
+
+Released 2026-11-21. The Windows artifacts are `MultiGo-Neo-1.1.15-setup.exe` and
+`MultiGo-Neo-1.1.15-portable.exe`, plus `MultiGo-Neo-1.1.15-web.zip` for the browser build.
+
+- **Compact menu bar** — the grey application menu is now **36 px** tall (was 49 px), with the
+  18 px labels keeping 6 px above and below. The bar still wraps to a second row at narrow
+  widths (2 × 36 px), and menu popups still open directly below it.
 
 ### Version 1.1.14
 
@@ -1188,7 +1196,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.14-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.15-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1196,7 +1204,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.14-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.15-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1320,9 +1328,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.14-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.14-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.14-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.15-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.15-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.15-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
