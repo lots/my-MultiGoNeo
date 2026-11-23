@@ -21,8 +21,11 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.15 build** tightens the grey menu bar from 49 px to **36 px**, removing the empty space above and below the labels. The 1.1.14 build adds **PDF editions** of the README, Features register and Tutorial, and the Help menu now opens those PDFs. The 1.1.13 build added **Help → README / Features / Tutorial**
-links; 1.1.12 packaged the Markdown manuals with the installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
+The **1.1.16 build** adds a **Scrolling mode** for the menu and tool bars, an alternative to
+their wrapping mode. The 1.1.15 build tightens the grey menu bar from 49 px to **36 px**. The
+1.1.14 build adds **PDF editions** of the README, Features register and Tutorial, and the Help
+menu opens those PDFs; 1.1.13 added the Help links and 1.1.12 packaged the Markdown manuals with
+the installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
 coordinates**. The 1.1.10 build repackaged 1.1.9 with no application changes. 1.1.9 added the
 **phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
 and a full-width goban. It keeps the 1.1.7 **editable node names** and the 1.1.8 one-step
@@ -46,6 +49,17 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.16
+
+Released 2026-11-24. The Windows artifacts are `MultiGo-Neo-1.1.16-setup.exe` and
+`MultiGo-Neo-1.1.16-portable.exe`, plus `MultiGo-Neo-1.1.16-web.zip` for the browser build.
+
+- **Bar overflow mode** — **View → Scroll Menu and Tool Bars** switches the two top bars from
+  wrapping mode to **Scrolling mode**. In scrolling mode each bar stays on one row and gains a
+  horizontal scrollbar instead of growing to a second/third row; menu popups stay fixed below
+  the complete bar. The choice is remembered.
+- Default remains **Wrapping mode**.
 
 ### Version 1.1.15
 
@@ -123,11 +137,13 @@ Released 2026-11-14. The Windows artifacts are `MultiGo-Neo-1.1.9-setup.exe` and
 - **Node names** — the 1.1.7 editable `N` labels remain available from the tree.
 - **Resizable window** — the Electron minimum is now **360×480**, so the OS window can reach the
   phone layout instead of stopping at 960×640.
-- **Wrapping menu and tool bars** — when the top menu labels no longer fit on one line, they wrap
-  onto a second row (for example Options and Help at 390 px) instead of running off the window.
-  The toolbar wraps the same way into additional rows at narrow widths.
-- **Slightly shorter chrome** — the menu row is **49 px** (was 54) and the toolbar row is
-  **41 px** (was 46), about a 10% reduction, leaving more height for the board.
+- **Wrapping menu and tool bars** — the default mode wraps when the top menu labels no longer fit
+  on one line (for example Options and Help at 390 px). The toolbar wraps the same way into
+  additional rows at narrow widths.
+- **Scrolling mode** — **View → Scroll Menu and Tool Bars** instead keeps each bar on one row and
+  adds a horizontal scrollbar. Popups stay fixed below the complete bar, and the choice persists.
+- **Slightly shorter chrome** — the menu row is **36 px** (was 49) and the toolbar row is
+  **41 px** (was 46), leaving more height for the board.
 - **Node name and Variations panels** — two collapsible sections sit directly above the Game
   Tree. Node name edits the current node's `N` value; Variations lists the immediate next moves
   with their move coordinate and branch name, and clicking a row navigates to it. Each header
@@ -873,6 +889,8 @@ are 49 px and toolbar rows are 41 px, roughly 10% shorter than before.
 
 ![Phone portrait workspace at 390×844](preview/preview-portrait-mobile.png)
 
+![Scrolling mode keeps both bars on one row](preview/preview-portrait-scrollbars.png)
+
 ![Portrait accordion with the Info panel open](preview/preview-portrait-accordion.png)
 
 ![四4 coordinates with Chinese row numerals](preview/preview-cjk.png)
@@ -1196,7 +1214,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.15-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.16-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1204,7 +1222,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.15-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.16-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1328,9 +1346,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.15-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.15-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.15-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.16-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.16-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.16-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 

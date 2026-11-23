@@ -231,6 +231,39 @@ const portraitMobile = await evaluate(`(() => {
   };
 })()`)
 await shot('preview-portrait-mobile.png')
+await evaluate(`document.querySelector('[data-action="toggle-bar-overflow"]').click()`)
+await sleep(300)
+const scrolling = await evaluate(`(() => {
+  const menu = document.querySelector('.menubar');
+  const toolbar = document.querySelector('.toolbar');
+  return {
+    scrollMode: document.querySelector('.app').classList.contains('bars-scroll'),
+    menuRows: new Set([...document.querySelectorAll('.menu-trigger')].map((item) => item.getBoundingClientRect().top)).size,
+    toolbarRows: new Set([...document.querySelectorAll('.toolbar .tool')].map((item) => item.getBoundingClientRect().top)).size,
+    menubarHeight: Math.round(menu.getBoundingClientRect().height),
+    toolbarHeight: Math.round(toolbar.getBoundingClientRect().height),
+    menuScrollable: menu.scrollWidth > menu.clientWidth,
+    toolbarScrollable: toolbar.scrollWidth > toolbar.clientWidth,
+    boardHeight: Math.round(document.getElementById('pane-board').getBoundingClientRect().height),
+  };
+})()`)
+await shot('preview-portrait-scrollbars.png')
+scrolling.menuPopup = await evaluate(`(() => {
+  document.getElementById('menu-help').click();
+  const popup = document.getElementById('popup-help');
+  const bar = document.querySelector('.menubar').getBoundingClientRect();
+  const rect = popup.getBoundingClientRect();
+  const result = {
+    visible: !popup.hidden,
+    fixed: getComputedStyle(popup).position === 'fixed',
+    belowBar: rect.top >= bar.bottom - 1,
+    withinViewport: rect.left >= 0 && rect.right <= window.innerWidth + 1,
+  };
+  document.getElementById('menu-help').click();
+  return result;
+})()`)
+await evaluate(`document.querySelector('[data-action="toggle-bar-overflow"]').click()`)
+await sleep(250)
 await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1024, deviceScaleFactor: 1, mobile: false })
 await sleep(450)
 const restored = await evaluate(`(() => ({
@@ -277,6 +310,7 @@ console.log(JSON.stringify({
   portrait,
   accordion,
   portraitMobile,
+  scrolling,
   restored,
   deeplink,
   embed,

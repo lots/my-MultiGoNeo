@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.15 · **Updated:** 2026-11-21 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.15](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.15)
+**Version:** 1.1.16 · **Updated:** 2026-11-24 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.16](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.16)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,9 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.15): compact menu bar.** The grey menu is now 36 px tall (was 49 px) with the
-> same 18 px labels, removing the empty band above and below them. The earlier packaged
-> documentation and coordinate-font features remain below.
+> **Latest (1.1.16): scrolling bar mode.** View → Scroll Menu and Tool Bars switches the two top
+> bars from wrapping to one-row horizontal scrolling. The 1.1.15 compact 36 px menu bar, packaged
+> PDF documentation and earlier features remain below.
 
 ---
 
@@ -35,6 +35,7 @@ installer, portable build and web zip.
 | 13 | Clarify how the **installer handles different versions** of the same app. | Documented as one product identity: newer installers upgrade/replace older ones (same appId/registry keys), settings preserved; side-by-side requires portable copies or a separate appId. | ✅ docs | 1.1.11 |
 | 14 | Include **README.md, Features.md and Tutorial.md** in the installation root folder of every distribution. | Both packagers copy the three documents to the root of the installer/portable app and of the web folder/zip. | ✅📦 | 1.1.12 |
 | 15 | Reduce the **empty space above and below the grey menu labels**. | Menu bar height reduced from 49 px to **36 px**; 18 px labels keep 6 px above/below, and a wrapped two-row bar is 72 px. Popups and responsive sizes unchanged. | ✅🧪 | 1.1.15 |
+| 16 | Offer a **Scrolling mode** for the menu and tool bars as an alternative to wrapping when the window is narrow. | View → Scroll Menu and Tool Bars keeps each bar on one row with a horizontal scrollbar; popups are fixed below the bar and the mode persists. | ✅🧪📦 | 1.1.16 |
 
 ### 1.1 Request notes
 
