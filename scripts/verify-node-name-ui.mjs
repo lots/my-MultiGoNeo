@@ -184,6 +184,26 @@ const branchSections = await evaluate(`(() => {
 })()`)
 await shot('preview-branch-panels.png')
 
+const hideShow = await evaluate(`(() => {
+  const checks = [
+    ['toggle-info-tabs', 'pane-info'],
+    ['toggle-node-name', 'node-name-section'],
+    ['toggle-variations', 'variations-section'],
+    ['toggle-tree', 'game-tree'],
+    ['toggle-messages', 'pane-message'],
+  ];
+  const result = {};
+  for (const [action, id] of checks) {
+    const item = document.querySelector('[data-action="' + action + '"]');
+    item.click();
+    const hidden = document.getElementById(id).hidden;
+    item.click();
+    const restored = !document.getElementById(id).hidden;
+    result[action.replace('toggle-', '')] = { hidden, restored };
+  }
+  return result;
+})()`)
+
 const collapseRestore = await evaluate(`(() => {
   const treePane = document.getElementById('pane-moves');
   const messagePane = document.getElementById('pane-message');
@@ -222,7 +242,7 @@ const f2 = await evaluate(`(() => {
 })()`)
 await shot('preview-node-name.png')
 
-console.log(JSON.stringify({ loaded, helpDocs, sections, existing, editor, saved, branchSections, collapseRestore, f2, errors }, null, 2))
+console.log(JSON.stringify({ loaded, helpDocs, sections, hideShow, existing, editor, saved, branchSections, collapseRestore, f2, errors }, null, 2))
 ws.close()
 process.exitCode = errors.length === 0
   && loaded.labels.length === 2
