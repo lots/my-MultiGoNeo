@@ -21,9 +21,10 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.17 build** names the right-hand **Sidebar** and its parts. The 1.1.16 build adds a
-**Scrolling mode** for the menu and tool bars, an alternative to their wrapping mode. The 1.1.15
-build tightens the grey menu bar from 49 px to **36 px**. The
+The **1.1.18 build** allows **multiple running instances** on Windows and in the browser, with a
+**File → New Window** command. The 1.1.17 build names the right-hand **Sidebar** and its parts. The
+1.1.16 build adds a **Scrolling mode** for the menu and tool bars, an alternative to their wrapping
+mode. The 1.1.15 build tightens the grey menu bar from 49 px to **36 px**. The
 1.1.14 build adds **PDF editions** of the README, Features register and Tutorial, and the Help
 menu opens those PDFs; 1.1.13 added the Help links and 1.1.12 packaged the Markdown manuals with
 the installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
@@ -50,6 +51,18 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.18
+
+Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.18-setup.exe` and
+`MultiGo-Neo-1.1.18-portable.exe`, plus `MultiGo-Neo-1.1.18-web.zip` for the browser build.
+
+- **Multiple instances** — the desktop app no longer takes a single-instance lock. Launching it
+  again, or double-clicking another `.sgf`, starts a separate process and window instead of
+  focusing the old one. **File → New Window** (`Ctrl+Shift+N`) opens another window in the same
+  process; in the browser build it opens a new tab.
+- Each window/tab keeps its own board, game tree and engine session. Preferences, recent files
+  and layout are shared (the last window to change them wins).
 
 ### Version 1.1.17
 
@@ -698,6 +711,16 @@ The View menu now provides display-only orientation controls:
 - Electron native Open/Save dialogs remember the last folder, matching the fork's dialog
   convenience; the renderer has a browser download/file-picker fallback.
 
+### Multiple windows and instances
+
+MultiGo Neo no longer enforces a single running instance. Launching the app again, or
+double-clicking another `.sgf`, starts a separate process and window instead of focusing the
+existing one. **File → New Window** (`Ctrl+Shift+N`) opens another window in the same process;
+in the browser build it opens a new tab.
+
+Each window/tab keeps its own board, game tree, current file and GTP engine session. Preferences,
+recent files and layout are shared: the last window to change them wins.
+
 ### View menu
 
 The View menu now covers the practical MultiGo-style display controls:
@@ -1225,7 +1248,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.17-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.18-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1233,7 +1256,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.17-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.18-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1357,9 +1380,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.17-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.17-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.17-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.18-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.18-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.18-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
@@ -1425,6 +1448,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Move-number count | View → Move Numbers dropdown |
 | Undo / redo | `Ctrl+Z` / `Ctrl+Shift+Z` |
 | New / open / save SGF | `Ctrl+N` / `Ctrl+O` / `Ctrl+S` |
+| New window | File → New Window (`Ctrl+Shift+N`); the browser build opens a new tab |
 | Open SGF from Explorer | Double-click the associated `.sgf` (installer registers it; portable: Open with → Choose another app) |
 | Save SGF As | `Ctrl+Shift+S` |
 | Reload current file | File → Reload |

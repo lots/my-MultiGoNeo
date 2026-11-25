@@ -13,6 +13,7 @@ const api = {
     node: process.versions.node,
   }),
   quit: () => ipcRenderer.invoke('app:quit'),
+  newWindow: () => ipcRenderer.invoke('app:new-window'),
   openDoc: (name) => ipcRenderer.invoke('app:open-doc', name),
   isFullScreen: () => ipcRenderer.invoke('window:is-fullscreen'),
   setFullScreen: (value) => ipcRenderer.invoke('window:set-fullscreen', Boolean(value)),

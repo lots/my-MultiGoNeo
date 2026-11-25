@@ -414,61 +414,43 @@ function configureSessions() {
   });
 }
 
-const hasSingleInstanceLock = app.requestSingleInstanceLock();
+// Multiple instances are intentional: every launch gets its own process and
+// window, so several games can be open at once and a second .sgf double-click
+// opens a new window instead of replacing the current one.
 
-if (!hasSingleInstanceLock) {
-  app.quit();
-} else {
-  app.on('second-instance', (_event, argv) => {
-    const filePath = sgfPathFromArgs(argv);
-    const [win] = BrowserWindow.getAllWindows();
-    if (!win) {
-      createWindow(filePath);
-      return;
-    }
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  if (!/\.sgf$/i.test(filePath || '')) return;
+  const win = BrowserWindow.getFocusedWindow() || mainWindow;
+  if (win && !win.isDestroyed()) {
     if (win.isMinimized()) win.restore();
     win.focus();
-    if (!filePath) return;
-    const deliver = () => {
-      if (!win.isDestroyed()) win.webContents.send('app:open-file', filePath);
-    };
-    if (win.webContents.isLoadingMainFrame()) win.webContents.once('did-finish-load', deliver);
-    else deliver();
-  });
+    win.webContents.send('app:open-file', path.resolve(filePath));
+  } else {
+    pendingOpenFile = path.resolve(filePath);
+  }
+});
 
-  app.on('open-file', (event, filePath) => {
-    event.preventDefault();
-    if (!/\.sgf$/i.test(filePath || '')) return;
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-      mainWindow.webContents.send('app:open-file', path.resolve(filePath));
-    } else {
-      pendingOpenFile = path.resolve(filePath);
-    }
-  });
+app.whenReady().then(() => {
+  installApplicationMenu();
+  configureSessions();
+  registerIpc();
+  createWindow(pendingOpenFile);
+  pendingOpenFile = null;
 
-  app.whenReady().then(() => {
-    installApplicationMenu();
-    configureSessions();
-    registerIpc();
-    createWindow(pendingOpenFile);
-    pendingOpenFile = null;
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
 
-  app.on('before-quit', () => {
-    allowWindowClose = true;
-    engines.disposeAll();
-  });
+app.on('before-quit', () => {
+  allowWindowClose = true;
+  engines.disposeAll();
+});
 
-  app.on('window-all-closed', () => {
-    if (!isMac) app.quit();
-  });
-}
+app.on('window-all-closed', () => {
+  if (!isMac) app.quit();
+});
 
 // Exported so the IPC handlers can be exercised without launching Electron;
 // the entry point itself never reads this.

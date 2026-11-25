@@ -1,6 +1,6 @@
 # MultiGo Neo — Beginner Tutorial
 
-**Version 1.1.17 · about 10 minutes · no Go experience required**
+**Version 1.1.18 · about 10 minutes · no Go experience required**
 
 This tutorial walks through the most common task: **open a game record, replay it, try a variation, save your work, score it and export a picture**. Follow the steps in order; each one tells you what you should see.
 
@@ -139,10 +139,11 @@ The dialog remembers your last selection and folder next time.
 
 ---
 
-## 9. Two useful extras
+## 9. Three useful extras
 
 - **Bigger coordinates:** click a coordinate letter or number (or the margin just outside the stones) to **double** the label size. Click again to restore it. The setting is remembered.
 - **Bigger board:** press **`F11`** for full screen, or drag the panel dividers inward.
+- **Another window:** choose **File → New Window** (`Ctrl+Shift+N`) to open a second independent window; in the browser it opens a new tab.
 
 ---
 
@@ -151,6 +152,7 @@ The dialog remembers your last selection and folder next time.
 | Task | Shortcut / menu |
 |---|---|
 | New game | `Ctrl+N` |
+| New window | File → New Window (`Ctrl+Shift+N`); new browser tab on the web |
 | Open SGF | `Ctrl+O` |
 | Save / Save As | `Ctrl+S` / `Ctrl+Shift+S` |
 | Navigate while typing a comment | `Ctrl+Shift+↑/↓` previous/next move in the current branch; `Ctrl+Shift+←/→` switch branch |

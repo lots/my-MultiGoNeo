@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.17 · **Updated:** 2026-11-25 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.17](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.17)
+**Version:** 1.1.18 · **Updated:** 2026-11-26 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.18](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.18)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,9 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.17): named sidebar.** The right-hand column is now labelled **Sidebar**, with
-> **Info tabs**, **Node Name**, **Variations**, **Game Tree** and **Messages** sections. The
-> 1.1.16 scrolling bar mode, packaged PDF documentation and earlier features remain below.
+> **Latest (1.1.18): multiple instances.** Launching the Windows app again now starts a separate
+> process/window, and File → New Window opens another window (a new tab in the web build). The
+> 1.1.17 named Sidebar, scrolling bar mode and earlier features remain below.
 
 ---
 
@@ -37,6 +37,7 @@ installer, portable build and web zip.
 | 15 | Reduce the **empty space above and below the grey menu labels**. | Menu bar height reduced from 49 px to **36 px**; 18 px labels keep 6 px above/below, and a wrapped two-row bar is 72 px. Popups and responsive sizes unchanged. | ✅🧪 | 1.1.15 |
 | 16 | Offer a **Scrolling mode** for the menu and tool bars as an alternative to wrapping when the window is narrow. | View → Scroll Menu and Tool Bars keeps each bar on one row with a horizontal scrollbar; popups are fixed below the bar and the mode persists. | ✅🧪📦 | 1.1.16 |
 | 17 | Provide **names for the multiple parts** of the right-hand panel beside the goban. | Sidebar heading names the column; parts are **Info tabs** (Info/Comment/Engine/Score), **Node Name**, **Variations**, **Game Tree**, **Messages**. Visible labels, tooltips and ARIA names match. | ✅🧪📦 | 1.1.17 |
+| 18 | Allow **multiple running instances** of the Windows app and the web app. | Desktop drops the single-instance lock, so each launch/double-click is a separate process/window; File → New Window opens another window (new browser tab) with its own board/game/engine. | ✅🧪📦 | 1.1.18 |
 
 ### 1.1 Request notes
 
@@ -208,5 +209,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.17. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.18. For usage, shortcuts and SGF details see
 [README.md](README.md).*
