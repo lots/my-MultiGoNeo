@@ -736,6 +736,7 @@
     'Remember Last Board Size': '记住上次棋盘尺寸',
     'Autoplay Delay': '自动播放间隔',
     'Reset All Settings': '重置所有设置', 'Keyboard Shortcuts': '快捷键', 'About MultiGo Neo': '关于 MultiGo Neo',
+    Sidebar: '侧栏', Study: '研习', 'Node Name': '节点名称', Messages: '消息',
     README: 'README', Features: '功能', Tutorial: '教程',
     'README (PDF)': 'README (PDF)', 'Features (PDF)': '功能 (PDF)', 'Tutorial (PDF)': '教程 (PDF)',
     'Show Go Bowls': '显示棋钵', Rules: '规则',

@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.16 · **Updated:** 2026-11-24 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.16](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.16)
+**Version:** 1.1.17 · **Updated:** 2026-11-25 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.17](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.17)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,9 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.16): scrolling bar mode.** View → Scroll Menu and Tool Bars switches the two top
-> bars from wrapping to one-row horizontal scrolling. The 1.1.15 compact 36 px menu bar, packaged
-> PDF documentation and earlier features remain below.
+> **Latest (1.1.17): named sidebar.** The right-hand column is now labelled **Sidebar**, with
+> **Info tabs**, **Node Name**, **Variations**, **Game Tree** and **Messages** sections. The
+> 1.1.16 scrolling bar mode, packaged PDF documentation and earlier features remain below.
 
 ---
 
@@ -36,6 +36,7 @@ installer, portable build and web zip.
 | 14 | Include **README.md, Features.md and Tutorial.md** in the installation root folder of every distribution. | Both packagers copy the three documents to the root of the installer/portable app and of the web folder/zip. | ✅📦 | 1.1.12 |
 | 15 | Reduce the **empty space above and below the grey menu labels**. | Menu bar height reduced from 49 px to **36 px**; 18 px labels keep 6 px above/below, and a wrapped two-row bar is 72 px. Popups and responsive sizes unchanged. | ✅🧪 | 1.1.15 |
 | 16 | Offer a **Scrolling mode** for the menu and tool bars as an alternative to wrapping when the window is narrow. | View → Scroll Menu and Tool Bars keeps each bar on one row with a horizontal scrollbar; popups are fixed below the bar and the mode persists. | ✅🧪📦 | 1.1.16 |
+| 17 | Provide **names for the multiple parts** of the right-hand panel beside the goban. | Sidebar heading names the column; parts are **Info tabs** (Info/Comment/Engine/Score), **Node Name**, **Variations**, **Game Tree**, **Messages**. Visible labels, tooltips and ARIA names match. | ✅🧪📦 | 1.1.17 |
 
 ### 1.1 Request notes
 
@@ -207,5 +208,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.15. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.17. For usage, shortcuts and SGF details see
 [README.md](README.md).*
