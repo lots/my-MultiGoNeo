@@ -107,10 +107,9 @@ Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.19-setup.exe` an
 Released 2026-11-25. The Windows artifacts are `MultiGo-Neo-1.1.17-setup.exe` and
 `MultiGo-Neo-1.1.17-portable.exe`, plus `MultiGo-Neo-1.1.17-web.zip` for the browser build.
 
-- **Named sidebar** — the right-hand column now has a **Sidebar** heading (with a “Study” meta
-  label). Its parts carry explicit names: **Info tabs** (Info, Comment, Engine, Score),
-  **Node Name**, **Variations**, **Game Tree** and **Messages**. Tooltips/ARIA labels match the
-  visible names.
+- **Named sidebar** — the right-hand column now has a **Sidebar** heading. Its parts carry
+  explicit names: **Info tabs** (Info, Comment, Engine, Score), **Node Name**, **Variations**,
+  **Game Tree** and **Messages**. Tooltips/ARIA labels match the visible names.
 
 ### Version 1.1.16
 
