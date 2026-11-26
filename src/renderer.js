@@ -54,7 +54,7 @@
   }
   const colorCss = { black: '#111', white: '#f5f5f5', red: '#d92b2b', yellow: '#e6b800', blue: '#2f6fed', green: '#1a7f37' };
   // Board themes live in src/themes/*.css; the canvas reads these custom properties.
-  const THEMES = ['classic', 'flat', 'dark', 'paper'];
+  const THEMES = ['basic', 'classic', 'flat', 'dark', 'paper'];
   const DEFAULT_PALETTE = Object.freeze({
     surface: '#d7a760',
     edge: 'rgba(91,56,17,.45)',

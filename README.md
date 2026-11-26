@@ -21,8 +21,9 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.20 build** fixes **bowl sides after swapping player seats**: the bottom player's bowl
-now sits on their right, the top player's on their left. The 1.1.19 build lets each Sidebar part
+The **1.1.21 build** adds the **Basic** board theme modelled on MultiGo 4.4.4's initial board,
+glass stones and Windows-grey chrome. The 1.1.20 build fixes **bowl sides after swapping player
+seats**: the bottom player's bowl now sits on their right, the top player's on their left. The 1.1.19 build lets each Sidebar part
 be hidden or shown independently from the View menu. The 1.1.18 build allows **multiple running
 instances** on Windows and in the browser, with a **File → New Window** command. The 1.1.17 build names the right-hand **Sidebar** and its parts. The
 1.1.16 build adds a **Scrolling mode** for the menu and tool bars, an alternative to their wrapping
@@ -47,7 +48,7 @@ game, replaying it, trying a variation, saving, scoring and exporting a picture.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
-[Modified FF[4]](#modified-ff4)). The board ships in **four themes**, previewed on 13×13
+[Modified FF[4]](#modified-ff4)). The board ships in **five themes**, previewed on 13×13
 boards [below](#board-themes-and-responsive-layout).
 
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
@@ -65,6 +66,17 @@ Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.18-setup.exe` an
   process; in the browser build it opens a new tab.
 - Each window/tab keeps its own board, game tree and engine session. Preferences, recent files
   and layout are shared (the last window to change them wins).
+
+### Version 1.1.21
+
+Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.21-setup.exe` and
+`MultiGo-Neo-1.1.21-portable.exe`, plus `MultiGo-Neo-1.1.21-web.zip` for the browser build.
+
+- **Basic theme** — reproduces MultiGo 4.4.4's initial look with its stock 50×50
+  `board-default.bmp` wood tile, black grid and coordinate labels, glass-style stones, a white
+  board surround and classic grey Windows chrome with Tahoma menus. Select **Basic** in
+  **Options → Theme**; the choice is remembered.
+- The five theme previews and the PDF manuals include the new theme.
 
 ### Version 1.1.20
 
@@ -722,7 +734,7 @@ The View menu now provides display-only orientation controls:
   flecks.
 - Coordinate systems: **A1**, **1–1**, and **四4** (Arabic column numbers with Chinese
   numerals down the rows).
-- **Four CSS board themes** — Classic, Flat, Dark and Paper — with the surface, grid colours
+- **Five CSS board themes** — Basic, Classic, Flat, Dark and Paper — with the surface, grid colours
   and stone palette driven by custom properties in `src/themes/*.css`.
 - **Responsive layout**: below 1120 px the board moves above the panel column; the board keeps
   a 58% height ratio and the panels keep at least 280 px. View → Responsive Layout toggles it.
@@ -904,19 +916,26 @@ When two passes are played consecutively the game is over: a prompt offers **Cou
 
 ### Board themes and responsive layout
 
-Four CSS-only board themes ship with the app: **Classic**, **Flat**, **Dark** and **Paper**.
-Pick one in **Options → Theme**; the choice is remembered across launches. A theme only
-changes the board surface, grid, labels and stones — the shell stays the same. All four
+Five CSS-only board themes ship with the app: **Basic**, **Classic**, **Flat**, **Dark** and
+**Paper**. Pick one in **Options → Theme**; the choice is remembered across launches. A theme
+only changes the board surface, grid, labels and stones — the shell stays the same. All five
 images below show the same **13×13** position at 1440×1024.
 
-| Classic | Flat |
+| Basic | Classic |
 | --- | --- |
-| ![Classic kaya board on a 13x13 position](preview/preview-theme-classic.png) | ![Flat board on a 13x13 position](preview/preview-theme-flat.png) |
+| ![Basic MultiGo-style board on a 13x13 position](preview/preview-theme-basic.png) | ![Classic kaya board on a 13x13 position](preview/preview-theme-classic.png) |
 
-| Dark | Paper |
+| Flat | Dark |
 | --- | --- |
-| ![Dark rosewood board on a 13x13 position](preview/preview-theme-dark.png) | ![Paper diagram board on a 13x13 position](preview/preview-theme-paper.png) |
+| ![Flat board on a 13x13 position](preview/preview-theme-flat.png) | ![Dark rosewood board on a 13x13 position](preview/preview-theme-dark.png) |
 
+| Paper |
+| --- |
+| ![Paper diagram board on a 13x13 position](preview/preview-theme-paper.png) |
+
+- **Basic** — the MultiGo 4.4.4 initial look: its stock 50×50 `board-default.bmp` wood tile,
+  black grid and labels, glass-style black/white stones, white board surround and classic grey
+  Windows chrome with Tahoma menus.
 - **Classic** — warm kaya wood with CSS-only grain; the default.
 - **Flat** — a solid board colour with no grain.
 - **Dark** — old rosewood with a golden-brown grid and warm stone highlights, based on the
@@ -926,10 +945,11 @@ images below show the same **13×13** position at 1440×1024.
 - **Paper** — light diagram paper, thin ink lines and flat printed stones (no gradient,
   drop shadow or highlight), for print-like review diagrams.
 
-Palettes live in `src/themes/classic.css`, `flat.css`, `dark.css` and `paper.css`; the
-renderer reads their custom properties on each switch, so the canvas stays transparent over
-the CSS surface. `node scripts/verify-themes-ui.mjs <port> preview` regenerates the four
-screenshots against a DevTools-enabled Chromium.
+Palettes live in `src/themes/basic.css`, `classic.css`, `flat.css`, `dark.css` and `paper.css`;
+the renderer reads their custom properties on each switch, so the canvas stays transparent over
+the CSS surface. The Basic theme also ships the sourced 50×50 board tile as
+`src/themes/basic-board.png`. `node scripts/verify-themes-ui.mjs <port> preview` regenerates the
+five screenshots against a DevTools-enabled Chromium.
 
 Below **1120 px** the workspace switches to a portrait column: the board sits on top at up to
 72% of the workspace height, capped by the available width so a phone uses the full screen
@@ -995,7 +1015,7 @@ and `data-label`. Widgets support click/wheel/keyboard navigation and a hover st
 
 ![Bilingual Chinese interface](preview/preview-chinese.png)
 
-- Additional Options: **Remember Last Board Size**, a **Theme** dropdown (Classic / Flat /
+- Additional Options: **Remember Last Board Size**, a **Theme** dropdown (Basic / Classic / Flat /
   Dark / Paper), an **Autoplay Delay** dropdown (0.5/1/2/3 s), Preferences, and **Reset All
   Settings**.
 - Runtime log entries and SGF/game content stay in their original language.
@@ -1242,6 +1262,7 @@ Screenshots: [main editor](preview/preview.png), [custom 5×9 board](preview/pre
 [pass nodes](preview/preview-pass-tree.png), [recent files](preview/preview-recent.png),
 [orthogonal game tree](preview/preview-tree-expanded.png), [collapsed branch](preview/preview-tree-collapsed.png),
 [四4 coordinates](preview/preview-cjk.png),
+[basic theme](preview/preview-theme-basic.png),
 [classic theme](preview/preview-theme-classic.png), [flat theme](preview/preview-theme-flat.png),
 [dark theme](preview/preview-theme-dark.png), [paper theme](preview/preview-theme-paper.png),
 [portrait layout](preview/preview-portrait.png),
@@ -1271,7 +1292,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.20-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.21-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1279,7 +1300,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.20-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.21-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1403,9 +1424,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.20-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.20-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.20-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.21-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.21-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.21-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
@@ -1527,7 +1548,7 @@ Known limitations of this milestone:
   win-rate graph are not configurable yet, and engine-vs-engine play is not implemented.
 - Markdown is a [safe subset](#supported-comment-markdown), not full Sabaki react-markdown; code blocks and images are not
   rendered as code/images.
-- No user theme/texture **directory** (the four built-in CSS themes are fixed), no
+- No user theme/texture **directory** (the five built-in CSS themes are fixed), no
   board-transformation UI, and no full localization of runtime log messages (the editor
   interface itself is bilingual).
 - `HA` is stored as a root property; automatic handicap stone placement is not applied.
@@ -1551,7 +1572,8 @@ src/engine-core.js        GTP vertex/analysis/sync helpers shared by renderer an
 src/engine.js             engine list, attach/detach, sync, analysis overlay, console
 src/index.html            menus, toolbars, tabs, board, graph, dialogs
 src/styles.css            MultiGo Neo shell, edit bar, tabs, graph, comments, portrait layout
-src/themes/*.css          Classic / Flat / Dark / Paper board palettes (CSS custom properties)
+src/themes/*.css          Basic / Classic / Flat / Dark / Paper board palettes (CSS custom properties)
+src/themes/basic-board.png  MultiGo 4.4.4 stock 50x50 board tile used by Basic
 src/renderer.js           tree state, canvas rendering, tools, themes, overlays, file actions
 src/embed.html            zero-JS embed examples
 src/embed.js              auto-init canvas viewer for [data-multigo] elements

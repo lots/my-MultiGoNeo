@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-// Captures one 13x13 board screenshot per theme (classic, flat, dark, paper).
+// Captures one 13x13 board screenshot per theme (basic, classic, flat, dark, paper).
 // Expects a Chromium instance already listening on the DevTools port and showing the app.
 //
 //   node scripts/verify-themes-ui.mjs 9346 . "file:///.../src/index.html?test=1"
@@ -11,12 +11,12 @@ const outDir = process.argv[3] ?? 'preview'
 const url = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html?test=1`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const THEMES = ['classic', 'flat', 'dark', 'paper']
+const THEMES = ['basic', 'classic', 'flat', 'dark', 'paper']
 
 // A calm 13x13 opening so every theme shows stones, coordinates and a populated tree.
 const SGF = [
   '(;GM[1]FF[4]CA[UTF-8]AP[MultiGo Neo:1.0]SZ[13]PB[Black]PW[White]KM[6.5]',
-  'RE[B+R]GN[Theme preview]C[13x13 board shown in the four built-in themes.]',
+  'RE[B+R]GN[Theme preview]C[13x13 board shown in the five built-in themes.]',
   ';B[dd];W[jd];B[dj];W[jj];B[gg];W[gc];B[cg];W[cc];B[cd];W[dc];B[ee];W[ff]',
   ';B[ef];W[fe];B[de];W[fd];B[hf];W[ig];B[hj];W[ji];B[kk];W[ik];B[ij];W[gi])',
 ].join('')

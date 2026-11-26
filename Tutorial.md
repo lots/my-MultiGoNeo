@@ -1,6 +1,6 @@
 # MultiGo Neo — Beginner Tutorial
 
-**Version 1.1.20 · about 10 minutes · no Go experience required**
+**Version 1.1.21 · about 10 minutes · no Go experience required**
 
 This tutorial walks through the most common task: **open a game record, replay it, try a variation, save your work, score it and export a picture**. Follow the steps in order; each one tells you what you should see.
 
