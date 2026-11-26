@@ -310,7 +310,11 @@ const seats = await evaluate(`(() => {
     return {
       blackBelow: black.top > board.top + board.height / 2,
       whiteAbove: white.top < board.top + board.height / 2,
+      blackAbove: black.top < board.top + board.height / 2,
+      whiteBelow: white.top > board.top + board.height / 2,
       blackRight: black.left > board.left + board.width / 2,
+      blackLeft: black.left < board.left + board.width / 2,
+      whiteRight: white.left > board.left + board.width / 2,
       whiteLeft: white.left < board.left + board.width / 2,
       topLabel: document.getElementById('seat-top').textContent,
       bottomLabel: document.getElementById('seat-bottom').textContent,
@@ -323,6 +327,11 @@ const seats = await evaluate(`(() => {
   document.querySelector('[data-action="swap-seats"]').click();
   return { before, after, restored: __figdesk.settings().blackAtBottom };
 })()`)
+if (!(seats.before.blackBelow && seats.before.blackRight && seats.before.whiteAbove && seats.before.whiteLeft
+  && seats.after.whiteBelow && seats.after.whiteRight && seats.after.blackAbove && seats.after.blackLeft
+  && seats.restored)) {
+  errors.push(`Bowl sides after seat swap: ${JSON.stringify(seats)}`)
+}
 const flips = await evaluate(`(() => {
   const read = () => {
     const board = document.getElementById('board').getBoundingClientRect();

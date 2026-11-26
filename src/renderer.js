@@ -1690,8 +1690,14 @@
     // same edges of the screen.
     let blackRow = settings.blackAtBottom === false ? 'top' : 'bottom';
     let whiteRow = blackRow === 'bottom' ? 'top' : 'bottom';
-    let blackCol = settings.boardFlipH === true ? 'left' : 'right';
+    // Each player's bowl sits at their right hand: the bottom player's bowl is
+    // on the screen's right, and the top player's bowl on the screen's left.
+    let blackCol = settings.blackAtBottom === false ? 'left' : 'right';
     let whiteCol = blackCol === 'right' ? 'left' : 'right';
+    if (settings.boardFlipH === true) {
+      blackCol = blackCol === 'right' ? 'left' : 'right';
+      whiteCol = whiteCol === 'right' ? 'left' : 'right';
+    }
     if (settings.boardFlipV === true) {
       blackRow = blackRow === 'bottom' ? 'top' : 'bottom';
       whiteRow = whiteRow === 'bottom' ? 'top' : 'bottom';
