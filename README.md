@@ -55,18 +55,6 @@ boards [below](#board-themes-and-responsive-layout).
 
 ## What is implemented
 
-### Version 1.1.18
-
-Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.18-setup.exe` and
-`MultiGo-Neo-1.1.18-portable.exe`, plus `MultiGo-Neo-1.1.18-web.zip` for the browser build.
-
-- **Multiple instances** — the desktop app no longer takes a single-instance lock. Launching it
-  again, or double-clicking another `.sgf`, starts a separate process and window instead of
-  focusing the old one. **File → New Window** (`Ctrl+Shift+N`) opens another window in the same
-  process; in the browser build it opens a new tab.
-- Each window/tab keeps its own board, game tree and engine session. Preferences, recent files
-  and layout are shared (the last window to change them wins).
-
 ### Version 1.1.21
 
 Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.21-setup.exe` and
@@ -101,6 +89,18 @@ Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.19-setup.exe` an
   release their layout space; the remaining panels and splitters reflow automatically.
 - Choices persist across sessions. In portrait mode the accordion skips hidden panels and opens
   the first available one.
+
+### Version 1.1.18
+
+Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.18-setup.exe` and
+`MultiGo-Neo-1.1.18-portable.exe`, plus `MultiGo-Neo-1.1.18-web.zip` for the browser build.
+
+- **Multiple instances** — the desktop app no longer takes a single-instance lock. Launching it
+  again, or double-clicking another `.sgf`, starts a separate process and window instead of
+  focusing the old one. **File → New Window** (`Ctrl+Shift+N`) opens another window in the same
+  process; in the browser build it opens a new tab.
+- Each window/tab keeps its own board, game tree and engine session. Preferences, recent files
+  and layout are shared (the last window to change them wins).
 
 ### Version 1.1.17
 
