@@ -76,6 +76,9 @@ Released 2026-11-26. The Windows artifacts are `MultiGo-Neo-1.1.21-setup.exe` an
   `board-default.bmp` wood tile, black grid and coordinate labels, glass-style stones, a white
   board surround and classic grey Windows chrome with Tahoma menus. Select **Basic** in
   **Options → Theme**; the choice is remembered.
+- **Basic workspace preset** — selecting Basic switches the Info panel to **Comment** and hides
+  **Node Name**, **Variations** and **Messages**, matching MultiGo's initial right-side workspace.
+  The View menu can restore any part later.
 - The five theme previews and the PDF manuals include the new theme.
 
 ### Version 1.1.20
@@ -935,7 +938,8 @@ images below show the same **13×13** position at 1440×1024.
 
 - **Basic** — the MultiGo 4.4.4 initial look: its stock 50×50 `board-default.bmp` wood tile,
   black grid and labels, glass-style black/white stones, white board surround and classic grey
-  Windows chrome with Tahoma menus.
+  Windows chrome with Tahoma menus. It opens the **Comment** tab and hides Node Name, Variations
+  and Messages.
 - **Classic** — warm kaya wood with CSS-only grain; the default.
 - **Flat** — a solid board colour with no grain.
 - **Dark** — old rosewood with a golden-brown grid and warm stone highlights, based on the

@@ -40,7 +40,7 @@ installer, portable build and web zip.
 | 18 | Allow **multiple running instances** of the Windows app and the web app. | Desktop drops the single-instance lock, so each launch/double-click is a separate process/window; File → New Window opens another window (new browser tab) with its own board/game/engine. | ✅🧪📦 | 1.1.18 |
 | 19 | Allow each Sidebar part to be **hidden/shown** from the View menu. | Independent View checkboxes for Info Tabs, Node Name, Variations, Game Tree and Messages; hidden parts release their space, splitters reflow and portrait accordion skips them. Choices persist. | ✅🧪📦 | 1.1.19 |
 | 20 | After **View → Swap Player Sides**, put the bottom player's bowl on their right-hand side and the top player's on their left. | Bowl columns are derived from the seat: Black at bottom → Black right / White left; White at bottom → White right / Black left. Horizontal board flips still mirror the columns. | ✅🧪📦 | 1.1.20 |
-| 21 | Add a **Basic** theme that mimics MultiGo 4.4.4's initial look and feel as closely as possible. | Uses MultiGo's stock 50×50 board-default wood tile, black grid/labels, glass stone palette, white board surround and classic grey Windows chrome with Tahoma menus. Select Basic in Options → Theme. | ✅🧪📦 | 1.1.21 |
+| 21 | Add a **Basic** theme that mimics MultiGo 4.4.4's initial look and feel as closely as possible. | Uses MultiGo's stock 50×50 board-default wood tile, black grid/labels, glass stone palette, white board surround and classic grey Windows chrome with Tahoma menus. Selecting Basic also opens **Comment** and hides Node Name, Variations and Messages. | ✅🧪📦 | 1.1.21 |
 
 ### 1.1 Request notes
 

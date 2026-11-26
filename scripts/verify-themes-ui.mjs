@@ -11,7 +11,8 @@ const outDir = process.argv[3] ?? 'preview'
 const url = process.argv[4] ?? `file:///${process.cwd().replaceAll('\\', '/')}/src/index.html?test=1`
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const THEMES = ['basic', 'classic', 'flat', 'dark', 'paper']
+// Basic is last: applying it intentionally hides Node Name, Variations and Messages.
+const THEMES = ['classic', 'flat', 'dark', 'paper', 'basic']
 
 // A calm 13x13 opening so every theme shows stones, coordinates and a populated tree.
 const SGF = [
@@ -120,10 +121,22 @@ for (const theme of THEMES) {
     width: __figdesk.settings().boardWidth,
     height: __figdesk.settings().boardHeight,
     stones: __figdesk.snapshot().stones,
+    activeTab: document.querySelector('#pane-info .tab.is-active')?.textContent,
+    nodeNameHidden: document.getElementById('node-name-section').hidden,
+    variationsHidden: document.getElementById('variations-section').hidden,
+    messagesHidden: document.getElementById('pane-message').hidden,
   })`)
   if (state.theme !== theme) throw new Error(`theme ${theme} was not applied (got ${state.theme})`)
   if (state.width !== 13 || state.height !== 13) {
     throw new Error(`expected a 13x13 board, got ${state.width}x${state.height}`)
+  }
+  if (theme === 'basic' && (
+    state.activeTab !== 'Comment'
+    || !state.nodeNameHidden
+    || !state.variationsHidden
+    || !state.messagesHidden
+  )) {
+    errors.push(`Basic theme layout: ${JSON.stringify(state)}`)
   }
 
   // Drop the "Board theme: …" log lines so the gallery images stay clean.

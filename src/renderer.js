@@ -5991,9 +5991,22 @@
     settings.theme = next;
     for (const name of THEMES) document.documentElement.classList.toggle(`theme-${name}`, name === next);
     document.documentElement.dataset.boardTheme = next;
+    if (next === 'basic') {
+      // MultiGo's initial workspace: Comment tab, no Node Name/Variations
+      // strips and no Messages pane, leaving the board and tree prominent.
+      settings.showInfo = true;
+      settings.showTree = true;
+      settings.showNodeName = false;
+      settings.showVariations = false;
+      settings.showMessage = false;
+    }
     refreshPalette();
     scheduleBoardDraw();
-    if (tree) syncMenuState();
+    if (tree) {
+      applyViewState();
+      if (next === 'basic') setTab('comment');
+      syncMenuState();
+    }
     if (persist) saveSettings();
     if (!silent) log(`Board theme: ${next}.`);
   }
@@ -6910,6 +6923,7 @@
       : settings.defaultSize;
     startGame(initialSize, { persistSize: false });
     applyViewState();
+    if (settings.theme === 'basic') setTab('comment');
     applyLanguage();
     renderRecentFiles();
     if (startupSgf) {
