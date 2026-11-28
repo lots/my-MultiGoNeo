@@ -260,6 +260,26 @@ button {
   text-transform: uppercase;
 }
 
+.menu-submenu-toggle .menu-arrow {
+  justify-self: end;
+  font-size: 11px;
+  transition: transform 120ms ease;
+}
+
+.menu-submenu-toggle[aria-expanded="true"] .menu-arrow {
+  transform: rotate(90deg);
+}
+
+.menu-submenu-items {
+  margin: 1px 0 2px 16px;
+  border-left: 1px solid var(--line);
+}
+
+.menu-submenu-items .menu-subitem {
+  padding-left: 14px;
+  font-size: 13px;
+}
+
 .menu-select-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 140px;

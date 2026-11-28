@@ -5703,7 +5703,7 @@
   const menuEls = $$('.menu');
   const menubar = $('.menubar');
   let activeMenu = null;
-  const menuItems = (menu) => $$('.menu-item:not(:disabled)', menu);
+  const menuItems = (menu) => $$('.menu-item:not(:disabled)', menu).filter((item) => !item.closest('[hidden]'));
   menubar.addEventListener('scroll', () => {
     if (activeMenu) closeMenus();
   }, { passive: true });
@@ -5788,6 +5788,14 @@
       else if (event.key === 'Tab') closeMenus();
     });
     popup.addEventListener('click', (event) => {
+      const submenuToggle = event.target.closest('[data-submenu-toggle]');
+      if (submenuToggle) {
+        const expanded = submenuToggle.getAttribute('aria-expanded') === 'true';
+        submenuToggle.setAttribute('aria-expanded', String(!expanded));
+        const submenu = submenuToggle.closest('.menu-submenu')?.querySelector('.menu-submenu-items');
+        if (submenu) submenu.hidden = expanded;
+        return;
+      }
       const item = event.target.closest('.menu-item');
       if (!item || item.disabled) return;
       if (item.dataset.recentIndex != null) {

@@ -467,19 +467,25 @@
             </select>
           </div>
           <div class="menu-separator" role="separator"></div>
-          <div class="menu-heading">Customize Toolbar</div>
-          <button type="button" class="menu-item" role="menuitem" data-action="customize-main">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Main Toolbar…</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="customize-edit">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Edit Toolbar…</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="customize-option">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Option Toolbar…</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="customize-traverse">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Traverse Toolbar…</span>
-          </button>
+          <div class="menu-submenu">
+            <button type="button" class="menu-item menu-submenu-toggle" role="menuitem" aria-haspopup="true" aria-expanded="false" data-submenu-toggle="customize-toolbar">
+              <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Customize Toolbar</span><span class="menu-arrow" aria-hidden="true">▸</span>
+            </button>
+            <div class="menu-submenu-items" hidden>
+              <button type="button" class="menu-item menu-subitem" role="menuitem" data-action="customize-main">
+                <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Main Toolbar…</span>
+              </button>
+              <button type="button" class="menu-item menu-subitem" role="menuitem" data-action="customize-edit">
+                <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Edit Toolbar…</span>
+              </button>
+              <button type="button" class="menu-item menu-subitem" role="menuitem" data-action="customize-option">
+                <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Option Toolbar…</span>
+              </button>
+              <button type="button" class="menu-item menu-subitem" role="menuitem" data-action="customize-traverse">
+                <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Traverse Toolbar…</span>
+              </button>
+            </div>
+          </div>
           <div class="menu-separator" role="separator"></div>
           <button type="button" class="menu-item" role="menuitem" data-action="reset-settings">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Reset All Settings</span>
@@ -1007,7 +1013,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.25</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.26</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">
