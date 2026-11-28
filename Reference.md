@@ -1,6 +1,6 @@
 # MultiGo Neo — Reference
 
-**Version 1.1.23 · 2026-11-28**
+**Version 1.1.24 · 2026-11-28**
 
 This is the lookup document for every user-invokable command in MultiGo Neo: menu items,
 toolbar buttons, mouse actions, shortcuts, dialogs and special modes. For a guided introduction
@@ -52,18 +52,13 @@ session; preferences, recents and layout are shared.
 | Edit Node Comment | — | Focuses the Comment editor for the current node |
 | Edit Node Name | `F2` | Edits the FF[4] `N` property in the tree |
 | Cut Current Node | `Ctrl+Alt+X` | Removes the current node and its subtree to the variation clipboard |
-| Cut All After Current | — | Removes every continuation after the current node (kept in the clipboard) |
 | Copy Current Variation | `Ctrl+Alt+C` | Copies the current branch as SGF to the variation clipboard |
 | Paste Variation as Child | `Ctrl+Alt+V` | Attaches the copied variation under the current node |
 | Duplicate Current Node | `Ctrl+Alt+D` | Inserts a copy of the current node as a sibling |
 | Insert Empty Node | `Ctrl+Alt+N` | Inserts a pass-through node with no move |
 | Make Main Variation | — | Moves the current branch to the first-child position |
-| Shift Variation Left / Right | — | Reorders the current branch among its siblings |
 | Remove Other Variations | — | Deletes the current node’s sibling branches only |
 | Flatten Current Variation | `Ctrl+Alt+F` | Deletes every sibling branch along the path from the root, leaving one line (see §9) |
-| Clear Node Markup | — | Removes markup properties from the current node only (see §9) |
-| Copy SGF | `Ctrl+Shift+C` | Copies the whole game tree as SGF |
-| Paste SGF | `Ctrl+Shift+V` | Loads an SGF from the clipboard as a new document |
 
 ### 2.2.1 Advanced
 
@@ -74,11 +69,11 @@ session; preferences, recents and layout are shared.
 | Delete All Comments | — | Removes `C` from every node after confirmation |
 | Delete SGF Properties… | — | Enter property codes (e.g. `CR, MA, DD`) to remove them from every node; the dialog lists the properties present |
 | Set Move Number… | — | Sets or removes the `MN` property on the current node |
-| Move Branch Up / Down | — | Aliases of Edit → Shift Variation Left/Right |
+| Move Branch Up / Down | — | Reorders the current branch among its siblings |
 | Hide Markers | — | Toggles the **Hide markup** display preference |
 | White Move First | — | Toggles the new-game preference (also in Preferences → Edit) |
-| Copy SGF / Paste SGF | `Ctrl+Shift+C` / `Ctrl+Shift+V` | Same as the Edit/Tools SGF clipboard commands |
-| Delete All After Current | — | Same as Edit → Cut All After Current |
+| Copy SGF / Paste SGF | `Ctrl+Shift+C` / `Ctrl+Shift+V` | SGF clipboard commands, exposed only here in the menus |
+| Delete All After Current | — | Removes every continuation after the current node (kept in the clipboard) |
 | Clear Node Markup | — | Current node only (see §9) |
 
 ### 2.3 Play
@@ -134,8 +129,6 @@ Engines are external programs (GNU Go, KataGo). Each window starts its own engin
 
 | Command | Description |
 |---|---|
-| Copy SGF to Clipboard | Copies the current game tree (same as Edit → Copy SGF) |
-| Load SGF from Clipboard | Parses SGF text from the clipboard into the editor |
 | Copy Position Link | Copies a URL/CLI path that reopens the current position |
 | Clear Messages | Empties the Message panel |
 
@@ -288,9 +281,9 @@ other node. Undo restores it.
 
 ## 10. MultiGo 4 Advanced menu → MultiGo Neo
 
-MultiGo 4.4.4 has an **Advanced** menu. MultiGo Neo restores an Advanced menu with the feasible
-commands and leaves the rest in their natural menus. This table maps the documented MultiGo
-Advanced commands to their current location.
+MultiGo 4.4.4 has an **Advanced** menu. MultiGo Neo keeps the feasible commands in that menu;
+duplicate Edit/Tools entries were removed so each command has one menu location. This table maps
+the documented MultiGo Advanced commands to their current location.
 
 | MultiGo 4 Advanced command | MultiGo Neo location | Status / notes |
 |---|---|---|
@@ -298,14 +291,14 @@ Advanced commands to their current location.
 | Hide All Stones | **Advanced → Hide All Stones** | Implemented as a display toggle; it does not add an `AE` node |
 | Delete All Comments | **Advanced → Delete All Comments** | Implemented as a bulk action |
 | Delete SGF Properties | **Advanced → Delete SGF Properties…** | Implemented for the codes you enter |
-| Move Branch Up / Down | **Advanced → Move Branch Up / Down** (also Edit → Shift Variation) | Reorders the current branch among siblings |
+| Move Branch Up / Down | **Advanced → Move Branch Up / Down** | Reorders the current branch among siblings |
 | Merge Branch | **Edit → Flatten Current Variation** / **Remove Other Variations** | Not a true merge; flatten keeps one line, remove-siblings only local |
 | Merge Same Nodes | — | **Not implemented** |
-| Copy SGF | **Advanced → Copy SGF** / Tools → Copy SGF to Clipboard | Same command, multiple entry points |
+| Copy SGF | **Advanced → Copy SGF** | Whole-tree SGF clipboard command |
 | Paste SGF as Branch | **Advanced → Paste SGF** / Edit → Paste Variation as Child | Paste SGF replaces the document; Paste Variation attaches under the node |
-| Clear Node Markup / remove SGF marks | **Advanced → Clear Node Markup** / Edit → Clear Node Markup | Current node only |
+| Clear Node Markup / remove SGF marks | **Advanced → Clear Node Markup** | Current node only |
 | Edit Game Info | **Edit → Edit Game Info** | Same |
-| Delete Everything After Current Node | **Advanced → Delete All After Current** / Edit → Cut All After Current | Also copies the removed continuation to the clipboard |
+| Delete Everything After Current Node | **Advanced → Delete All After Current** | Also copies the removed continuation to the clipboard |
 | Set Move Number From Current Node | **Advanced → Set Move Number…** | Writes/removes `MN` on the current node |
 | Hide Markers | **Advanced → Hide Markers** / Preferences → Markers & Numbers | Display preference |
 | White Move First | **Advanced → White Move First** / Preferences → Edit | Applies to new games |

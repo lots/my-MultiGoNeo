@@ -21,9 +21,10 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.23 build** restores the **Advanced** menu with switch colours, hide all stones, bulk
-comment/property deletion, set move number, branch up/down, marker/White-first toggles and SGF
-clipboard commands. The 1.1.22 build adds **Reference.md/Reference.pdf**, a command-by-command
+The **1.1.24 build** removes every duplicate of an **Advanced** command from Edit and Tools,
+leaving Advanced as the single menu home. The 1.1.23 build restores the **Advanced** menu with
+switch colours, hide all stones, bulk comment/property deletion, set move number, branch up/down,
+marker/White-first toggles and SGF clipboard commands. The 1.1.22 build adds **Reference.md/Reference.pdf**, a command-by-command
 lookup covering every menu, toolbar, shortcut, dialog and mode, plus detailed help for **Flatten
 Current Variation** and **Clear Node Markup**. The 1.1.21 build adds the **Basic** board theme
 modelled on MultiGo 4.4.4's initial board, glass stones and Windows-grey chrome. The 1.1.20 build
@@ -60,6 +61,20 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.24
+
+Released 2026-11-28. The Windows artifacts are `MultiGo-Neo-1.1.24-setup.exe` and
+`MultiGo-Neo-1.1.24-portable.exe`, plus `MultiGo-Neo-1.1.24-web.zip` for the browser build.
+
+- **Advanced is the single menu home** — removed duplicate entries from other menus:
+  - Edit no longer has **Cut All After Current**, **Shift Variation Left/Right**,
+    **Clear Node Markup**, **Copy SGF** or **Paste SGF**.
+  - Tools no longer has **Copy SGF to Clipboard** or **Load SGF from Clipboard**.
+  - Their Advanced equivalents remain: **Delete All After Current**, **Move Branch Up/Down**,
+    **Clear Node Markup**, **Copy SGF**, **Paste SGF**.
+- Keyboard shortcuts still work globally (`Ctrl+Shift+C/V`, etc.); only the duplicate menu
+  entries were removed. Reference, README and PDFs updated.
 
 ### Version 1.1.23
 
@@ -494,23 +509,32 @@ rules, raw HTML, nested blockquotes, footnotes, and relative/`mailto:` links.
 The Edit menu now covers variation editing as well as display edits:
 
 - Undo / redo, edit mode, game info, and node comments.
-- **Cut Current Node** and **Cut All After Current** (the latter keeps the current node and
-  copies all continuations as an SGF collection), plus copy/paste variations.
+- **Cut Current Node** (keeps the node's subtree in the variation clipboard) and copy/paste
+  variations.
 - **Duplicate the current node** and **insert an empty node**. The Edit menu no longer exposes
   **Delete Node**; deletion remains available from the toolbar/Play menu as Delete Move.
-- Make a variation main, shift it left/right, remove sibling variations, and **flatten the
-  current variation**.
+- Make a variation main, remove sibling variations, and **flatten the current variation**.
 - **Flatten Current Variation** (`Ctrl+Alt+F`) removes every sibling branch along the path from
   the root to the selected node, so the current line becomes the only line in the file. It is
   deliberately stronger than **Remove Other Variations**, which affects only the current node’s
   siblings; use Undo if too much was removed.
-- **Clear Node Markup** removes the markup properties from the **current node only**: `CR`, `MA`,
-  `SQ`, `TR`, `LB`, `L`, `AR`, `LN`, `DD`, `SBKDD`, `BM`, `TE`, `DO` and `IT`. The move, comment,
-  setup stones, names and the rest of the tree are left untouched. Undo restores it.
-- Copy/paste the whole SGF.
 - Keyboard: `Ctrl+Alt+C/X/V` for copy/cut/paste variation, `Ctrl+Alt+D/N` for
   duplicate/insert, and `Ctrl+Alt+F` for flatten.
 - **Read Only** is available directly in this menu.
+
+### Advanced menu
+
+Advanced is the single menu home for its MultiGo-derived commands:
+
+- **Switch Black/White**, **Hide All Stones**, **Delete All Comments**, **Delete SGF
+  Properties…**, **Set Move Number…**
+- **Move Branch Up / Down** (formerly also Edit → Shift Variation)
+- **Hide Markers**, **White Move First**
+- **Copy SGF / Paste SGF** (formerly also in Edit and Tools)
+- **Delete All After Current** (formerly Edit → Cut All After Current)
+- **Clear Node Markup** — removes `CR`, `MA`, `SQ`, `TR`, `LB`, `L`, `AR`, `LN`, `DD`,
+  `SBKDD`, `BM`, `TE`, `DO` and `IT` from the **current node only**. The move, comment, setup
+  stones, names and the rest of the tree are untouched; Undo restores it.
 
 ### Read Only
 
@@ -1334,7 +1358,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.23-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.24-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1342,7 +1366,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.23-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.24-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1467,9 +1491,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.23-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.23-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.23-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.24-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.24-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.24-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md`, `Reference.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
@@ -1524,7 +1548,7 @@ downloaded again. Code signing is skipped unless a certificate is configured
 | Auto-play / pause | `Space` |
 | Toggle player to move | `Ctrl+Shift+P` |
 | Delete move | Toolbar Delete Move, Play menu, or `Ctrl+Delete`; the Edit menu uses Cut Current Node instead |
-| Cut current / after | Edit → Cut Current Node, or Edit → Cut All After Current |
+| Cut current / after | Edit → Cut Current Node; Advanced → Delete All After Current |
 | Fast rewind / forward | Toolbar ←← / →→ or Play menu; step count in Preferences → View → Board |
 | Rotate / flip board | View → Rotate Clockwise, Flip Horizontally, Flip Vertically |
 | Reset board orientation | View → Reset Board or `G` |

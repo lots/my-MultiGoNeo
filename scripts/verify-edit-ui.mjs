@@ -220,9 +220,19 @@ const editMenu = await evaluate(`(() => {
     deleteCount: popup.querySelectorAll('.menu-item[data-action="delete-node"]').length,
     cutAfterCount: popup.querySelectorAll('.menu-item[data-action="cut-after"]').length,
     cutCurrentCount: popup.querySelectorAll('.menu-item[data-action="cut-variation"]').length,
+    duplicateAdvancedActions: (() => {
+      const advanced = [...document.querySelectorAll('#popup-advanced [data-action]')]
+        .map((item) => item.dataset.action);
+      return advanced.filter((action) => [...document.querySelectorAll('[data-action="' + action + '"]')]
+        .some((item) => !item.closest('#popup-advanced')));
+    })(),
     bottom: Math.round(popup.getBoundingClientRect().bottom),
   };
 })()`)
+if (editMenu.cutAfterCount !== 0) errors.push('Edit menu still exposes Cut All After Current')
+if (editMenu.duplicateAdvancedActions.length > 0) {
+  errors.push(`Advanced actions exposed elsewhere: ${editMenu.duplicateAdvancedActions.join(', ')}`)
+}
 await shot('preview-edit-menu.png')
 await evaluate(`document.getElementById('menu-edit').click()`)
 

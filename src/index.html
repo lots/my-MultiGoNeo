@@ -164,9 +164,6 @@
           <button type="button" class="menu-item" role="menuitem" data-action="cut-variation">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Cut Current Node</span><kbd data-accel="Ctrl+Alt+X">Ctrl+Alt+X</kbd>
           </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="cut-after">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Cut All After Current</span>
-          </button>
           <button type="button" class="menu-item" role="menuitem" data-action="copy-variation">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Copy Current Variation</span><kbd data-accel="Ctrl+Alt+C">Ctrl+Alt+C</kbd>
           </button>
@@ -183,28 +180,11 @@
           <button type="button" class="menu-item" role="menuitem" data-action="make-main">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Make Main Variation</span>
           </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="shift-left">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Shift Variation Left</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="shift-right">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Shift Variation Right</span>
-          </button>
           <button type="button" class="menu-item" role="menuitem" data-action="remove-siblings">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Remove Other Variations</span>
           </button>
           <button type="button" class="menu-item" role="menuitem" data-action="flatten-variation">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Flatten Current Variation</span><kbd data-accel="Ctrl+Alt+F">Ctrl+Alt+F</kbd>
-          </button>
-          <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" role="menuitem" data-action="clear-markup">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Clear Node Markup</span>
-          </button>
-          <div class="menu-separator" role="separator"></div>
-          <button type="button" class="menu-item" role="menuitem" data-action="copy-sgf">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Copy SGF</span><kbd data-accel="Ctrl+Shift+C">Ctrl+Shift+C</kbd>
-          </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="paste-sgf">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Paste SGF</span><kbd data-accel="Ctrl+Shift+V">Ctrl+Shift+V</kbd>
           </button>
         </div>
       </div>
@@ -439,12 +419,6 @@
         <button type="button" class="menu-trigger" id="menu-tools" role="menuitem"
                 aria-haspopup="true" aria-expanded="false" aria-controls="popup-tools" data-key="t">Tools</button>
         <div class="menu-popup" id="popup-tools" role="menu" aria-labelledby="menu-tools" hidden>
-          <button type="button" class="menu-item" role="menuitem" data-action="copy-sgf">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Copy SGF to Clipboard</span>
-          </button>
-          <button type="button" class="menu-item" role="menuitem" data-action="paste-sgf">
-            <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Load SGF from Clipboard</span>
-          </button>
           <button type="button" class="menu-item" role="menuitem" data-action="copy-position-link">
             <span class="menu-check" aria-hidden="true"></span><span class="menu-label">Copy Position Link</span>
           </button>
@@ -1020,7 +994,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.23</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.24</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">
