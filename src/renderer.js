@@ -375,6 +375,7 @@
     focusMarker: 'triangle',
     focusColor: 'red',
     hideMarkers: false,
+    hideAllStones: false,
     labelStartChar: 'A',
     showResultInTitle: true,
     soundEnabled: false,
@@ -452,6 +453,7 @@
         focusMarker: ['triangle', 'dot', 'none'].includes(parsed.focusMarker) ? parsed.focusMarker : 'triangle',
         focusColor: ['red', 'blue', 'green', 'yellow', 'white', 'black'].includes(parsed.focusColor) ? parsed.focusColor : 'red',
         hideMarkers: parsed.hideMarkers === true,
+        hideAllStones: parsed.hideAllStones === true,
         labelStartChar: String(parsed.labelStartChar || 'A').slice(0, 1).toUpperCase() || 'A',
         showResultInTitle: parsed.showResultInTitle !== false,
         soundEnabled: parsed.soundEnabled === true,
@@ -3045,15 +3047,17 @@
     const stoneRadius = spacing * 0.465;
     const numberMap = buildMoveNumberMap(sourceCols);
     const totalMoves = numberMap.total || 0;
-    for (let y = 0; y < sourceRows; y += 1) {
-      for (let x = 0; x < sourceCols; x += 1) {
-        const sign = currentBoard.signMap[y]?.[x] ?? 0;
-        if (!sign) continue;
-        drawStone(x, y, sign, stoneRadius);
+    if (!settings.hideAllStones) {
+      for (let y = 0; y < sourceRows; y += 1) {
+        for (let x = 0; x < sourceCols; x += 1) {
+          const sign = currentBoard.signMap[y]?.[x] ?? 0;
+          if (!sign) continue;
+          drawStone(x, y, sign, stoneRadius);
+        }
       }
     }
 
-    drawDeadStones(stoneRadius);
+    if (!settings.hideAllStones) drawDeadStones(stoneRadius);
 
     for (const range of currentBoard.dimmedRanges || []) {
       let vertices = [];
@@ -3966,6 +3970,9 @@
     setMenuItemChecked('toggle-siblings', settings.showSiblings);
     setMenuItemChecked('estimate', countState.active && countState.mode === 'estimate');
     setMenuItemChecked('score', countState.active && countState.mode === 'score');
+    setMenuItemChecked('hide-all-stones', settings.hideAllStones);
+    setMenuItemChecked('toggle-hide-markers', settings.hideMarkers);
+    setMenuItemChecked('toggle-white-first', settings.whiteFirst);
     setMenuItemChecked('toggle-bowls', !portraitLayout && settings.showBowls !== false);
     setMenuItemDisabled('toggle-bowls', portraitLayout);
     setMenuItemChecked('toggle-auto-layout', settings.autoLayout !== false);
@@ -4002,6 +4009,7 @@
       'new-game', 'save-sgf', 'save-sgf-as', 'toggle-edit',
       'paste-variation', 'duplicate-node', 'insert-node', 'flatten-variation', 'cut-after',
       'import-branch', 'clear-markup', 'paste-sgf', 'toggle-turn',
+    'switch-colors', 'delete-all-comments', 'delete-properties', 'set-move-number',
       'size-9', 'size-13', 'size-19', 'size-custom',
     ];
     for (const action of readOnlyOnly) setMenuItemDisabled(action, readOnly);
@@ -5215,6 +5223,111 @@
     mutateTree((draft) => { for (const sibling of siblings) draft.removeNode(sibling.id); }, { message: 'Other variations removed.' });
   }
 
+  async function switchColors() {
+    const nodes = [...tree.listNodes()];
+    const hasColors = nodes.some((node) => {
+      const data = node.data || {};
+      return data.B || data.W || data.AB || data.AW || data.PL;
+    });
+    if (!hasColors) { log('There are no moves or stones to switch.', 'warn'); return; }
+    if (!(await askConfirm('Swap Black and White throughout this game tree?', 'Switch Black/White'))) return;
+    mutateTree((draft) => {
+      for (const node of nodes) {
+        const data = node.data || {};
+        if (data.B || data.W) {
+          const black = data.B ? [...data.B] : null;
+          const white = data.W ? [...data.W] : null;
+          if (black) draft.updateProperty(node.id, 'W', black);
+          else draft.removeProperty(node.id, 'W');
+          if (white) draft.updateProperty(node.id, 'B', white);
+          else draft.removeProperty(node.id, 'B');
+        }
+        if (data.AB || data.AW) {
+          const black = data.AB ? [...data.AB] : null;
+          const white = data.AW ? [...data.AW] : null;
+          if (black) draft.updateProperty(node.id, 'AW', black);
+          else draft.removeProperty(node.id, 'AW');
+          if (white) draft.updateProperty(node.id, 'AB', white);
+          else draft.removeProperty(node.id, 'AB');
+        }
+        if (data.PL) {
+          const current = String(data.PL[0] || '');
+          const next = current === 'B' ? 'W' : 'B';
+          draft.updateProperty(node.id, 'PL', [next]);
+        }
+      }
+    }, { message: 'Switched Black and White throughout the game tree.' });
+  }
+
+  async function deleteAllComments() {
+    const nodes = [...tree.listNodes()].filter((node) => (node.data?.C || []).length);
+    if (!nodes.length) { log('There are no comments to delete.', 'warn'); return; }
+    if (!(await askConfirm(`Delete comments from ${nodes.length} node${nodes.length === 1 ? '' : 's'}?`, 'Delete All Comments'))) return;
+    mutateTree((draft) => {
+      for (const node of nodes) draft.removeProperty(node.id, 'C');
+    }, { message: `Deleted comments from ${nodes.length} node${nodes.length === 1 ? '' : 's'}.` });
+  }
+
+  async function deleteSgfProperties() {
+    const present = new Set();
+    for (const node of tree.listNodes()) {
+      for (const prop of Object.keys(node.data || {})) present.add(prop);
+    }
+    const editable = [...present].filter((prop) => !['B', 'W', 'AB', 'AW', 'AE'].includes(prop)).sort();
+    if (!editable.length) { log('There are no optional SGF properties to delete.', 'warn'); return; }
+    const input = await askText('', `Delete SGF properties (present: ${editable.join(', ')})`);
+    if (input == null) return;
+    const props = input.split(/[\s,;]+/).map((prop) => prop.trim().toUpperCase()).filter(Boolean);
+    if (!props.length) { log('No property names were entered.', 'warn'); return; }
+    if (!(await askConfirm(`Delete ${props.join(', ')} from the whole game tree?`, 'Delete SGF Properties'))) return;
+    const removed = [];
+    mutateTree((draft) => {
+      for (const node of tree.listNodes()) {
+        const data = node.data || {};
+        for (const prop of props) {
+          if (data[prop]) { draft.removeProperty(node.id, prop); removed.push(prop); }
+        }
+      }
+    }, { message: `Removed ${props.join(', ')} from the game tree.` });
+    if (!removed.length) log('No matching properties were found.', 'warn');
+  }
+
+  async function setMoveNumber() {
+    const node = currentNode();
+    if (!node) return;
+    const current = node.data?.MN?.[0] ?? '';
+    const input = await askText(String(current), 'Set move number for this node (empty removes MN)');
+    if (input == null) return;
+    const value = String(input).trim();
+    mutateTree((draft) => {
+      if (!value) draft.removeProperty(nodeId, 'MN');
+      else draft.updateProperty(nodeId, 'MN', [value]);
+    }, { message: value ? `Move number set to ${value}.` : 'Move number removed.' });
+  }
+
+  function toggleHideAllStones() {
+    settings.hideAllStones = !settings.hideAllStones;
+    saveSettings();
+    drawBoard();
+    syncMenuState();
+    log(settings.hideAllStones ? 'All stones hidden.' : 'All stones shown.');
+  }
+
+  function toggleHideMarkers() {
+    settings.hideMarkers = !settings.hideMarkers;
+    saveSettings();
+    drawBoard();
+    syncMenuState();
+    log(settings.hideMarkers ? 'Markers hidden.' : 'Markers shown.');
+  }
+
+  function toggleWhiteFirst() {
+    settings.whiteFirst = !settings.whiteFirst;
+    saveSettings();
+    syncMenuState();
+    log(settings.whiteFirst ? 'New games will start with White to play.' : 'New games will start with Black to play.');
+  }
+
   function clearNodeMarkup() {
     const props = ['CR', 'MA', 'SQ', 'TR', 'LB', 'L', 'AR', 'LN', 'DD', 'SBKDD', 'BM', 'TE', 'DO', 'IT'];
     const node = currentNode();
@@ -5652,6 +5765,10 @@
     'node-name': () => openNodeNameEditor(),
     'shift-left': () => shiftVariation('left'), 'shift-right': () => shiftVariation('right'),
     'remove-siblings': removeOtherVariations, 'clear-markup': clearNodeMarkup,
+    'switch-colors': switchColors, 'hide-all-stones': toggleHideAllStones,
+    'delete-all-comments': deleteAllComments, 'delete-properties': deleteSgfProperties,
+    'set-move-number': setMoveNumber, 'toggle-hide-markers': toggleHideMarkers,
+    'toggle-white-first': toggleWhiteFirst,
     'focus-info': focusGameInfo,
     pass: passTurn, 'toggle-autoplay': toggleAutoPlay,
     first: goToBeginning, 'fast-prev': () => fastNavigate(-1), prev: goToParent,

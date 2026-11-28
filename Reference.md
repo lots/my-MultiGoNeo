@@ -1,6 +1,6 @@
 # MultiGo Neo — Reference
 
-**Version 1.1.22 · 2026-11-28**
+**Version 1.1.23 · 2026-11-28**
 
 This is the lookup document for every user-invokable command in MultiGo Neo: menu items,
 toolbar buttons, mouse actions, shortcuts, dialogs and special modes. For a guided introduction
@@ -64,6 +64,22 @@ session; preferences, recents and layout are shared.
 | Clear Node Markup | — | Removes markup properties from the current node only (see §9) |
 | Copy SGF | `Ctrl+Shift+C` | Copies the whole game tree as SGF |
 | Paste SGF | `Ctrl+Shift+V` | Loads an SGF from the clipboard as a new document |
+
+### 2.2.1 Advanced
+
+| Command | Shortcut | Description |
+|---|---|---|
+| Switch Black/White | — | Swaps every `B`↔`W` move and `AB`↔`AW` setup stone throughout the tree (also swaps `PL`); asks for confirmation |
+| Hide All Stones | — | Display-only toggle that hides every stone and dead marker; the SGF is unchanged |
+| Delete All Comments | — | Removes `C` from every node after confirmation |
+| Delete SGF Properties… | — | Enter property codes (e.g. `CR, MA, DD`) to remove them from every node; the dialog lists the properties present |
+| Set Move Number… | — | Sets or removes the `MN` property on the current node |
+| Move Branch Up / Down | — | Aliases of Edit → Shift Variation Left/Right |
+| Hide Markers | — | Toggles the **Hide markup** display preference |
+| White Move First | — | Toggles the new-game preference (also in Preferences → Edit) |
+| Copy SGF / Paste SGF | `Ctrl+Shift+C` / `Ctrl+Shift+V` | Same as the Edit/Tools SGF clipboard commands |
+| Delete All After Current | — | Same as Edit → Cut All After Current |
+| Clear Node Markup | — | Current node only (see §9) |
 
 ### 2.3 Play
 
@@ -272,32 +288,65 @@ other node. Undo restores it.
 
 ## 10. MultiGo 4 Advanced menu → MultiGo Neo
 
-MultiGo 4.4.4 has an **Advanced** menu. MultiGo Neo’s former Advanced menu contained only two
-duplicates of Edit commands and has been removed; the table maps the documented MultiGo Advanced
-commands to their new location here.
+MultiGo 4.4.4 has an **Advanced** menu. MultiGo Neo restores an Advanced menu with the feasible
+commands and leaves the rest in their natural menus. This table maps the documented MultiGo
+Advanced commands to their current location.
 
 | MultiGo 4 Advanced command | MultiGo Neo location | Status / notes |
 |---|---|---|
-| Switch Black/White (swap stone colours) | — | **Not implemented**; View → Swap Player Sides only changes seating, not colours |
-| Hide All Stones | — | **Not implemented** |
-| Delete All Comments | — | **Not implemented as a bulk action**; clear comments node by node in Edit Node Comment |
-| Delete SGF Properties | — | **Not implemented as a bulk action**; unknown properties are preserved |
-| Move Branch Up / Down | **Edit → Shift Variation Left / Right** | Reorders the current branch among siblings |
+| Switch Black/White (swap stone colours) | **Advanced → Switch Black/White** | Implemented for the whole tree (`B/W`, `AB/AW`, `PL`) |
+| Hide All Stones | **Advanced → Hide All Stones** | Implemented as a display toggle; it does not add an `AE` node |
+| Delete All Comments | **Advanced → Delete All Comments** | Implemented as a bulk action |
+| Delete SGF Properties | **Advanced → Delete SGF Properties…** | Implemented for the codes you enter |
+| Move Branch Up / Down | **Advanced → Move Branch Up / Down** (also Edit → Shift Variation) | Reorders the current branch among siblings |
 | Merge Branch | **Edit → Flatten Current Variation** / **Remove Other Variations** | Not a true merge; flatten keeps one line, remove-siblings only local |
 | Merge Same Nodes | — | **Not implemented** |
-| Copy SGF | **Tools → Copy SGF to Clipboard** (also Edit → Copy SGF) | Same command, two entry points |
-| Paste SGF as Branch | **Tools → Load SGF from Clipboard** / **Edit → Paste Variation as Child** | Load replaces the document; Paste attaches under the node |
-| Clear Node Markup / remove SGF marks | **Edit → Clear Node Markup** | Current node only |
+| Copy SGF | **Advanced → Copy SGF** / Tools → Copy SGF to Clipboard | Same command, multiple entry points |
+| Paste SGF as Branch | **Advanced → Paste SGF** / Edit → Paste Variation as Child | Paste SGF replaces the document; Paste Variation attaches under the node |
+| Clear Node Markup / remove SGF marks | **Advanced → Clear Node Markup** / Edit → Clear Node Markup | Current node only |
 | Edit Game Info | **Edit → Edit Game Info** | Same |
-| Delete Everything After Current Node | **Edit → Cut All After Current** | Also copies the removed continuation to the clipboard |
-| Set Move Number From Current Node | — | **Not implemented** |
-| Hide Markers | **Options → Preferences → Markers & Numbers → Hide markup** | Display preference |
-| White Move First | **Options → Preferences → Edit → White moves first** | Applies to new games |
+| Delete Everything After Current Node | **Advanced → Delete All After Current** / Edit → Cut All After Current | Also copies the removed continuation to the clipboard |
+| Set Move Number From Current Node | **Advanced → Set Move Number…** | Writes/removes `MN` on the current node |
+| Hide Markers | **Advanced → Hide Markers** / Preferences → Markers & Numbers | Display preference |
+| White Move First | **Advanced → White Move First** / Preferences → Edit | Applies to new games |
 | Batch convert/trim files | — | **Not implemented** |
 
 References: MultiGo’s official [feature list](https://www.ruijiang.com/multigo/features.php) and
 [change history](https://www.ruijiang.com/multigo/download.php); the Advanced items above come
 from those notes and the MultiGo 4 user discussions.
+
+---
+
+## 11. MultiGo 4 toolbar coverage
+
+MultiGo’s toolbar is user-customizable (right-click → Customize), so the comparison below uses
+its default 4.4.4 function groups. “Menu” means the command exists but is not a toolbar button.
+
+| MultiGo toolbar function | MultiGo Neo location | Status |
+|---|---|---|
+| New / Open / Save | Toolbar | Present |
+| Save As | File menu | Menu only |
+| Print / Print Preview | — | **Missing** |
+| Batch convert | — | **Missing** |
+| Undo / Redo | Toolbar | Present |
+| Cut / Copy / Paste variation | Edit menu / `Ctrl+Alt+X/C/V` | Menu + shortcuts |
+| Game Info / Comment | Edit menu | Menu |
+| Setup stones, black/white/erase | Edit bar (Edit Mode) | Present |
+| Cross / triangle / square / circle / line / arrow / label / number / dim | Edit bar | Present |
+| Annotations (good/bad/doubtful/interesting) | — | **Missing** as an authoring UI; `BM/TE/DO/IT` are cleared by Clear Node Markup |
+| Hide Markers | Advanced menu / Preferences | Present |
+| Switch Black/White | Advanced menu | Present |
+| Traverse first / prev / next / last / fast | Toolbar | Present |
+| Auto play / pause | Toolbar | Present |
+| Pass / Delete move | Toolbar | Present |
+| Bookmarks | — | **Missing** |
+| Find / search nodes | — | **Missing** |
+| Coordinates / move numbers | Toolbar | Present |
+| Board size | Toolbar | Present |
+| Zoom / rotate / flip / full screen | View menu | Menu + shortcuts |
+| GNU Go / GTP engine | Engine menu/tab | Present |
+| Score / Estimate | Play menu / Score tab | Present |
+| English/Chinese, themes | Options menu | Present |
 
 ---
 

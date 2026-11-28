@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.22 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.22](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.22)
+**Version:** 1.1.23 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.23](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.23)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,10 +10,10 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.22): Reference documentation.** A command-by-command lookup now covers every menu,
-> toolbar control, shortcut, dialog and mode, including detailed notes for Flatten Current
-> Variation and Clear Node Markup. The duplicate Advanced menu was removed; the 1.1.21 Basic
-> theme and earlier features remain below.
+> **Latest (1.1.23): Advanced menu restored.** Switch Black/White, Hide All Stones, bulk comment
+> and SGF-property deletion, Set Move Number, branch moves, Hide Markers, White Move First and SGF
+> clipboard commands now live under Advanced. Reference also includes the MultiGo toolbar coverage
+> table; the 1.1.22 Reference docs and earlier features remain below.
 
 ---
 
@@ -43,6 +43,7 @@ installer, portable build and web zip.
 | 20 | After **View → Swap Player Sides**, put the bottom player's bowl on their right-hand side and the top player's on their left. | Bowl columns are derived from the seat: Black at bottom → Black right / White left; White at bottom → White right / Black left. Horizontal board flips still mirror the columns. | ✅🧪📦 | 1.1.20 |
 | 21 | Add a **Basic** theme that mimics MultiGo 4.4.4's initial look and feel as closely as possible. | Uses MultiGo's stock 50×50 board-default wood tile, black grid/labels, glass stone palette, white board surround and classic grey Windows chrome with Tahoma menus. Selecting Basic also opens **Comment** and hides Node Name, Variations and Messages. | ✅🧪📦 | 1.1.21 |
 | 22 | Provide **lookup documentation** for every user-invokable function, and explain Flatten/Clear Node Markup and the duplicate Advanced menu. | `Reference.md`/`Reference.pdf` tabulates all menus, toolbar controls, shortcuts, dialogs and modes plus detailed Flatten and Clear notes and the MultiGo Advanced mapping; Help opens it. The duplicate Advanced menu was removed. | ✅🧪📦 | 1.1.22 |
+| 23 | Restore **Advanced** and implement its feature set as far as possible; compare the MultiGo toolbar. | Advanced now has Switch Black/White, Hide All Stones, Delete All Comments, Delete SGF Properties, Set Move Number, Move Branch Up/Down, Hide Markers, White Move First, Copy/Paste SGF, Delete All After Current and Clear Node Markup. Reference adds a MultiGo toolbar coverage table with missing items marked. | ✅🧪📦 | 1.1.23 |
 
 ### 1.1 Request notes
 
@@ -214,5 +215,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.22. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.23. For usage, shortcuts and SGF details see
 [README.md](README.md). For command lookup see [Reference.md](Reference.md).*
