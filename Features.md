@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.26 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.26](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.26)
+**Version:** 1.1.27 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.27](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.27)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,9 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.26): Customize Toolbar submenu.** The four toolbar checklists now live under
-> **Options → Customize Toolbar → Main/Edit/Option/Traverse Toolbar…**, matching MultiGo’s path.
-> The 1.1.25 per-toolbar visibility and editable SVG icon assets remain.
+> **Latest (1.1.27): Play and View toolbars.** Customize Toolbar now lists six groups; Play has
+> Auto Play, Pass, Delete, Estimate and Score, and View has Zoom Out/In and Full Screen. Traverse
+> keeps the six navigation buttons. The 1.1.26 nested Customize submenu and earlier work remain.
 
 ---
 
@@ -46,6 +46,7 @@ installer, portable build and web zip.
 | 24 | Remove duplicate **Advanced** commands from other menus. | Edit/Tools duplicates were removed; Advanced is the single menu home, while global shortcuts still work. | ✅🧪📦 | 1.1.24 |
 | 25 | Replicate MultiGo **Options → Customize → Toolbar** for Main/Edit/Option/Traverse, and keep icon assets in an editable folder. | Options opens a per-toolbar checklist; visibility persists and Reset All restores it. Icons are individual SVGs in `src/assets/icons/` with `npm run icons:build` regenerating the sprite. | ✅🧪📦 | 1.1.25 |
 | 26 | Make **Customize Toolbar** an actual submenu with Main/Edit/Option/Traverse children. | **Options → Customize Toolbar** expands the four entries (click to open), matching the MultiGo path; the 1.1.25 checklists and Reset All are unchanged. | ✅🧪📦 | 1.1.26 |
+| 27 | Add **Play Toolbar** and **View Toolbar** under Customize Toolbar. | Six groups now: Main, Edit, Option, Traverse, Play, View. Play has Auto Play/Pass/Delete/Estimate/Score; View has Zoom Out/In and Full Screen; Traverse keeps navigation only. | ✅🧪📦 | 1.1.27 |
 | 24 | Where a function duplicates an **Advanced** command elsewhere, keep Advanced and remove the duplicate. | Removed Edit → Cut All After/Shift Variation/Clear Node Markup/Copy SGF/Paste SGF and Tools → Copy SGF/Load SGF. Advanced retains Delete All After Current, Move Branch Up/Down, Clear Node Markup and Copy/Paste SGF. | ✅🧪📦 | 1.1.24 |
 
 ### 1.1 Request notes
@@ -218,5 +219,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.26. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.27. For usage, shortcuts and SGF details see
 [README.md](README.md). For command lookup see [Reference.md](Reference.md).*

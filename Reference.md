@@ -1,6 +1,6 @@
 # MultiGo Neo — Reference
 
-**Version 1.1.26 · 2026-11-28**
+**Version 1.1.27 · 2026-11-28**
 
 This is the lookup document for every user-invokable command in MultiGo Neo: menu items,
 toolbar buttons, mouse actions, shortcuts, dialogs and special modes. For a guided introduction
@@ -141,6 +141,8 @@ Engines are external programs (GNU Go, KataGo). Each window starts its own engin
 | Customize Toolbar → Edit Toolbar… | Checklist of Edit-toolbar buttons |
 | Customize Toolbar → Option Toolbar… | Checklist of Option-toolbar buttons |
 | Customize Toolbar → Traverse Toolbar… | Checklist of Traverse-toolbar buttons |
+| Customize Toolbar → Play Toolbar… | Checklist of Play-toolbar buttons |
+| Customize Toolbar → View Toolbar… | Checklist of View-toolbar buttons |
 | Language | English / 简体中文 |
 | Theme | Classic, **Basic**, Flat, Dark, Paper |
 | Remember Last Board Size | Reopens with the last size |
@@ -150,16 +152,17 @@ Engines are external programs (GNU Go, KataGo). Each window starts its own engin
 #### 2.7.1 Customize Toolbar
 
 **Options → Customize Toolbar → Main Toolbar… / Edit Toolbar… / Option Toolbar… / Traverse
-Toolbar…** opens the Customize Toolbars dialog at the matching section. Click the **Customize
-Toolbar** row in the Options menu to expand the four children. Each checkbox shows/hides one
-button:
+Toolbar… / Play Toolbar… / View Toolbar…** opens the Customize Toolbars dialog at the matching
+section. Click the **Customize Toolbar** row in the Options menu to expand the six children. Each
+checkbox shows/hides one button:
 
 - **Main** — New, Open, Save, Undo, Redo, Edit mode.
 - **Edit** — black/white/erase stones, cross, triangle, square, circle, line, arrow, dim, label,
   number, theme/black/white/red/yellow/blue/green colours and Player to Move.
 - **Option** — Show coordinates, Show move numbers, Board Size.
-- **Traverse** — Root, Fast rewind, Parent, First child, Fast forward, End, Auto play, Pass,
-  Delete move.
+- **Traverse** — Root, Fast rewind, Parent, First child, Fast forward, End (navigation only).
+- **Play** — Auto play, Pass, Delete move, Estimate, Score.
+- **View** — Zoom out, Zoom in, Toggle full screen.
 
 Changes apply immediately and are stored in `localStorage` with the other settings. **Reset All**
 inside the dialog restores every button. Hiding is per toolbar; the keyboard shortcuts and menu
@@ -335,13 +338,15 @@ from those notes and the MultiGo 4 user discussions.
 ## 11. MultiGo 4 toolbar coverage
 
 MultiGo’s toolbar is user-customizable (right-click → Customize), and MultiGo Neo now offers the
-same idea through **Options → Customize Toolbar → Main/Edit/Option/Traverse Toolbar…**. The
-comparison below uses the default 4.4.4 function groups. “Menu” means the command exists but is
-not a toolbar button.
+same idea through **Options → Customize Toolbar → Main/Edit/Option/Traverse/Play/View Toolbar…**.
+The comparison below uses the default 4.4.4 function groups. “Menu” means the command exists but
+is not a toolbar button.
 
 | MultiGo toolbar function | MultiGo Neo location | Status |
 |---|---|---|
-| Customize toolbars | Options → Customize Toolbar → Main/Edit/Option/Traverse Toolbar… | ✅ four checklists |
+| Customize toolbars | Options → Customize Toolbar → six toolbars | ✅ six checklists |
+| Play toolbar | Play group (Auto Play, Pass, Delete, Estimate, Score) | ✅ |
+| View toolbar | View group (Zoom Out/In, Full Screen) | ✅ |
 | New / Open / Save | Toolbar | ✅ |
 | Save As | File menu | Menu only |
 | Print / Print Preview | — | **Missing** |

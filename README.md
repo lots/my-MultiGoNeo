@@ -21,9 +21,11 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.26 build** moves the toolbar customization entries under a real **Options → Customize
-Toolbar** submenu (Main/Edit/Option/Traverse Toolbar…), matching MultiGo’s menu path. The 1.1.25
-build adds the four per-toolbar checklists and moves toolbar icons into editable SVG files under
+The **1.1.27 build** adds **Play** and **View** toolbars to **Options → Customize Toolbar**, with
+toolbar buttons for Auto Play, Pass, Delete, Estimate, Score, Zoom Out/In and Full Screen. The
+1.1.26 build moves the toolbar customization entries under a real **Options → Customize Toolbar**
+submenu (Main/Edit/Option/Traverse Toolbar…), matching MultiGo’s menu path. The 1.1.25 build adds
+the per-toolbar checklists and moves toolbar icons into editable SVG files under
 `src/assets/icons/`, rebuilt with `npm run icons:build`. The 1.1.24 build makes **Advanced the
 single menu home** by removing the duplicated Edit/Tools entries. The 1.1.23 build restores the
 **Advanced** menu with switch colours, hide all stones, bulk comment/property deletion, set move
@@ -64,6 +66,19 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.27
+
+Released 2026-11-28. The Windows artifacts are `MultiGo-Neo-1.1.27-setup.exe` and
+`MultiGo-Neo-1.1.27-portable.exe`, plus `MultiGo-Neo-1.1.27-web.zip` for the browser build.
+
+- **Play and View toolbars** added to **Options → Customize Toolbar**:
+  - **Play Toolbar** — Auto Play, Pass, Delete Move, Estimate and Score. Those three play buttons
+    moved out of Traverse, which now holds the six navigation buttons.
+  - **View Toolbar** — Zoom Out, Zoom In and Toggle Full Screen, with new toolbar icons.
+- The toolbar now shows the Play and View groups; each can be hidden button-by-button from its
+  checklist, and **Reset All** restores them.
+- Reference and the four PDFs list the two new groups.
 
 ### Version 1.1.26
 
@@ -1387,7 +1402,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.26-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.27-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1395,7 +1410,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.26-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.27-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1520,9 +1535,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.26-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.26-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.26-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.27-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.27-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.27-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md`, `Reference.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
