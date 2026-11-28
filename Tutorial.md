@@ -1,4 +1,4 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Beginner Tutorial <span class="doc-version">Version 1.1.29</span>
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Beginner Tutorial <span class="doc-version">Version 1.1.30</span>
 
 **About 10 minutes · no Go experience required**
 

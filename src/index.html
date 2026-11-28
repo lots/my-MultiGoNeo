@@ -112,6 +112,14 @@
       <circle cx="9.3" cy="9.3" r="1.9" fill="currentColor"/>
       <circle cx="14.7" cy="14.7" r="1.9" fill="none" stroke="currentColor" stroke-width="1.2"/>
     </symbol>
+    <symbol id="i-toggle-layout" viewBox="0 0 24 24">
+<rect x="15" y="2.5" width="6.5" height="9.5" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="2.5" y="12" width="9" height="9.5" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M5 10.5V7.8c0-1.5 1.1-2.6 2.6-2.6H11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M13.5 5.2L11 3.3v3.8z" fill="currentColor"/>
+  <path d="M19 12.5v2.7c0 1.5-1.1 2.6-2.6 2.6H13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M10.5 15.7L13 17.6v-3.8z" fill="currentColor"/>
+    </symbol>
     <symbol id="i-undo" viewBox="0 0 24 24">
 <path d="M18 5h-7a5 5 0 0 0 0 10h3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
@@ -668,6 +676,9 @@
         <button type="button" class="tool" id="tool-fullscreen" data-action="toggle-fullscreen" title="Toggle full screen (F11)" aria-label="Toggle full screen">
           <svg class="icon"><use href="#i-fullscreen"></use></svg>
         </button>
+        <button type="button" class="tool" id="tool-toggle-layout" data-action="toggle-hor-ver" title="Hor./Ver." aria-label="Toggle horizontal or vertical layout" aria-pressed="false">
+          <svg class="icon"><use href="#i-toggle-layout"></use></svg>
+        </button>
       </div>
     </div>
 
@@ -1092,7 +1103,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.29</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.30</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">

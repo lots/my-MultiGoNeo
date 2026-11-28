@@ -1,49 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-labelledby="title desc">
-  <title id="title">Toggle horizontal and vertical layout</title>
-  <desc id="desc">Two circular arrows above a horizontal board layout and a vertical board layout, joined by a dashed swap outline.</desc>
-
-  <!-- Dashed outline of the alternate workspace, behind the monitors. -->
-  <g fill="none" stroke="currentColor" stroke-width="4.5"
-     stroke-linecap="square" stroke-linejoin="miter" stroke-dasharray="20 14">
-    <rect x="18" y="376" width="487" height="312"/>
-    <path d="M333 510 H505 M333 510 V688"/>
-  </g>
-
-  <!-- Vertical layout: board above two lower panels. -->
-  <g fill="#fff" stroke="currentColor" stroke-width="4" stroke-linejoin="miter">
-    <rect x="390" y="25" width="315" height="487"/>
-    <rect x="402" y="38" width="290" height="289" fill="none" stroke-width="3"/>
-    <path d="M390 339 H705 M390 411 H705" fill="none" stroke-width="3"/>
-  </g>
-  <g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square">
-    <path d="M451 38 V327 M500 38 V327 M547 38 V327 M595 38 V327 M643 38 V327"/>
-    <path d="M402 86 H692 M402 135 H692 M402 183 H692 M402 231 H692 M402 278 H692"/>
-  </g>
-
-  <!-- Horizontal layout: board inside a solid frame. -->
-  <g fill="#fff" stroke="currentColor" stroke-width="4" stroke-linejoin="miter">
-    <rect x="31" y="388" width="291" height="291"/>
-    <rect x="39" y="397" width="281" height="273" fill="none" stroke-width="3"/>
-  </g>
-  <g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square">
-    <path d="M86 397 V670 M133 397 V670 M180 397 V670 M226 397 V670 M273 397 V670"/>
-    <path d="M39 443 H320 M39 488 H320 M39 534 H320 M39 579 H320 M39 625 H320"/>
-  </g>
-
-  <!-- Circular swap arrows, drawn as outlined white block arrows. -->
-  <g fill="none" stroke-linecap="square" stroke-linejoin="miter">
-    <path d="M125 238 V136 C125 104 146 85 176 85 H228"
-          stroke="currentColor" stroke-width="49" stroke-linecap="butt"/>
-    <path d="M125 238 V136 C125 104 146 85 176 85 H228"
-          stroke="#fff" stroke-width="38" stroke-linecap="butt"/>
-    <path d="M330 160 V242 C330 274 310 286 280 286 H226"
-          stroke="currentColor" stroke-width="49" stroke-linecap="butt"/>
-    <path d="M330 160 V242 C330 274 310 286 280 286 H226"
-          stroke="#fff" stroke-width="38" stroke-linecap="butt"/>
-  </g>
-  <g stroke="currentColor" stroke-width="5" stroke-linejoin="miter">
-    <path d="M274 85 L228 55 L237 85 L228 115 Z" fill="#fff"/>
-    <path d="M179 286 L225 256 L216 286 L225 316 Z" fill="#fff"/>
-    <path d="M100 238 H150 M305 160 H355" fill="none" stroke-linecap="square"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect x="15" y="2.5" width="6.5" height="9.5" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="2.5" y="12" width="9" height="9.5" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M5 10.5V7.8c0-1.5 1.1-2.6 2.6-2.6H11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M13.5 5.2L11 3.3v3.8z" fill="currentColor"/>
+  <path d="M19 12.5v2.7c0 1.5-1.1 2.6-2.6 2.6H13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M10.5 15.7L13 17.6v-3.8z" fill="currentColor"/>
 </svg>

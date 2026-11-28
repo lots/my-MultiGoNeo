@@ -6,16 +6,14 @@
   "label": "Hor./Ver.",
   "purpose": "Toggle the workspace between horizontal and vertical layout.",
   "kind": "icon",
-  "status": "source-only",
-  "assignedTo": "View → Hor./Ver. (menu command; no toolbar button yet)",
-  "selector": null,
+  "selector": "[data-action=\"toggle-hor-ver\"]",
   "title": "Hor./Ver.",
-  "ariaLabel": null,
-  "className": null,
+  "ariaLabel": "Toggle horizontal or vertical layout",
+  "className": "tool",
   "action": "toggle-hor-ver",
   "tool": null,
   "shortcut": null,
   "icon": "icon.svg",
   "color": null,
-  "source": "redrawn from C:/Users/ILLEGEAR/Pictures/Toggle_layout.png"
+  "source": "src/index.html [data-action=\"toggle-hor-ver\"]"
 }

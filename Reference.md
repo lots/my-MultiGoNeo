@@ -1,4 +1,4 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Reference <span class="doc-version">Version 1.1.29</span>
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Reference <span class="doc-version">Version 1.1.30</span>
 
 **Last updated 2026-11-28**
 
@@ -122,6 +122,7 @@ Engines are external programs (GNU Go, KataGo). Each window starts its own engin
 | Toggle Full Screen | `F11` |
 | Show Info Tabs / Node Name / Variations / Game Tree / Messages | Independent sidebar section visibility |
 | Responsive Layout | Automatic portrait/desktop layout below 1120 px |
+| Hor./Ver. | Force vertical (checked) or horizontal layout; also on the View toolbar |
 | Scroll Menu and Tool Bars | One-row scrolling bars instead of wrapping |
 | Reset Panel Layout | Restores the default splitter positions |
 
@@ -163,7 +164,7 @@ checkbox shows/hides one button:
 - **Traverse** — Root, Fast rewind, Parent, First child, Fast forward, End (navigation only).
 - **Play** — Auto play, Pass, Delete move, Estimate, Score.
 - **View** — Zoom out, Zoom in, Rotate clockwise, Flip horizontally, Flip vertically, Reset board,
-  Toggle full screen.
+  Toggle full screen, Hor./Ver.
 
 Changes apply immediately and are stored in `localStorage` with the other settings. **Reset All**
 inside the dialog restores every button. Hiding is per toolbar; the keyboard shortcuts and menu
@@ -347,7 +348,7 @@ is not a toolbar button.
 |---|---|---|
 | Customize toolbars | Options → Customize Toolbar → six toolbars | ✅ six checklists |
 | Play toolbar | Play group (Auto Play, Pass, Delete, Estimate, Score) | ✅ |
-| View toolbar | View group (Zoom Out/In, Rotate, Flip H/V, Reset Board, Full Screen) | ✅ |
+| View toolbar | View group (Zoom Out/In, Rotate, Flip H/V, Reset Board, Full Screen, Hor./Ver.) | ✅ |
 | New / Open / Save | Toolbar | ✅ |
 | Save As | File menu | Menu only |
 | Print / Print Preview | — | **Missing** |

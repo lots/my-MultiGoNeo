@@ -1,6 +1,6 @@
 # MultiGo Neo button library
 
-Extracted from `src/index.html`. **60 buttons** in 13 groups.
+Extracted from `src/index.html`. **61 buttons** in 13 groups.
 
 Each leaf folder contains:
 
@@ -28,7 +28,7 @@ runs; every other folder is regenerated from `src/index.html`.
 - **main-toolbar/navigation** (6): Root node, Fast rewind, Parent node, First child, Fast forward, End of variation
 - **main-toolbar/game** (5): Auto play, Pass, Delete move, Estimate, Score
 - **main-toolbar/display** (2): Coords, Nums
-- **main-toolbar/view** (7): Zoom out, Zoom in, Rotate clockwise, Flip horizontally, Flip vertically, Reset board, Toggle full screen
+- **main-toolbar/view** (8): Zoom out, Zoom in, Rotate clockwise, Flip horizontally, Flip vertically, Reset board, Toggle full screen, Hor./Ver.
 - **edit-toolbar/stones** (3): Black stone, White stone, Erase stone
 - **edit-toolbar/marks** (9): Cross, Triangle, Square, Circle, Line, Arrow, Dim area, Label, Number
 - **edit-toolbar/colors** (7): Theme colour, Black, White, Red, Yellow, Blue, Green
@@ -39,7 +39,7 @@ runs; every other folder is regenerated from `src/index.html`.
 
 ## Source-only icons
 
-- `main-toolbar/view/toggle-layout` — hand-maintained icon/metadata, no generated toolbar button yet.
+- `main-toolbar/view/toggle-layout/source` — hand-maintained source artwork preserved across regeneration.
 
 ## Index
 
@@ -71,6 +71,7 @@ runs; every other folder is regenerated from `src/index.html`.
 | main-toolbar | view | Flip vertically | icon | flip-v | icon.svg |
 | main-toolbar | view | Reset board | icon | reset-board | icon.svg |
 | main-toolbar | view | Toggle full screen | icon | toggle-fullscreen | icon.svg |
+| main-toolbar | view | Hor./Ver. | icon | toggle-hor-ver | icon.svg |
 | edit-toolbar | stones | Black stone | icon | stone_1 | icon.svg |
 | edit-toolbar | stones | White stone | icon | stone_-1 | icon.svg |
 | edit-toolbar | stones | Erase stone | icon | erase | icon.svg |

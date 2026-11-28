@@ -56,6 +56,7 @@ const SPEC = [
   ['main-toolbar', 'view', 'flip-v', 'action', 'flip-v', 'Flip vertically', 'Mirror the board vertically.'],
   ['main-toolbar', 'view', 'reset-board', 'action', 'reset-board', 'Reset board', 'Clear board rotation and flips.'],
   ['main-toolbar', 'view', 'fullscreen', 'action', 'toggle-fullscreen', 'Toggle full screen', 'Toggle full-screen mode.'],
+  ['main-toolbar', 'view', 'toggle-layout', 'action', 'toggle-hor-ver', 'Hor./Ver.', 'Toggle the workspace between horizontal and vertical layout.'],
 
   // Edit toolbar.
   ['edit-toolbar', 'stones', 'black-stone', 'tool', 'stone_1', 'Black stone', 'Place a black stone.'],
@@ -277,7 +278,7 @@ for (const group of groups) {
 }
 if (sourceOnlyDirs.length > 0) {
   lines.push('', '## Source-only icons', '')
-  for (const dir of sourceOnlyDirs) lines.push(`- \`${dir}\` — hand-maintained icon/metadata, no generated toolbar button yet.`)
+  for (const dir of sourceOnlyDirs) lines.push(`- \`${dir}\` — hand-maintained source artwork preserved across regeneration.`)
 }
 lines.push('', '## Index', '', '| Area | Group | Button | Kind | Action/tool | Icon |', '|---|---|---|---|---|---|')
 for (const button of buttons) {

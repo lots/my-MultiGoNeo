@@ -270,12 +270,13 @@ const forcedLayout = await evaluate(`(async () => {
     splitterHidden: document.getElementById('splitter-v').hidden,
     orientation: __figdesk.settings().layoutOrientation,
     auto: __figdesk.settings().autoLayout,
+    buttonPressed: document.getElementById('tool-toggle-layout').getAttribute('aria-pressed'),
   });
   const before = orient();
-  document.querySelector('[data-action="toggle-hor-ver"]').click();
+  document.getElementById('tool-toggle-layout').click();
   await new Promise((resolve) => setTimeout(resolve, 250));
   const horizontal = orient();
-  document.querySelector('[data-action="toggle-hor-ver"]').click();
+  document.getElementById('tool-toggle-layout').click();
   await new Promise((resolve) => setTimeout(resolve, 250));
   const vertical = orient();
   document.querySelector('[data-action="toggle-auto-layout"]').click();
@@ -285,6 +286,15 @@ const forcedLayout = await evaluate(`(async () => {
 })()`)
 await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1024, deviceScaleFactor: 1, mobile: false })
 await sleep(450)
+const toolbarCustomize = await evaluate(`(() => {
+  document.querySelector('[data-action="customize-view"]').click();
+  const body = document.getElementById('toolbar-customize-body');
+  const text = body.textContent;
+  const input = [...body.querySelectorAll('input')].find((item) => item.closest('label')?.textContent.includes('Hor./Ver.'));
+  const result = { hasToggleLayout: text.includes('Hor./Ver.'), checked: input?.checked ?? null };
+  document.getElementById('toolbar-customize-close').click();
+  return result;
+})()`)
 const restored = await evaluate(`(() => ({
   portrait: document.getElementById('workspace').classList.contains('is-portrait'),
   splitterHidden: document.getElementById('splitter-v').hidden,
@@ -331,6 +341,7 @@ console.log(JSON.stringify({
   portraitMobile,
   scrolling,
   forcedLayout,
+  toolbarCustomize,
   restored,
   deeplink,
   embed,

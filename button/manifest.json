@@ -1,8 +1,8 @@
 {
   "generatedFrom": "src/index.html",
-  "total": 60,
+  "total": 61,
   "sourceOnly": [
-    "main-toolbar/view/toggle-layout"
+    "main-toolbar/view/toggle-layout/source"
   ],
   "areas": [
     "main-toolbar",
@@ -545,6 +545,26 @@
       "color": null,
       "source": "src/index.html [data-action=\"toggle-fullscreen\"]",
       "directory": "main-toolbar/view/fullscreen"
+    },
+    {
+      "area": "main-toolbar",
+      "group": "view",
+      "groupTitle": "Board and window view",
+      "slug": "toggle-layout",
+      "label": "Hor./Ver.",
+      "purpose": "Toggle the workspace between horizontal and vertical layout.",
+      "kind": "icon",
+      "selector": "[data-action=\"toggle-hor-ver\"]",
+      "title": "Hor./Ver.",
+      "ariaLabel": "Toggle horizontal or vertical layout",
+      "className": "tool",
+      "action": "toggle-hor-ver",
+      "tool": null,
+      "shortcut": null,
+      "icon": "icon.svg",
+      "color": null,
+      "source": "src/index.html [data-action=\"toggle-hor-ver\"]",
+      "directory": "main-toolbar/view/toggle-layout"
     },
     {
       "area": "edit-toolbar",

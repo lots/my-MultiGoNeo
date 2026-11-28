@@ -17,4 +17,4 @@ Then rebuild/reload the app. The file name becomes the sprite id: `new.svg`
 Files currently in use: new, open, save, undo, redo, first, rewind, prev,
 next, forward, last, autoplay, pause, delete, setup, black, white, erase,
 estimate, score, zoom-in, zoom-out, rotate-cw, flip-h, flip-v, reset-board,
-fullscreen.
+fullscreen, toggle-layout.

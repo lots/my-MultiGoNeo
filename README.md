@@ -1,4 +1,4 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo <span class="doc-version">Version 1.1.29</span>
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo <span class="doc-version">Version 1.1.30</span>
 
 MultiGo Neo is a **tree-based Go SGF editor/player** for the desktop. Its functional
 reference is [`lots/my-Sabaki`](https://github.com/lots/my-Sabaki) — a study fork of
@@ -21,10 +21,11 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.29 build** adds the **Hor./Ver.** workspace switch and puts the app icon and version
-number in every documentation title. The 1.1.28 build adds **Rotate Clockwise, Flip Horizontally,
-Flip Vertically and Reset Board** to the View toolbar, with new icons and checkboxes in
-**Options → Customize Toolbar → View Toolbar…**. The 1.1.27 build adds Play and View toolbars under Customize, with Auto Play, Pass,
+The **1.1.30 build** adds the **Hor./Ver.** button to the View toolbar and its Customize Toolbar
+checklist. The 1.1.29 build adds the **Hor./Ver.** workspace switch and puts the app icon and
+version number in every documentation title. The 1.1.28 build adds **Rotate Clockwise, Flip
+Horizontally, Flip Vertically and Reset Board** to the View toolbar, with new icons and checkboxes
+in **Options → Customize Toolbar → View Toolbar…**. The 1.1.27 build adds Play and View toolbars under Customize, with Auto Play, Pass,
 Delete, Estimate, Score, Zoom Out/In and Full Screen. The 1.1.26 build moves the toolbar
 customization entries under a real **Options → Customize Toolbar** submenu, matching MultiGo’s
 menu path. The 1.1.25 build adds the per-toolbar checklists and moves toolbar icons into editable
@@ -68,6 +69,19 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.30
+
+Released 2026-11-28. The Windows artifacts are `MultiGo-Neo-1.1.30-setup.exe` and
+`MultiGo-Neo-1.1.30-portable.exe`, plus `MultiGo-Neo-1.1.30-web.zip` for the browser build.
+
+- **View toolbar toggle** — **View → Hor./Ver.** now also has a toolbar button after Toggle Full
+  Screen. It uses a new `toggle-layout` SVG icon and reflects the current orientation through its
+  pressed state.
+- **Customize Toolbar** — **Options → Customize Toolbar → View Toolbar…** lists the new button,
+  so it can be hidden or restored like the other View buttons.
+- The full Toggle_layout vector source stays in
+  `button/main-toolbar/view/toggle-layout/source/Toggle_layout.svg`.
 
 ### Version 1.1.29
 
@@ -1430,7 +1444,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.29-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.30-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1438,7 +1452,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.29-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.30-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1563,9 +1577,9 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.29-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.29-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.29-web.zip` — portable web build, written by `npm run dist:web`.
+- `release/MultiGo-Neo-1.1.30-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.30-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.30-web.zip` — portable web build, written by `npm run dist:web`.
 - `README.md`, `Features.md`, `Tutorial.md`, `Reference.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
