@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "marks",
+  "groupTitle": "Markup tools",
+  "slug": "number",
+  "label": "Number",
+  "purpose": "Place a number.",
+  "kind": "text",
+  "selector": "[data-tool=\"number\"]",
+  "title": "Number (Ctrl+9)",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": null,
+  "tool": "number",
+  "shortcut": "Ctrl+9",
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-tool=\"number\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "file",
+  "groupTitle": "File actions",
+  "slug": "save-sgf",
+  "label": "Save SGF",
+  "purpose": "Save the current game.",
+  "kind": "icon",
+  "selector": "[data-action=\"save-sgf\"]",
+  "title": "Save SGF (Ctrl+S)",
+  "ariaLabel": "Save SGF",
+  "className": "tool",
+  "action": "save-sgf",
+  "tool": null,
+  "shortcut": "Ctrl+S",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"save-sgf\"]"
+}

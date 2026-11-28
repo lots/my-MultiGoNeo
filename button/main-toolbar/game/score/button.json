@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "game",
+  "groupTitle": "Game actions",
+  "slug": "score",
+  "label": "Score",
+  "purpose": "Toggle scoring mode.",
+  "kind": "icon",
+  "selector": "[data-action=\"score\"]",
+  "title": "Score (Ctrl+Shift+R)",
+  "ariaLabel": "Score",
+  "className": "tool",
+  "action": "score",
+  "tool": null,
+  "shortcut": "Ctrl+Shift+R",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"score\"]"
+}

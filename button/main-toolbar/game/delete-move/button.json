@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "game",
+  "groupTitle": "Game actions",
+  "slug": "delete-move",
+  "label": "Delete move",
+  "purpose": "Delete the current move/node.",
+  "kind": "icon",
+  "selector": "[data-action=\"delete-node\"]",
+  "title": "Delete move (Ctrl+Delete)",
+  "ariaLabel": "Delete move",
+  "className": "tool",
+  "action": "delete-node",
+  "tool": null,
+  "shortcut": "Ctrl+Delete",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"delete-node\"]"
+}

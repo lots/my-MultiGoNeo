@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "game",
+  "groupTitle": "Game actions",
+  "slug": "auto-play",
+  "label": "Auto play",
+  "purpose": "Automatically replay moves.",
+  "kind": "icon",
+  "selector": "[data-action=\"toggle-autoplay\"]",
+  "title": "Auto play (Space)",
+  "ariaLabel": "Auto play",
+  "className": "tool",
+  "action": "toggle-autoplay",
+  "tool": null,
+  "shortcut": "Space",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"toggle-autoplay\"]"
+}

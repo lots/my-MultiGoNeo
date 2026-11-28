@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "history",
+  "groupTitle": "History and modes",
+  "slug": "redo",
+  "label": "Redo",
+  "purpose": "Reapply the last undone edit.",
+  "kind": "icon",
+  "selector": "[data-action=\"redo\"]",
+  "title": "Redo (Ctrl+Shift+Z)",
+  "ariaLabel": "Redo",
+  "className": "tool",
+  "action": "redo",
+  "tool": null,
+  "shortcut": "Ctrl+Shift+Z",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"redo\"]"
+}

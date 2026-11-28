@@ -1,0 +1,19 @@
+{
+  "area": "sidebar",
+  "group": "tabs",
+  "groupTitle": "Sidebar tabs",
+  "slug": "engine",
+  "label": "Engine",
+  "purpose": "Show engine analysis.",
+  "kind": "text",
+  "selector": "#tab-engine",
+  "title": null,
+  "ariaLabel": null,
+  "className": "tab",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html #tab-engine"
+}

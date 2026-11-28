@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "stones",
+  "groupTitle": "Stone tools",
+  "slug": "white-stone",
+  "label": "White stone",
+  "purpose": "Place a white stone.",
+  "kind": "icon",
+  "selector": "[data-tool=\"stone_-1\"]",
+  "title": "White stone (Ctrl+1 again toggles)",
+  "ariaLabel": "White stone",
+  "className": "tool",
+  "action": null,
+  "tool": "stone_-1",
+  "shortcut": "Ctrl+1 again toggles",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-tool=\"stone_-1\"]"
+}

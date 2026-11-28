@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "navigation",
+  "groupTitle": "Game-tree navigation",
+  "slug": "previous",
+  "label": "Parent node",
+  "purpose": "Go to the parent node.",
+  "kind": "icon",
+  "selector": "[data-action=\"prev\"]",
+  "title": "Parent node (Up)",
+  "ariaLabel": "Parent node",
+  "className": "tool",
+  "action": "prev",
+  "tool": null,
+  "shortcut": "Up",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"prev\"]"
+}

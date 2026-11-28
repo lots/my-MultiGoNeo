@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "theme",
+  "label": "Theme colour",
+  "purpose": "Use the theme line colour.",
+  "kind": "swatch",
+  "selector": "class~=\"color-default\"",
+  "title": "Theme colour",
+  "ariaLabel": null,
+  "className": "color-swatch color-default",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "repeating-linear-gradient(135deg,#fff 0 3px,#bbb 3px 5px)",
+  "source": "src/index.html class~=\"color-default\""
+}

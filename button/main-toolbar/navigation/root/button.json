@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "navigation",
+  "groupTitle": "Game-tree navigation",
+  "slug": "root",
+  "label": "Root node",
+  "purpose": "Jump to the root node.",
+  "kind": "icon",
+  "selector": "[data-action=\"first\"]",
+  "title": "Root node (Home)",
+  "ariaLabel": "Root node",
+  "className": "tool",
+  "action": "first",
+  "tool": null,
+  "shortcut": "Home",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"first\"]"
+}

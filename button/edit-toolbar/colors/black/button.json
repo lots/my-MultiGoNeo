@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "black",
+  "label": "Black",
+  "purpose": "Use a black line.",
+  "kind": "swatch",
+  "selector": "class~=\"color-black\"",
+  "title": "Black",
+  "ariaLabel": null,
+  "className": "color-swatch color-black",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "#111111",
+  "source": "src/index.html class~=\"color-black\""
+}

@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "rotate-cw",
+  "label": "Rotate clockwise",
+  "purpose": "Rotate the board clockwise.",
+  "kind": "icon",
+  "selector": "[data-action=\"rotate-cw\"]",
+  "title": "Rotate clockwise",
+  "ariaLabel": "Rotate clockwise",
+  "className": "tool",
+  "action": "rotate-cw",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"rotate-cw\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "display",
+  "groupTitle": "Board display",
+  "slug": "move-numbers",
+  "label": "Nums",
+  "purpose": "Show or hide move numbers.",
+  "kind": "text",
+  "selector": "[data-action=\"toggle-numbers\"]",
+  "title": "Show move numbers",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": "toggle-numbers",
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-action=\"toggle-numbers\"]"
+}

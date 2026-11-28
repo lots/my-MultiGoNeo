@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "history",
+  "groupTitle": "History and modes",
+  "slug": "edit-mode",
+  "label": "Edit mode",
+  "purpose": "Toggle stone and markup editing.",
+  "kind": "icon",
+  "selector": "[data-action=\"toggle-edit\"]",
+  "title": "Edit mode (Ctrl+E)",
+  "ariaLabel": "Edit mode",
+  "className": "tool",
+  "action": "toggle-edit",
+  "tool": null,
+  "shortcut": "Ctrl+E",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"toggle-edit\"]"
+}

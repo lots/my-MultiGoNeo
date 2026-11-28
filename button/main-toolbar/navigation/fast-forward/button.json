@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "navigation",
+  "groupTitle": "Game-tree navigation",
+  "slug": "fast-forward",
+  "label": "Fast forward",
+  "purpose": "Jump forward quickly.",
+  "kind": "icon",
+  "selector": "[data-action=\"fast-next\"]",
+  "title": "Fast forward",
+  "ariaLabel": "Fast forward",
+  "className": "tool",
+  "action": "fast-next",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"fast-next\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "sidebar",
+  "group": "tabs",
+  "groupTitle": "Sidebar tabs",
+  "slug": "info",
+  "label": "Info",
+  "purpose": "Show game information.",
+  "kind": "text",
+  "selector": "#tab-info",
+  "title": null,
+  "ariaLabel": null,
+  "className": "tab is-active",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html #tab-info"
+}

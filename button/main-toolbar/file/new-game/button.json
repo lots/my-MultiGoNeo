@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "file",
+  "groupTitle": "File actions",
+  "slug": "new-game",
+  "label": "New game",
+  "purpose": "Start a new game.",
+  "kind": "icon",
+  "selector": "[data-action=\"new-game\"]",
+  "title": "New game (Ctrl+N)",
+  "ariaLabel": "New game",
+  "className": "tool",
+  "action": "new-game",
+  "tool": null,
+  "shortcut": "Ctrl+N",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"new-game\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "white",
+  "label": "White",
+  "purpose": "Use a white line.",
+  "kind": "swatch",
+  "selector": "class~=\"color-white\"",
+  "title": "White",
+  "ariaLabel": null,
+  "className": "color-swatch color-white",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "#ffffff",
+  "source": "src/index.html class~=\"color-white\""
+}

@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "flip-v",
+  "label": "Flip vertically",
+  "purpose": "Mirror the board vertically.",
+  "kind": "icon",
+  "selector": "[data-action=\"flip-v\"]",
+  "title": "Flip vertically",
+  "ariaLabel": "Flip vertically",
+  "className": "tool",
+  "action": "flip-v",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"flip-v\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "history",
+  "groupTitle": "History and modes",
+  "slug": "undo",
+  "label": "Undo",
+  "purpose": "Revert the last edit.",
+  "kind": "icon",
+  "selector": "[data-action=\"undo\"]",
+  "title": "Undo (Ctrl+Z)",
+  "ariaLabel": "Undo",
+  "className": "tool",
+  "action": "undo",
+  "tool": null,
+  "shortcut": "Ctrl+Z",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"undo\"]"
+}

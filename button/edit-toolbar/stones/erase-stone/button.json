@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "stones",
+  "groupTitle": "Stone tools",
+  "slug": "erase-stone",
+  "label": "Erase stone",
+  "purpose": "Erase a stone.",
+  "kind": "icon",
+  "selector": "[data-tool=\"erase\"]",
+  "title": "Erase stone",
+  "ariaLabel": "Erase stone",
+  "className": "tool",
+  "action": null,
+  "tool": "erase",
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-tool=\"erase\"]"
+}

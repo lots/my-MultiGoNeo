@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "file",
+  "groupTitle": "File actions",
+  "slug": "open-sgf",
+  "label": "Open SGF",
+  "purpose": "Open an SGF file.",
+  "kind": "icon",
+  "selector": "[data-action=\"open-sgf\"]",
+  "title": "Open SGF (Ctrl+O)",
+  "ariaLabel": "Open SGF",
+  "className": "tool",
+  "action": "open-sgf",
+  "tool": null,
+  "shortcut": "Ctrl+O",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"open-sgf\"]"
+}

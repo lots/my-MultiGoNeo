@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "display",
+  "groupTitle": "Board display",
+  "slug": "coords",
+  "label": "Coords",
+  "purpose": "Show or hide board coordinates.",
+  "kind": "text",
+  "selector": "[data-action=\"toggle-coords\"]",
+  "title": "Show coordinates",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": "toggle-coords",
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-action=\"toggle-coords\"]"
+}

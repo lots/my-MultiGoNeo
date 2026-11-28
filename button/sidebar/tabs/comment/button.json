@@ -1,0 +1,19 @@
+{
+  "area": "sidebar",
+  "group": "tabs",
+  "groupTitle": "Sidebar tabs",
+  "slug": "comment",
+  "label": "Comment",
+  "purpose": "Show the node comment.",
+  "kind": "text",
+  "selector": "#tab-comment",
+  "title": null,
+  "ariaLabel": null,
+  "className": "tab",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html #tab-comment"
+}

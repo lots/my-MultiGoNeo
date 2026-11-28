@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "reset-board",
+  "label": "Reset board",
+  "purpose": "Clear board rotation and flips.",
+  "kind": "icon",
+  "selector": "[data-action=\"reset-board\"]",
+  "title": "Reset board (G)",
+  "ariaLabel": "Reset board rotation and flips",
+  "className": "tool",
+  "action": "reset-board",
+  "tool": null,
+  "shortcut": "G",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"reset-board\"]"
+}

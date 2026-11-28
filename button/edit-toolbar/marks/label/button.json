@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "marks",
+  "groupTitle": "Markup tools",
+  "slug": "label",
+  "label": "Label",
+  "purpose": "Place a text label.",
+  "kind": "text",
+  "selector": "[data-tool=\"label\"]",
+  "title": "Label (Ctrl+8)",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": null,
+  "tool": "label",
+  "shortcut": "Ctrl+8",
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-tool=\"label\"]"
+}

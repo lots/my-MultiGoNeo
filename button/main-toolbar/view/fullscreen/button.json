@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "fullscreen",
+  "label": "Toggle full screen",
+  "purpose": "Toggle full-screen mode.",
+  "kind": "icon",
+  "selector": "[data-action=\"toggle-fullscreen\"]",
+  "title": "Toggle full screen (F11)",
+  "ariaLabel": "Toggle full screen",
+  "className": "tool",
+  "action": "toggle-fullscreen",
+  "tool": null,
+  "shortcut": "F11",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"toggle-fullscreen\"]"
+}

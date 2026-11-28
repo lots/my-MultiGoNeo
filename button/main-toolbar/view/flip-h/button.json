@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "flip-h",
+  "label": "Flip horizontally",
+  "purpose": "Mirror the board horizontally.",
+  "kind": "icon",
+  "selector": "[data-action=\"flip-h\"]",
+  "title": "Flip horizontally",
+  "ariaLabel": "Flip horizontally",
+  "className": "tool",
+  "action": "flip-h",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"flip-h\"]"
+}

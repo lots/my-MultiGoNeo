@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "zoom-out",
+  "label": "Zoom out",
+  "purpose": "Make the board smaller.",
+  "kind": "icon",
+  "selector": "[data-action=\"zoom-out\"]",
+  "title": "Zoom out",
+  "ariaLabel": "Zoom out",
+  "className": "tool",
+  "action": "zoom-out",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"zoom-out\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "zoom-in",
+  "label": "Zoom in",
+  "purpose": "Make the board larger.",
+  "kind": "icon",
+  "selector": "[data-action=\"zoom-in\"]",
+  "title": "Zoom in",
+  "ariaLabel": "Zoom in",
+  "className": "tool",
+  "action": "zoom-in",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"zoom-in\"]"
+}

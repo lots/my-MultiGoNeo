@@ -1,0 +1,19 @@
+{
+  "area": "sidebar",
+  "group": "messages",
+  "groupTitle": "Messages",
+  "slug": "clear",
+  "label": "Clear",
+  "purpose": "Clear the message log.",
+  "kind": "text",
+  "selector": "#clear-message-button",
+  "title": null,
+  "ariaLabel": null,
+  "className": "message-clear",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html #clear-message-button"
+}

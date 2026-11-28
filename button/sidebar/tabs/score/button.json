@@ -1,0 +1,19 @@
+{
+  "area": "sidebar",
+  "group": "tabs",
+  "groupTitle": "Sidebar tabs",
+  "slug": "score",
+  "label": "Score",
+  "purpose": "Show the score.",
+  "kind": "text",
+  "selector": "#tab-score",
+  "title": null,
+  "ariaLabel": null,
+  "className": "tab",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html #tab-score"
+}

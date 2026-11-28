@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "navigation",
+  "groupTitle": "Game-tree navigation",
+  "slug": "fast-rewind",
+  "label": "Fast rewind",
+  "purpose": "Jump back quickly.",
+  "kind": "icon",
+  "selector": "[data-action=\"fast-prev\"]",
+  "title": "Fast rewind",
+  "ariaLabel": "Fast rewind",
+  "className": "tool",
+  "action": "fast-prev",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"fast-prev\"]"
+}

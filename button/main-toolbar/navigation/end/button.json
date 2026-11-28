@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "navigation",
+  "groupTitle": "Game-tree navigation",
+  "slug": "end",
+  "label": "End of variation",
+  "purpose": "Jump to the end of the variation.",
+  "kind": "icon",
+  "selector": "[data-action=\"last\"]",
+  "title": "End of variation (End)",
+  "ariaLabel": "End of variation",
+  "className": "tool",
+  "action": "last",
+  "tool": null,
+  "shortcut": "End",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"last\"]"
+}

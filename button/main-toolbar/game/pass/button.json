@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "game",
+  "groupTitle": "Game actions",
+  "slug": "pass",
+  "label": "Pass",
+  "purpose": "Play a pass move.",
+  "kind": "text",
+  "selector": "[data-action=\"pass\"]",
+  "title": "Pass (P)",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": "pass",
+  "tool": null,
+  "shortcut": "P",
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-action=\"pass\"]"
+}

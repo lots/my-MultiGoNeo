@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "game",
+  "groupTitle": "Game actions",
+  "slug": "estimate",
+  "label": "Estimate",
+  "purpose": "Estimate territory and score.",
+  "kind": "icon",
+  "selector": "[data-action=\"estimate\"]",
+  "title": "Estimate (Ctrl+Shift+E)",
+  "ariaLabel": "Estimate",
+  "className": "tool",
+  "action": "estimate",
+  "tool": null,
+  "shortcut": "Ctrl+Shift+E",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"estimate\"]"
+}

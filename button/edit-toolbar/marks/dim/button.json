@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "marks",
+  "groupTitle": "Markup tools",
+  "slug": "dim",
+  "label": "Dim area",
+  "purpose": "Dim an area of the board.",
+  "kind": "text",
+  "selector": "[data-tool=\"dim\"]",
+  "title": "Dim area (Ctrl+Shift+D)",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": null,
+  "tool": "dim",
+  "shortcut": "Ctrl+Shift+D",
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-tool=\"dim\"]"
+}

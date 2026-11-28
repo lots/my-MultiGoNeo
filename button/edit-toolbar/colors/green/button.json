@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "green",
+  "label": "Green",
+  "purpose": "Use a green line.",
+  "kind": "swatch",
+  "selector": "class~=\"color-green\"",
+  "title": "Green",
+  "ariaLabel": null,
+  "className": "color-swatch color-green",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "#1a7f37",
+  "source": "src/index.html class~=\"color-green\""
+}

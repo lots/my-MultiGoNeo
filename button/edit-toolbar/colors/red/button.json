@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "red",
+  "label": "Red",
+  "purpose": "Use a red line.",
+  "kind": "swatch",
+  "selector": "class~=\"color-red\"",
+  "title": "Red",
+  "ariaLabel": null,
+  "className": "color-swatch color-red",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "#d92b2b",
+  "source": "src/index.html class~=\"color-red\""
+}

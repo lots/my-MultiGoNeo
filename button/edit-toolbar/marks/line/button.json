@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "marks",
+  "groupTitle": "Markup tools",
+  "slug": "line",
+  "label": "Line",
+  "purpose": "Draw a line.",
+  "kind": "text",
+  "selector": "[data-tool=\"line\"]",
+  "title": "Line (Ctrl+6)",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": null,
+  "tool": "line",
+  "shortcut": "Ctrl+6",
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-tool=\"line\"]"
+}

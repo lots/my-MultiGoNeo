@@ -1,0 +1,19 @@
+{
+  "area": "main-toolbar",
+  "group": "navigation",
+  "groupTitle": "Game-tree navigation",
+  "slug": "next",
+  "label": "First child",
+  "purpose": "Go to the first child node.",
+  "kind": "icon",
+  "selector": "[data-action=\"next\"]",
+  "title": "First child (Down)",
+  "ariaLabel": "First child",
+  "className": "tool",
+  "action": "next",
+  "tool": null,
+  "shortcut": "Down",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-action=\"next\"]"
+}

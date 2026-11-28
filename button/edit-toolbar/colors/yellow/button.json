@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "yellow",
+  "label": "Yellow",
+  "purpose": "Use a yellow line.",
+  "kind": "swatch",
+  "selector": "class~=\"color-yellow\"",
+  "title": "Yellow",
+  "ariaLabel": null,
+  "className": "color-swatch color-yellow",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "#e6b800",
+  "source": "src/index.html class~=\"color-yellow\""
+}

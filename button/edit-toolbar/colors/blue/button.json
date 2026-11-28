@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "colors",
+  "groupTitle": "Line colours",
+  "slug": "blue",
+  "label": "Blue",
+  "purpose": "Use a blue line.",
+  "kind": "swatch",
+  "selector": "class~=\"color-blue\"",
+  "title": "Blue",
+  "ariaLabel": null,
+  "className": "color-swatch color-blue",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": "#2f6fed",
+  "source": "src/index.html class~=\"color-blue\""
+}

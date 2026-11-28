@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "stones",
+  "groupTitle": "Stone tools",
+  "slug": "black-stone",
+  "label": "Black stone",
+  "purpose": "Place a black stone.",
+  "kind": "icon",
+  "selector": "[data-tool=\"stone_1\"]",
+  "title": "Black stone (Ctrl+1)",
+  "ariaLabel": "Black stone",
+  "className": "tool",
+  "action": null,
+  "tool": "stone_1",
+  "shortcut": "Ctrl+1",
+  "icon": "icon.svg",
+  "color": null,
+  "source": "src/index.html [data-tool=\"stone_1\"]"
+}

@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "marks",
+  "groupTitle": "Markup tools",
+  "slug": "cross",
+  "label": "Cross",
+  "purpose": "Draw a cross mark.",
+  "kind": "text",
+  "selector": "[data-tool=\"cross\"]",
+  "title": "Cross (Ctrl+2)",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": null,
+  "tool": "cross",
+  "shortcut": "Ctrl+2",
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-tool=\"cross\"]"
+}

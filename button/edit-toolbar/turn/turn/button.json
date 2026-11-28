@@ -1,0 +1,19 @@
+{
+  "area": "edit-toolbar",
+  "group": "turn",
+  "groupTitle": "Player to move",
+  "slug": "turn",
+  "label": "Turn",
+  "purpose": "Switch the player to move.",
+  "kind": "text",
+  "selector": "[data-action=\"toggle-turn\"]",
+  "title": "Switch player to move",
+  "ariaLabel": null,
+  "className": "tool tool-text",
+  "action": "toggle-turn",
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html [data-action=\"toggle-turn\"]"
+}

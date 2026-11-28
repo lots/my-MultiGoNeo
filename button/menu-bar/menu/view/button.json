@@ -1,0 +1,19 @@
+{
+  "area": "menu-bar",
+  "group": "menu",
+  "groupTitle": "Menu headers",
+  "slug": "view",
+  "label": "View",
+  "purpose": "Open the View menu.",
+  "kind": "text",
+  "selector": "#menu-view",
+  "title": null,
+  "ariaLabel": null,
+  "className": "menu-trigger",
+  "action": null,
+  "tool": null,
+  "shortcut": null,
+  "icon": null,
+  "color": null,
+  "source": "src/index.html #menu-view"
+}
