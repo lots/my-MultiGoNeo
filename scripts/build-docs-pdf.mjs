@@ -1,4 +1,4 @@
-// Renders README.md, Features.md and Tutorial.md to PDF with Chrome's DevTools
+// Renders README.md, Features.md, Tutorial.md and Reference.md to PDF with Chrome's DevTools
 // print-to-PDF. Markdown is rendered by marked (run through npx), so images and
 // tables keep their document-relative paths.
 //
@@ -11,7 +11,7 @@ import { spawn, spawnSync } from 'node:child_process'
 const root = process.cwd()
 const chrome = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const port = 9371
-const documents = ['README.md', 'Features.md', 'Tutorial.md']
+const documents = ['README.md', 'Features.md', 'Tutorial.md', 'Reference.md']
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const style = `

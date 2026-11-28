@@ -87,7 +87,7 @@ function sgfPathFromArgs(argv) {
 
 let pendingOpenFile = sgfPathFromArgs(process.argv);
 
-const DOCUMENTATION_FILES = new Set(['README.pdf', 'Features.pdf', 'Tutorial.pdf']);
+const DOCUMENTATION_FILES = new Set(['README.pdf', 'Features.pdf', 'Tutorial.pdf', 'Reference.pdf']);
 
 function createWindow(initialFile = null) {
   const win = new BrowserWindow({

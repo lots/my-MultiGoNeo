@@ -1,6 +1,6 @@
 # MultiGo Neo — Beginner Tutorial
 
-**Version 1.1.21 · about 10 minutes · no Go experience required**
+**Version 1.1.22 · about 10 minutes · no Go experience required**
 
 This tutorial walks through the most common task: **open a game record, replay it, try a variation, save your work, score it and export a picture**. Follow the steps in order; each one tells you what you should see.
 
@@ -186,5 +186,6 @@ The dialog remembers your last selection and folder next time.
 These three documents are also copied into the install folder and the web folder, so they are available offline.
 
 - [README.md](README.md) — the full manual, menus, shortcuts and SGF support.
+- [Reference.md](Reference.md) — command-by-command lookup for every menu, toolbar, dialog and shortcut.
 - [Features.md](Features.md) — the complete feature register.
 - `sgf\十三路打谱操` — 17 13×13 study records bundled with the installer and web build.

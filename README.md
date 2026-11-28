@@ -21,30 +21,34 @@ list**, compact **pass** nodes in the game tree and the **四4** coordinate syst
 Options menus now use compact dropdowns, and the toolbar **Coords / Nums** labels are white and
 bold when active, dimmed when off.
 
-The **1.1.21 build** adds the **Basic** board theme modelled on MultiGo 4.4.4's initial board,
-glass stones and Windows-grey chrome. The 1.1.20 build fixes **bowl sides after swapping player
-seats**: the bottom player's bowl now sits on their right, the top player's on their left. The 1.1.19 build lets each Sidebar part
-be hidden or shown independently from the View menu. The 1.1.18 build allows **multiple running
-instances** on Windows and in the browser, with a **File → New Window** command. The 1.1.17 build names the right-hand **Sidebar** and its parts. The
-1.1.16 build adds a **Scrolling mode** for the menu and tool bars, an alternative to their wrapping
-mode. The 1.1.15 build tightens the grey menu bar from 49 px to **36 px**. The
-1.1.14 build adds **PDF editions** of the README, Features register and Tutorial, and the Help
-menu opens those PDFs; 1.1.13 added the Help links and 1.1.12 packaged the Markdown manuals with
-the installer, portable build and web folder. The 1.1.11 build added click-to-toggle **double-size
-coordinates**. The 1.1.10 build repackaged 1.1.9 with no application changes. 1.1.9 added the
-**phone/portrait layout** with a maximized board, compact Info and Message strips, hidden bowls
-and a full-width goban. It keeps the 1.1.7 **editable node names** and the 1.1.8 one-step
-portable web folder and `web.zip`. The 1.1.6 build added the configurable **SGF size limit**,
-bundled the 13×13 study records and introduced the web download. It keeps the 1.1.5
-**main-branch tree layout** and the Sabaki-derived **GTP engine layer**, Sabaki-style
-**scoring territory** with **Play → Estimate / Score**, live captured-stone bowls and small-board
-edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file branch import**,
-**PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
+The **1.1.22 build** adds **Reference.md/Reference.pdf**, a command-by-command lookup covering every
+menu, toolbar, shortcut, dialog and mode, plus detailed help for **Flatten Current Variation** and
+**Clear Node Markup**. The obsolete duplicate **Advanced** menu was removed. The 1.1.21 build adds
+the **Basic** board theme modelled on MultiGo 4.4.4's initial board, glass stones and Windows-grey
+chrome. The 1.1.20 build fixes **bowl sides after swapping player seats**: the bottom player's
+bowl now sits on their right, the top player's on their left. The 1.1.19 build lets each Sidebar
+part be hidden or shown independently from the View menu. The 1.1.18 build allows **multiple
+running instances** on Windows and in the browser, with a **File → New Window** command. The
+1.1.17 build names the right-hand **Sidebar** and its parts. The 1.1.16 build adds a **Scrolling
+mode** for the menu and tool bars, an alternative to their wrapping mode. The 1.1.15 build
+tightens the grey menu bar from 49 px to **36 px**. The 1.1.14 build adds **PDF editions** of the
+README, Features register and Tutorial, and the Help menu opens those PDFs; 1.1.13 added the Help
+links and 1.1.12 packaged the Markdown manuals with the installer, portable build and web folder.
+The 1.1.11 build added click-to-toggle **double-size coordinates**. The 1.1.10 build repackaged
+1.1.9 with no application changes. 1.1.9 added the **phone/portrait layout** with a maximized
+board, compact Info and Message strips, hidden bowls and a full-width goban. It keeps the 1.1.7
+**editable node names** and the 1.1.8 one-step portable web folder and `web.zip`. The 1.1.6 build
+added the configurable **SGF size limit**, bundled the 13×13 study records and introduced the web
+download. It keeps the 1.1.5 **main-branch tree layout** and the Sabaki-derived **GTP engine
+layer**, Sabaki-style **scoring territory** with **Play → Estimate / Score**, live captured-stone
+bowls and small-board edge fixes. The 1.1.2 release brought **Reload-in-place**, **multi-file
+branch import**, **PNG board export**, the **UNSAVED** guard, display-only **board rotation/flips**,
 **native fullscreen** and one shared lighter icon.
 
 A tabulated register of the requested features and the notable extras is in
-[Features.md](Features.md). New to the app? [Tutorial.md](Tutorial.md) walks through opening a
-game, replaying it, trying a variation, saving, scoring and exporting a picture.
+[Features.md](Features.md). The command lookup is [Reference.md](Reference.md). New to the app?
+[Tutorial.md](Tutorial.md) walks through opening a game, replaying it, trying a variation, saving,
+scoring and exporting a picture.
 
 MultiGo Neo reads and writes **FF[4]** and adds a documented **modified-FF[4]** colour layer
 (coloured `AR`/`LN` lines and `SBKDD` dim colours — see
@@ -54,6 +58,19 @@ boards [below](#board-themes-and-responsive-layout).
 ![MultiGo Neo with a variation tree and the five-stone setup](preview/preview.png)
 
 ## What is implemented
+
+### Version 1.1.22
+
+Released 2026-11-28. The Windows artifacts are `MultiGo-Neo-1.1.22-setup.exe` and
+`MultiGo-Neo-1.1.22-portable.exe`, plus `MultiGo-Neo-1.1.22-web.zip` for the browser build.
+
+- **Reference documentation** — `Reference.md`/`Reference.pdf` lists every menu command, toolbar
+  control, keyboard shortcut, dialog and special mode, with detailed sections for
+  **Flatten Current Variation** (`Ctrl+Alt+F`) and **Clear Node Markup**. Help now opens it.
+- **Obsolete Advanced menu removed** — its two entries duplicated **Edit → Clear Node Markup** and
+  **Edit → Edit Game Info**. MultiGo 4 Advanced functions and their new locations are tabulated in
+  Reference §10.
+- No board or SGF behaviour changed.
 
 ### Version 1.1.21
 
@@ -467,7 +484,13 @@ The Edit menu now covers variation editing as well as display edits:
   **Delete Node**; deletion remains available from the toolbar/Play menu as Delete Move.
 - Make a variation main, shift it left/right, remove sibling variations, and **flatten the
   current variation**.
-- Clear node markup.
+- **Flatten Current Variation** (`Ctrl+Alt+F`) removes every sibling branch along the path from
+  the root to the selected node, so the current line becomes the only line in the file. It is
+  deliberately stronger than **Remove Other Variations**, which affects only the current node’s
+  siblings; use Undo if too much was removed.
+- **Clear Node Markup** removes the markup properties from the **current node only**: `CR`, `MA`,
+  `SQ`, `TR`, `LB`, `L`, `AR`, `LN`, `DD`, `SBKDD`, `BM`, `TE`, `DO` and `IT`. The move, comment,
+  setup stones, names and the rest of the tree are left untouched. Undo restores it.
 - Copy/paste the whole SGF.
 - Keyboard: `Ctrl+Alt+C/X/V` for copy/cut/paste variation, `Ctrl+Alt+D/N` for
   duplicate/insert, and `Ctrl+Alt+F` for flatten.
@@ -1295,7 +1318,7 @@ normal interactive desktop terminal.
 MultiGo Neo ships as a normal Windows application — no Node.js, no internet connection and
 no Microsoft Store required.
 
-1. Download **`MultiGo-Neo-1.1.21-setup.exe`** from the
+1. Download **`MultiGo-Neo-1.1.22-setup.exe`** from the
    [Releases page](https://github.com/lots/my-MultiGoNeo/releases), or build it yourself
    (see *Standalone build* below).
 2. Run the installer. It is per-user by default, so it does not ask for administrator
@@ -1303,7 +1326,7 @@ no Microsoft Store required.
    entry.
 3. Launch **MultiGo Neo** from the shortcut.
 
-`MultiGo-Neo-1.1.21-portable.exe` is the same app as a single portable executable — copy it
+`MultiGo-Neo-1.1.22-portable.exe` is the same app as a single portable executable — copy it
 to a USB stick and run it; nothing is installed.
 
 **Open SGF by double-clicking:** the installer registers the `.sgf` file association, so
@@ -1385,6 +1408,7 @@ manuals can be read offline:
 - **`README.md` / `README.pdf`** — the full manual, menus, shortcuts and SGF details.
 - **`Features.md` / `Features.pdf`** — the tabulated feature register.
 - **`Tutorial.md` / `Tutorial.pdf`** — the beginner tutorial.
+- **`Reference.md` / `Reference.pdf`** — the command-by-command lookup reference.
 
 The installed app places them next to `MultiGo Neo.exe`; the portable build has them at the
 extracted app root; the web folder/zip has them beside `index.html`. Regenerate the PDFs after
@@ -1427,10 +1451,10 @@ npm run dist:win   # NSIS installer + portable exe in release/
 
 Artifacts:
 
-- `release/MultiGo-Neo-1.1.21-setup.exe` — NSIS installer (per-user, selectable folder).
-- `release/MultiGo-Neo-1.1.21-portable.exe` — single-file portable build.
-- `release/MultiGo-Neo-1.1.21-web.zip` — portable web build, written by `npm run dist:web`.
-- `README.md`, `Features.md`, `Tutorial.md` — also copied to the install root and web folder.
+- `release/MultiGo-Neo-1.1.22-setup.exe` — NSIS installer (per-user, selectable folder).
+- `release/MultiGo-Neo-1.1.22-portable.exe` — single-file portable build.
+- `release/MultiGo-Neo-1.1.22-web.zip` — portable web build, written by `npm run dist:web`.
+- `README.md`, `Features.md`, `Tutorial.md`, `Reference.md` — also copied to the install root and web folder.
 - `release/win-unpacked/MultiGo Neo.exe` — unpacked application.
 
 The package contains only the app sources in `resources/app.asar` plus the Electron runtime;

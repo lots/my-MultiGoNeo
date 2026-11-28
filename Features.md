@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.21 · **Updated:** 2026-11-26 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.21](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.21)
+**Version:** 1.1.22 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.22](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.22)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,10 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.21): Basic theme.** The theme reproduces MultiGo 4.4.4's initial board tile,
-> glass stones and Windows-grey chrome. The 1.1.20 bowl seating fix, 1.1.19 sidebar visibility and
-> earlier features remain.
+> **Latest (1.1.22): Reference documentation.** A command-by-command lookup now covers every menu,
+> toolbar control, shortcut, dialog and mode, including detailed notes for Flatten Current
+> Variation and Clear Node Markup. The duplicate Advanced menu was removed; the 1.1.21 Basic
+> theme and earlier features remain below.
 
 ---
 
@@ -41,6 +42,7 @@ installer, portable build and web zip.
 | 19 | Allow each Sidebar part to be **hidden/shown** from the View menu. | Independent View checkboxes for Info Tabs, Node Name, Variations, Game Tree and Messages; hidden parts release their space, splitters reflow and portrait accordion skips them. Choices persist. | ✅🧪📦 | 1.1.19 |
 | 20 | After **View → Swap Player Sides**, put the bottom player's bowl on their right-hand side and the top player's on their left. | Bowl columns are derived from the seat: Black at bottom → Black right / White left; White at bottom → White right / Black left. Horizontal board flips still mirror the columns. | ✅🧪📦 | 1.1.20 |
 | 21 | Add a **Basic** theme that mimics MultiGo 4.4.4's initial look and feel as closely as possible. | Uses MultiGo's stock 50×50 board-default wood tile, black grid/labels, glass stone palette, white board surround and classic grey Windows chrome with Tahoma menus. Selecting Basic also opens **Comment** and hides Node Name, Variations and Messages. | ✅🧪📦 | 1.1.21 |
+| 22 | Provide **lookup documentation** for every user-invokable function, and explain Flatten/Clear Node Markup and the duplicate Advanced menu. | `Reference.md`/`Reference.pdf` tabulates all menus, toolbar controls, shortcuts, dialogs and modes plus detailed Flatten and Clear notes and the MultiGo Advanced mapping; Help opens it. The duplicate Advanced menu was removed. | ✅🧪📦 | 1.1.22 |
 
 ### 1.1 Request notes
 
@@ -212,5 +214,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.21. For usage, shortcuts and SGF details see
-[README.md](README.md).*
+*Feature register for MultiGo Neo 1.1.22. For usage, shortcuts and SGF details see
+[README.md](README.md). For command lookup see [Reference.md](Reference.md).*
