@@ -1,7 +1,7 @@
 {
   "name": "multigo-neo",
   "productName": "MultiGo Neo",
-  "version": "1.1.24",
+  "version": "1.1.25",
   "description": "A tree-based Go SGF editor and player modelled on the MultiGo workspace.",
   "main": "electron/main.js",
   "author": "ILLEGEAR",
@@ -18,6 +18,7 @@
     "test:legacy": "node scripts/test-engine.js",
     "sound": "node scripts/render-capture-sound.mjs",
     "bundle": "node scripts/build-sabaki-bundle.mjs",
+    "icons:build": "node scripts/build-toolbar-icons.mjs",
     "icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icon.ps1",
     "pack": "electron-builder --dir --config electron-builder.config.js",
     "dist": "electron-builder --config electron-builder.config.js",

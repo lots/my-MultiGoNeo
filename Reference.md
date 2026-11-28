@@ -1,6 +1,6 @@
 # MultiGo Neo — Reference
 
-**Version 1.1.24 · 2026-11-28**
+**Version 1.1.25 · 2026-11-28**
 
 This is the lookup document for every user-invokable command in MultiGo Neo: menu items,
 toolbar buttons, mouse actions, shortcuts, dialogs and special modes. For a guided introduction
@@ -137,11 +137,31 @@ Engines are external programs (GNU Go, KataGo). Each window starts its own engin
 | Command | Description |
 |---|---|
 | Preferences… | Single dialog with Board, Stones, Markers & Numbers, Other, Traverse and Edit categories |
+| Main Toolbar… | Checklist of Main-toolbar buttons |
+| Edit Toolbar… | Checklist of Edit-toolbar buttons |
+| Option Toolbar… | Checklist of Option-toolbar buttons |
+| Traverse Toolbar… | Checklist of Traverse-toolbar buttons |
 | Language | English / 简体中文 |
 | Theme | Classic, **Basic**, Flat, Dark, Paper |
 | Remember Last Board Size | Reopens with the last size |
 | Autoplay Delay | 0.5 / 1 / 2 / 3 seconds |
 | Reset All Settings | Restores every preference to its default |
+
+#### 2.7.1 Customize Toolbar
+
+**Options → Main Toolbar… / Edit Toolbar… / Option Toolbar… / Traverse Toolbar…** opens the
+Customize Toolbars dialog at the matching section. Each checkbox shows/hides one button:
+
+- **Main** — New, Open, Save, Undo, Redo, Edit mode.
+- **Edit** — black/white/erase stones, cross, triangle, square, circle, line, arrow, dim, label,
+  number, theme/black/white/red/yellow/blue/green colours and Player to Move.
+- **Option** — Show coordinates, Show move numbers, Board Size.
+- **Traverse** — Root, Fast rewind, Parent, First child, Fast forward, End, Auto play, Pass,
+  Delete move.
+
+Changes apply immediately and are stored in `localStorage` with the other settings. **Reset All**
+inside the dialog restores every button. Hiding is per toolbar; the keyboard shortcuts and menu
+commands remain available.
 
 ### 2.8 Help
 
@@ -312,12 +332,14 @@ from those notes and the MultiGo 4 user discussions.
 
 ## 11. MultiGo 4 toolbar coverage
 
-MultiGo’s toolbar is user-customizable (right-click → Customize), so the comparison below uses
-its default 4.4.4 function groups. “Menu” means the command exists but is not a toolbar button.
+MultiGo’s toolbar is user-customizable (right-click → Customize), and MultiGo Neo now offers the
+same idea through **Options → Main/Edit/Option/Traverse Toolbar…**. The comparison below uses the
+default 4.4.4 function groups. “Menu” means the command exists but is not a toolbar button.
 
 | MultiGo toolbar function | MultiGo Neo location | Status |
 |---|---|---|
-| New / Open / Save | Toolbar | Present |
+| Customize toolbars | Options → Main/Edit/Option/Traverse Toolbar… | ✅ four checklists |
+| New / Open / Save | Toolbar | ✅ |
 | Save As | File menu | Menu only |
 | Print / Print Preview | — | **Missing** |
 | Batch convert | — | **Missing** |
@@ -340,6 +362,23 @@ its default 4.4.4 function groups. “Menu” means the command exists but is no
 | GNU Go / GTP engine | Engine menu/tab | Present |
 | Score / Estimate | Play menu / Score tab | Present |
 | English/Chinese, themes | Options menu | Present |
+
+---
+
+## 12. Toolbar icon assets
+
+Every toolbar icon is an editable SVG in **`src/assets/icons/`**, one file per icon. The file name
+is the sprite id (`new.svg` → `#i-new`). To change an icon:
+
+1. Edit or replace the SVG. Keep its `viewBox` (usually `0 0 24 24`) and use `currentColor` for
+   fills/strokes so it follows the toolbar text colour.
+2. Run **`npm run icons:build`**. This regenerates the inline sprite at the top of
+   `src/index.html` from the folder; the app loads that sprite (external SVG files cannot be
+   loaded from `file://` in Chrome/Electron because of CORS).
+3. Rebuild/reload the app.
+
+The folder’s `README.md` has the same instructions and the current file list. `src/assets/icons/`
+is packaged with the source; the generated sprite is what the installed app displays.
 
 ---
 

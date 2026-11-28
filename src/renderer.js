@@ -273,6 +273,8 @@
   const customSizeError = $('#custom-size-error');
   const customSizeApply = $('#custom-size-apply');
   const setupDialog = $('#setup-dialog');
+  const toolbarDialog = $('#toolbar-dialog');
+  const toolbarCustomizeBody = $('#toolbar-customize-body');
   const setupTheme = $('#setup-theme');
   const setupBrightness = $('#setup-brightness');
   const setupBrightnessValue = $('#setup-brightness-value');
@@ -399,6 +401,7 @@
     engineColor: 'off',
     countRules: 'japanese',
     showBowls: true,
+    toolbars: { main: {}, edit: {}, option: {}, traverse: {} },
   };
   let settings = (() => {
     try {
@@ -496,6 +499,10 @@
         engineColor: ['off', 'B', 'W'].includes(parsed.engineColor) ? parsed.engineColor : 'off',
         countRules: parsed.countRules === 'chinese' ? 'chinese' : 'japanese',
         showBowls: parsed.showBowls !== false,
+        toolbars: Object.fromEntries(['main', 'edit', 'option', 'traverse'].map((group) => {
+          const stored = parsed.toolbars && parsed.toolbars[group];
+          return [group, stored && typeof stored === 'object' && !Array.isArray(stored) ? { ...stored } : {}];
+        })),
       };
     } catch {
       return { ...DEFAULT_SETTINGS };
@@ -504,6 +511,97 @@
 
   function saveSettings() {
     try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* session only */ }
+  }
+
+  // Toolbar customization ------------------------------------------------
+  const TOOLBAR_GROUPS = [
+    ['main', 'Main Toolbar'],
+    ['edit', 'Edit Toolbar'],
+    ['option', 'Option Toolbar'],
+    ['traverse', 'Traverse Toolbar'],
+  ];
+  const TOOLBAR_TRAVERSE_ACTIONS = new Set([
+    'first', 'fast-prev', 'prev', 'toggle-autoplay', 'next', 'fast-next', 'last', 'pass', 'delete-node',
+  ]);
+  const TOOLBAR_OPTION_ACTIONS = new Set(['toggle-coords', 'toggle-numbers']);
+
+  function toolbarItems() {
+    return [...new Set([
+      ...document.querySelectorAll('#main-toolbar .tool[data-action], #main-toolbar .board-size-select, #editbar .tool, #editbar .color-swatch'),
+    ])];
+  }
+
+  function toolbarGroupFor(element) {
+    if (element.closest('#editbar')) return 'edit';
+    if (element.classList.contains('board-size-select')) return 'option';
+    const action = element.dataset.action || '';
+    if (TOOLBAR_TRAVERSE_ACTIONS.has(action)) return 'traverse';
+    if (TOOLBAR_OPTION_ACTIONS.has(action)) return 'option';
+    return 'main';
+  }
+
+  function toolbarItemKey(element) {
+    if (element.classList.contains('board-size-select')) return 'board-size';
+    if (element.dataset.tool) return `tool:${element.dataset.tool}`;
+    if (element.dataset.action) return `action:${element.dataset.action}`;
+    if (element.classList.contains('color-swatch')) return `color:${element.dataset.color || 'default'}`;
+    return '';
+  }
+
+  function toolbarItemLabel(element) {
+    if (element.classList.contains('board-size-select')) return t('Board Size');
+    const text = element.getAttribute('title') || element.getAttribute('aria-label') || element.textContent || '';
+    return text.replace(/\s*\([^)]*\)\s*$/, '').trim() || t('Button');
+  }
+
+  function applyToolbarVisibility() {
+    for (const element of toolbarItems()) {
+      const group = toolbarGroupFor(element);
+      const key = toolbarItemKey(element);
+      if (!key) continue;
+      element.hidden = settings.toolbars?.[group]?.[key] === false;
+    }
+  }
+
+  function renderToolbarCustomize(focusGroup = null) {
+    const items = toolbarItems();
+    toolbarCustomizeBody.textContent = '';
+    for (const [group, label] of TOOLBAR_GROUPS) {
+      const section = document.createElement('section');
+      section.className = 'toolbar-customize-section';
+      section.dataset.toolbarSection = group;
+      const heading = document.createElement('h3');
+      heading.textContent = t(label);
+      const list = document.createElement('div');
+      list.className = 'toolbar-customize-list';
+      for (const element of items.filter((item) => toolbarGroupFor(item) === group)) {
+        const key = toolbarItemKey(element);
+        if (!key) continue;
+        const item = document.createElement('label');
+        item.className = 'toolbar-customize-item';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = settings.toolbars?.[group]?.[key] !== false;
+        checkbox.addEventListener('change', () => {
+          settings.toolbars[group] = settings.toolbars[group] || {};
+          settings.toolbars[group][key] = checkbox.checked;
+          saveSettings();
+          applyToolbarVisibility();
+        });
+        const text = document.createElement('span');
+        text.textContent = toolbarItemLabel(element);
+        item.append(checkbox, text);
+        list.append(item);
+      }
+      section.append(heading, list);
+      toolbarCustomizeBody.append(section);
+      if (focusGroup === group) section.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function openToolbarCustomize(group = null) {
+    renderToolbarCustomize(group);
+    if (!toolbarDialog.open) toolbarDialog.showModal();
   }
 
   // The "largest SGF" preference is stored in MB so the preference reads the way
@@ -4186,8 +4284,17 @@
   $$('[data-close-dialog]').forEach((button) => {
     button.addEventListener('click', () => button.closest('dialog')?.close());
   });
-  [aboutDialog, shortcutsDialog, setupDialog, labelDialog, customSizeDialog].forEach((dialog) => {
+  [aboutDialog, shortcutsDialog, setupDialog, labelDialog, customSizeDialog, toolbarDialog].forEach((dialog) => {
     dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+  });
+
+  $('#toolbar-customize-close').addEventListener('click', () => toolbarDialog.close());
+  $('#toolbar-dialog-close-icon').addEventListener('click', () => toolbarDialog.close());
+  $('#toolbar-customize-reset').addEventListener('click', () => {
+    settings.toolbars = { main: {}, edit: {}, option: {}, traverse: {} };
+    saveSettings();
+    applyToolbarVisibility();
+    renderToolbarCustomize();
   });
 
   pictureOk.addEventListener('click', confirmPictureDialog);
@@ -5797,6 +5904,10 @@
     'toggle-messages': () => toggleSidebarPart('showMessage', 'Messages'),
     'toggle-remember-size': toggleRememberBoardSize,
     'reset-settings': resetAllSettings,
+    'customize-main': () => openToolbarCustomize('main'),
+    'customize-edit': () => openToolbarCustomize('edit'),
+    'customize-option': () => openToolbarCustomize('option'),
+    'customize-traverse': () => openToolbarCustomize('traverse'),
     'reset-layout': resetLayout, 'copy-sgf': copySgf, 'paste-sgf': pasteSgf,
     'clear-recents': clearRecentFiles,
     'clear-messages': clearMessages, 'toggle-turn': toggleTurn,
@@ -6999,6 +7110,7 @@
   // Boot -----------------------------------------------------------------
   function boot() {
     updateAcceleratorLabels();
+  applyToolbarVisibility();
     setTheme(settings.theme, { persist: false, silent: true });
     applyBoardAppearance();
     const stored = readLayout();

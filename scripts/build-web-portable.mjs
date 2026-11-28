@@ -210,6 +210,7 @@ for (const dir of dirs) {
     copied.push(await copyFile(path.join(dir, entry.name)))
   }
 }
+await fs.cp(path.join(src, 'assets'), path.join(out, 'assets'), { recursive: true })
 
 // Optional SGF study records (git-ignored, refreshed on every build).
 const sgfSource = path.join(root, 'AQ', 'sgf', '十三路打谱操')

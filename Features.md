@@ -1,6 +1,6 @@
 # MultiGo Neo — Feature Register
 
-**Version:** 1.1.24 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.24](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.24)
+**Version:** 1.1.25 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.25](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.25)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,10 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.24): Advanced is the single menu home.** Duplicate Edit/Tools entries for Cut All
-> After, Move Branch, Clear Node Markup and Copy/Paste SGF were removed. The 1.1.23 Advanced
-> command set, 1.1.22 Reference docs and earlier features remain below.
+> **Latest (1.1.25): Customizable toolbars and icon assets.** Options exposes a checklist for the
+> Main, Edit, Option and Traverse toolbars; choices persist. Toolbar icons now live as editable
+> SVGs in `src/assets/icons/` and are rebuilt into the inline sprite with `npm run icons:build`.
+> The 1.1.24 Advanced menu cleanup and earlier features remain below.
 
 ---
 
@@ -43,6 +44,8 @@ installer, portable build and web zip.
 | 21 | Add a **Basic** theme that mimics MultiGo 4.4.4's initial look and feel as closely as possible. | Uses MultiGo's stock 50×50 board-default wood tile, black grid/labels, glass stone palette, white board surround and classic grey Windows chrome with Tahoma menus. Selecting Basic also opens **Comment** and hides Node Name, Variations and Messages. | ✅🧪📦 | 1.1.21 |
 | 22 | Provide **lookup documentation** for every user-invokable function, and explain Flatten/Clear Node Markup and the duplicate Advanced menu. | `Reference.md`/`Reference.pdf` tabulates all menus, toolbar controls, shortcuts, dialogs and modes plus detailed Flatten and Clear notes and the MultiGo Advanced mapping; Help opens it. The duplicate Advanced menu was removed. | ✅🧪📦 | 1.1.22 |
 | 23 | Restore **Advanced** and implement its feature set as far as possible; compare the MultiGo toolbar. | Advanced now has Switch Black/White, Hide All Stones, Delete All Comments, Delete SGF Properties, Set Move Number, Move Branch Up/Down, Hide Markers, White Move First, Copy/Paste SGF, Delete All After Current and Clear Node Markup. Reference adds a MultiGo toolbar coverage table with missing items marked. | ✅🧪📦 | 1.1.23 |
+| 24 | Remove duplicate **Advanced** commands from other menus. | Edit/Tools duplicates were removed; Advanced is the single menu home, while global shortcuts still work. | ✅🧪📦 | 1.1.24 |
+| 25 | Replicate MultiGo **Options → Customize → Toolbar** for Main/Edit/Option/Traverse, and keep icon assets in an editable folder. | Options opens a per-toolbar checklist; visibility persists and Reset All restores it. Icons are individual SVGs in `src/assets/icons/` with `npm run icons:build` regenerating the sprite. | ✅🧪📦 | 1.1.25 |
 | 24 | Where a function duplicates an **Advanced** command elsewhere, keep Advanced and remove the duplicate. | Removed Edit → Cut All After/Shift Variation/Clear Node Markup/Copy SGF/Paste SGF and Tools → Copy SGF/Load SGF. Advanced retains Delete All After Current, Move Branch Up/Down, Clear Node Markup and Copy/Paste SGF. | ✅🧪📦 | 1.1.24 |
 
 ### 1.1 Request notes
@@ -215,5 +218,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.24. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.25. For usage, shortcuts and SGF details see
 [README.md](README.md). For command lookup see [Reference.md](Reference.md).*
