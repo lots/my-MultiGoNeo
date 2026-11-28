@@ -1,0 +1,21 @@
+{
+  "area": "main-toolbar",
+  "group": "view",
+  "groupTitle": "Board and window view",
+  "slug": "toggle-layout",
+  "label": "Hor./Ver.",
+  "purpose": "Toggle the workspace between horizontal and vertical layout.",
+  "kind": "icon",
+  "status": "source-only",
+  "assignedTo": "View → Hor./Ver. (menu command; no toolbar button yet)",
+  "selector": null,
+  "title": "Hor./Ver.",
+  "ariaLabel": null,
+  "className": null,
+  "action": "toggle-hor-ver",
+  "tool": null,
+  "shortcut": null,
+  "icon": "icon.svg",
+  "color": null,
+  "source": "redrawn from C:/Users/ILLEGEAR/Pictures/Toggle_layout.png"
+}

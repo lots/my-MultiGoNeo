@@ -199,12 +199,45 @@ function writeButton(spec) {
   return { ...metadata, directory: path.relative(outDir, dir).replaceAll(path.sep, '/') }
 }
 
+// Hand-maintained source-only folders (marked with `.source-only`) survive
+// regeneration; generated folders are rebuilt from src/index.html.
+function collectSourceOnly(dir, files) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (fs.existsSync(path.join(full, '.source-only'))) {
+        collectFiles(full, files)
+      } else {
+        collectSourceOnly(full, files)
+      }
+    }
+  }
+}
+
+function collectFiles(dir, files) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      collectFiles(full, files)
+    } else {
+      files.set(path.relative(outDir, full).replaceAll(path.sep, '/'), fs.readFileSync(full))
+    }
+  }
+}
+
+const preserved = new Map()
+if (fs.existsSync(outDir)) collectSourceOnly(outDir, preserved)
+const sourceOnlyDirs = [...new Set([...preserved.keys()].map((file) => path.dirname(file)))]
+  .filter((dir) => preserved.has(`${dir}/.source-only`))
+  .sort()
+
 fs.rmSync(outDir, { recursive: true, force: true })
 fs.mkdirSync(outDir, { recursive: true })
 const buttons = SPEC.map(writeButton)
 fs.writeFileSync(path.join(outDir, 'manifest.json'), `${JSON.stringify({
   generatedFrom: 'src/index.html',
   total: buttons.length,
+  sourceOnly: sourceOnlyDirs,
   areas: [...new Set(buttons.map((button) => button.area))],
   groups: [...new Set(buttons.map((button) => `${button.area}/${button.group}`))],
   buttons
@@ -232,6 +265,9 @@ const lines = [
   '`.menu-trigger`, `.message-clear` and `.color-swatch`); this folder stores the button',
   'markup and icon sources, not a second copy of the stylesheet.',
   '',
+  'Folders marked with `.source-only` are hand-maintained and are preserved when this script',
+  'runs; every other folder is regenerated from `src/index.html`.',
+  '',
   '## Hierarchy',
   ''
 ]
@@ -239,10 +275,21 @@ for (const group of groups) {
   const list = buttons.filter((button) => `${button.area}/${button.group}` === group)
   lines.push(`- **${group}** (${list.length}): ${list.map((button) => button.label).join(', ')}`)
 }
+if (sourceOnlyDirs.length > 0) {
+  lines.push('', '## Source-only icons', '')
+  for (const dir of sourceOnlyDirs) lines.push(`- \`${dir}\` — hand-maintained icon/metadata, no generated toolbar button yet.`)
+}
 lines.push('', '## Index', '', '| Area | Group | Button | Kind | Action/tool | Icon |', '|---|---|---|---|---|---|')
 for (const button of buttons) {
   lines.push(`| ${button.area} | ${button.group} | ${button.label} | ${button.kind} | ${button.action || button.tool || '—'} | ${button.icon || '—'} |`)
 }
 fs.writeFileSync(path.join(outDir, 'README.md'), `${lines.join('\n')}\n`)
 
+for (const [file, data] of preserved) {
+  const target = path.join(outDir, file)
+  fs.mkdirSync(path.dirname(target), { recursive: true })
+  fs.writeFileSync(target, data)
+}
+
 console.log(`Wrote ${buttons.length} buttons in ${groups.length} groups to ${path.relative(root, outDir)}/`)
+console.log(`Preserved ${sourceOnlyDirs.length} source-only folder(s).`)

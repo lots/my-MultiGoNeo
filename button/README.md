@@ -18,6 +18,9 @@ Production styling still comes from `src/styles.css` (`.tool`, `.editbar`, `.tab
 `.menu-trigger`, `.message-clear` and `.color-swatch`); this folder stores the button
 markup and icon sources, not a second copy of the stylesheet.
 
+Folders marked with `.source-only` are hand-maintained and are preserved when this script
+runs; every other folder is regenerated from `src/index.html`.
+
 ## Hierarchy
 
 - **main-toolbar/file** (3): New game, Open SGF, Save SGF
@@ -33,6 +36,10 @@ markup and icon sources, not a second copy of the stylesheet.
 - **sidebar/tabs** (4): Info, Comment, Engine, Score
 - **sidebar/messages** (1): Clear
 - **menu-bar/menu** (9): File, Edit, Advanced, Play, Engine, View, Tools, Options, Help
+
+## Source-only icons
+
+- `main-toolbar/view/toggle-layout` — hand-maintained icon/metadata, no generated toolbar button yet.
 
 ## Index
 

@@ -1,6 +1,9 @@
 {
   "generatedFrom": "src/index.html",
   "total": 60,
+  "sourceOnly": [
+    "main-toolbar/view/toggle-layout"
+  ],
   "areas": [
     "main-toolbar",
     "edit-toolbar",
