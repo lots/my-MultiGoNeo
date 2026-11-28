@@ -1,6 +1,6 @@
 # MultiGo Neo — Reference
 
-**Version 1.1.27 · 2026-11-28**
+**Version 1.1.28 · 2026-11-28**
 
 This is the lookup document for every user-invokable command in MultiGo Neo: menu items,
 toolbar buttons, mouse actions, shortcuts, dialogs and special modes. For a guided introduction
@@ -162,7 +162,8 @@ checkbox shows/hides one button:
 - **Option** — Show coordinates, Show move numbers, Board Size.
 - **Traverse** — Root, Fast rewind, Parent, First child, Fast forward, End (navigation only).
 - **Play** — Auto play, Pass, Delete move, Estimate, Score.
-- **View** — Zoom out, Zoom in, Toggle full screen.
+- **View** — Zoom out, Zoom in, Rotate clockwise, Flip horizontally, Flip vertically, Reset board,
+  Toggle full screen.
 
 Changes apply immediately and are stored in `localStorage` with the other settings. **Reset All**
 inside the dialog restores every button. Hiding is per toolbar; the keyboard shortcuts and menu
@@ -346,7 +347,7 @@ is not a toolbar button.
 |---|---|---|
 | Customize toolbars | Options → Customize Toolbar → six toolbars | ✅ six checklists |
 | Play toolbar | Play group (Auto Play, Pass, Delete, Estimate, Score) | ✅ |
-| View toolbar | View group (Zoom Out/In, Full Screen) | ✅ |
+| View toolbar | View group (Zoom Out/In, Rotate, Flip H/V, Reset Board, Full Screen) | ✅ |
 | New / Open / Save | Toolbar | ✅ |
 | Save As | File menu | Menu only |
 | Print / Print Preview | — | **Missing** |

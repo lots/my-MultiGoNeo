@@ -39,6 +39,14 @@
 <path d="M6 5v14" fill="none" stroke="currentColor" stroke-width="1.8"/>
       <path d="M18 6l-9 6 9 6z" fill="currentColor"/>
     </symbol>
+    <symbol id="i-flip-h" viewBox="0 0 24 24">
+<path d="M12 3v18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/>
+  <path d="M9 7L4 17h5zM15 7l5 10h-5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-flip-v" viewBox="0 0 24 24">
+<path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2"/>
+  <path d="M7 9L17 4v5zM7 15l10 5v-5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="i-forward" viewBox="0 0 24 24">
 <path d="M13 6l6 6-6 6zM4 6l6 6-6 6z" fill="currentColor"/>
     </symbol>
@@ -77,8 +85,17 @@
     <symbol id="i-redo" viewBox="0 0 24 24">
 <path d="M6 5h7a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
+    <symbol id="i-reset-board" viewBox="0 0 24 24">
+<path d="M4 10a8 8 0 1 1 1.8 7.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M4 4v6h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="9" y="9" width="6" height="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+    </symbol>
     <symbol id="i-rewind" viewBox="0 0 24 24">
 <path d="M11 6L5 12l6 6zM20 6l-6 6 6 6z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-rotate-cw" viewBox="0 0 24 24">
+<path d="M20 11a8 8 0 1 0-2.4 6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="i-save" viewBox="0 0 24 24">
 <path d="M4 3h13l3 3v15H4z" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -633,6 +650,18 @@
         <button type="button" class="tool" id="tool-zoom-in" data-action="zoom-in" title="Zoom in" aria-label="Zoom in">
           <svg class="icon"><use href="#i-zoom-in"></use></svg>
         </button>
+        <button type="button" class="tool" id="tool-rotate" data-action="rotate-cw" title="Rotate clockwise" aria-label="Rotate clockwise">
+          <svg class="icon"><use href="#i-rotate-cw"></use></svg>
+        </button>
+        <button type="button" class="tool" id="tool-flip-h" data-action="flip-h" title="Flip horizontally" aria-label="Flip horizontally">
+          <svg class="icon"><use href="#i-flip-h"></use></svg>
+        </button>
+        <button type="button" class="tool" id="tool-flip-v" data-action="flip-v" title="Flip vertically" aria-label="Flip vertically">
+          <svg class="icon"><use href="#i-flip-v"></use></svg>
+        </button>
+        <button type="button" class="tool" id="tool-reset-board" data-action="reset-board" title="Reset board (G)" aria-label="Reset board rotation and flips">
+          <svg class="icon"><use href="#i-reset-board"></use></svg>
+        </button>
         <button type="button" class="tool" id="tool-fullscreen" data-action="toggle-fullscreen" title="Toggle full screen (F11)" aria-label="Toggle full screen">
           <svg class="icon"><use href="#i-fullscreen"></use></svg>
         </button>
@@ -1060,7 +1089,7 @@
       <button type="button" class="icon-button" data-close-dialog aria-label="Close">×</button>
     </div>
     <div class="dialog-body">
-      <p class="about-name">MultiGo Neo <span class="muted">1.1.27</span></p>
+      <p class="about-name">MultiGo Neo <span class="muted">1.1.28</span></p>
       <p>A Go record editor and player modelled on the MultiGo workspace: a 13×13 board,
          game information, a move list, and a status bar in a single-window desktop shell.</p>
       <dl class="about-meta">

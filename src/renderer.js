@@ -523,7 +523,7 @@
     ['view', 'View Toolbar'],
   ];
   const TOOLBAR_PLAY_ACTIONS = new Set(['toggle-autoplay', 'pass', 'delete-node', 'estimate', 'score']);
-  const TOOLBAR_VIEW_ACTIONS = new Set(['zoom-out', 'zoom-in', 'toggle-fullscreen']);
+  const TOOLBAR_VIEW_ACTIONS = new Set(['zoom-out', 'zoom-in', 'rotate-cw', 'flip-h', 'flip-v', 'reset-board', 'toggle-fullscreen']);
   const TOOLBAR_TRAVERSE_ACTIONS = new Set(['first', 'fast-prev', 'prev', 'next', 'fast-next', 'last']);
   const TOOLBAR_OPTION_ACTIONS = new Set(['toggle-coords', 'toggle-numbers']);
 
