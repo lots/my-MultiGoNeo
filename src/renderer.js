@@ -359,6 +359,7 @@
     language: 'en',
     theme: 'classic',
     autoLayout: true,
+    layoutOrientation: 'auto',
     rememberBoardSize: true,
     boardWidth: null,
     boardHeight: null,
@@ -436,6 +437,9 @@
         language: parsed.language === 'zh' ? 'zh' : 'en',
         theme: THEMES.includes(parsed.theme) ? parsed.theme : 'classic',
         autoLayout: parsed.autoLayout !== false,
+        layoutOrientation: ['horizontal', 'vertical'].includes(parsed.layoutOrientation)
+          ? parsed.layoutOrientation
+          : 'auto',
         rememberBoardSize: parsed.rememberBoardSize !== false,
         boardWidth: validBoardSide(parsed.boardWidth),
         boardHeight: validBoardSide(parsed.boardHeight),
@@ -828,7 +832,7 @@
     'Show Next Moves': '显示下一手', 'Show Sibling Variations': '显示同父变化',
     Theme: '主题', Classic: '经典', Flat: '平面', Dark: '暗色', Paper: '纸张',
     'Theme: Classic': '主题：经典', 'Theme: Flat': '主题：平面', 'Theme: Dark': '主题：暗色', 'Theme: Paper': '主题：纸张',
-    'Responsive Layout': '自适应布局', 'Scroll Menu and Tool Bars': '菜单和工具栏横向滚动',
+    'Responsive Layout': '自适应布局', 'Hor./Ver.': '横/竖', 'Scroll Menu and Tool Bars': '菜单和工具栏横向滚动',
     'Copy Position Link': '复制局面链接',
     'Zoom In': '放大', 'Zoom Out': '缩小', 'Reset Zoom': '重置缩放', 'Toggle Full Screen': '切换全屏',
     'Show Info Tabs': '显示信息标签', 'Show Node Name': '显示节点名称',
@@ -4082,6 +4086,7 @@
     setMenuItemDisabled('toggle-bowls', portraitLayout);
     setMenuItemChecked('toggle-auto-layout', settings.autoLayout !== false);
     setMenuItemChecked('toggle-bar-overflow', settings.barOverflow === 'scroll');
+    setMenuItemChecked('toggle-hor-ver', portraitLayout);
     setMenuItemChecked('toggle-info-tabs', settings.showInfo);
     setMenuItemChecked('toggle-node-name', settings.showNodeName);
     setMenuItemChecked('toggle-variations', settings.showVariations);
@@ -5901,7 +5906,8 @@
     estimate: () => toggleCountMode('estimate'),
     score: () => toggleCountMode('score'),
     'toggle-bowls': toggleGoBowls,
-    'toggle-auto-layout': toggleAutoLayout, 'toggle-bar-overflow': toggleBarOverflow,
+    'toggle-auto-layout': toggleAutoLayout, 'toggle-hor-ver': toggleHorizontalVertical,
+    'toggle-bar-overflow': toggleBarOverflow,
     'copy-position-link': copyPositionLink,
     'rotate-cw': rotateBoardView,
     'flip-h': () => flipBoardView('h'),
@@ -6265,10 +6271,21 @@
 
   function toggleAutoLayout() {
     settings.autoLayout = settings.autoLayout === false;
+    if (settings.autoLayout) settings.layoutOrientation = 'auto';
     saveSettings();
     updateResponsiveLayout();
     syncMenuState();
     log(settings.autoLayout ? 'Responsive layout enabled.' : 'Responsive layout disabled.');
+  }
+
+  function toggleHorizontalVertical() {
+    const next = portraitLayout ? 'horizontal' : 'vertical';
+    settings.layoutOrientation = next;
+    settings.autoLayout = false;
+    saveSettings();
+    updateResponsiveLayout();
+    syncMenuState();
+    log(`Workspace layout: ${next}.`);
   }
 
   function sizePortraitBoard() {
@@ -6399,7 +6416,11 @@
 
   function updateResponsiveLayout() {
     if (!tree) return;
-    const shouldPortrait = settings.autoLayout !== false && workspace.clientWidth > 0 && workspace.clientWidth < 1120;
+    const shouldPortrait = settings.layoutOrientation === 'vertical'
+      || (settings.layoutOrientation !== 'horizontal'
+        && settings.autoLayout !== false
+        && workspace.clientWidth > 0
+        && workspace.clientWidth < 1120);
     if (shouldPortrait === portraitLayout) {
       if (shouldPortrait) {
         sizePortraitBoard();

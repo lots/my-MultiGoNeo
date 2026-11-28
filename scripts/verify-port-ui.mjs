@@ -264,6 +264,25 @@ scrolling.menuPopup = await evaluate(`(() => {
 })()`)
 await evaluate(`document.querySelector('[data-action="toggle-bar-overflow"]').click()`)
 await sleep(250)
+const forcedLayout = await evaluate(`(async () => {
+  const orient = () => ({
+    portrait: document.getElementById('workspace').classList.contains('is-portrait'),
+    splitterHidden: document.getElementById('splitter-v').hidden,
+    orientation: __figdesk.settings().layoutOrientation,
+    auto: __figdesk.settings().autoLayout,
+  });
+  const before = orient();
+  document.querySelector('[data-action="toggle-hor-ver"]').click();
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  const horizontal = orient();
+  document.querySelector('[data-action="toggle-hor-ver"]').click();
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  const vertical = orient();
+  document.querySelector('[data-action="toggle-auto-layout"]').click();
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  const automatic = orient();
+  return { before, horizontal, vertical, automatic };
+})()`)
 await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1024, deviceScaleFactor: 1, mobile: false })
 await sleep(450)
 const restored = await evaluate(`(() => ({
@@ -311,6 +330,7 @@ console.log(JSON.stringify({
   accordion,
   portraitMobile,
   scrolling,
+  forcedLayout,
   restored,
   deeplink,
   embed,

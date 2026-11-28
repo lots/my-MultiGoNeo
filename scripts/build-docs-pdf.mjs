@@ -44,6 +44,7 @@ const style = `
   th { background: #eeeeee; font-weight: 600; }
   tr { break-inside: avoid; page-break-inside: avoid; }
   img { display: block; max-width: 100%; height: auto; margin: 8px auto 12px; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
+  h1 img { display: inline-block; width: 1.15em; height: 1.15em; margin: 0 0.28em 0 0; border: 0; vertical-align: -0.12em; }
   hr { margin: 14px 0; border: 0; border-top: 1px solid #ccc; }
 </style>`
 

@@ -1,6 +1,6 @@
-# MultiGo Neo — Feature Register
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Feature Register — Version 1.1.29
 
-**Version:** 1.1.28 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.28](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.28)
+**Version:** 1.1.29 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.29](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.29)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable
@@ -10,9 +10,9 @@ full manual live in [README.md](README.md).
 **Status key:** ✅ released · 🧪 verified in source and covered by a check · 📦 packaged in the
 installer, portable build and web zip.
 
-> **Latest (1.1.28): View rotation/flip controls.** The View toolbar now includes Rotate Clockwise,
-> Flip H, Flip V and Reset Board alongside Zoom Out/In and Full Screen, and the View Toolbar
-> checklist exposes all seven. The 1.1.27 Play/View toolbar work and earlier features remain.
+> **Latest (1.1.29): Hor./Ver. workspace switch and documentation titles.** View → Hor./Ver.
+> forces horizontal or vertical layout; all manual titles now lead with the app icon and show the
+> version in the heading. The 1.1.28 View toolbar and earlier features remain.
 
 ---
 
@@ -49,6 +49,8 @@ installer, portable build and web zip.
 | 27 | Add **Play Toolbar** and **View Toolbar** under Customize Toolbar. | Six groups now: Main, Edit, Option, Traverse, Play, View. Play has Auto Play/Pass/Delete/Estimate/Score; View has Zoom Out/In and Full Screen; Traverse keeps navigation only. | ✅🧪📦 | 1.1.27 |
 | 28 | Put **Rotate / Flip / Reset** on the View toolbar and expose them in Customize Toolbar. | View toolbar has Zoom Out/In, Rotate CW, Flip H, Flip V, Reset Board and Full Screen; the View Toolbar checklist lists all seven and persists visibility. | ✅🧪📦 | 1.1.28 |
 | 24 | Where a function duplicates an **Advanced** command elsewhere, keep Advanced and remove the duplicate. | Removed Edit → Cut All After/Shift Variation/Clear Node Markup/Copy SGF/Paste SGF and Tools → Copy SGF/Load SGF. Advanced retains Delete All After Current, Move Branch Up/Down, Clear Node Markup and Copy/Paste SGF. | ✅🧪📦 | 1.1.24 |
+| 26 | Add a **Hor./Ver.** switch under View to toggle horizontal or vertical display layout. | View → Hor./Ver. forces vertical (board top/Sidebar below) or horizontal (board left/Sidebar right), persists the choice, and marking Responsive Layout returns to automatic orientation. | ✅🧪📦 | 1.1.29 |
+| 27 | Put the app icon and a prominent version number in each documentation title. | README, Features, Tutorial and Reference headings start with the 32px app icon and end with “Version 1.1.29”; PDFs embed the icon. | ✅🧪📦 | 1.1.29 |
 
 ### 1.1 Request notes
 
@@ -220,5 +222,5 @@ version-independent registry keys). It is not a side-by-side installer:
 
 ---
 
-*Feature register for MultiGo Neo 1.1.28. For usage, shortcuts and SGF details see
+*Feature register for MultiGo Neo 1.1.29. For usage, shortcuts and SGF details see
 [README.md](README.md). For command lookup see [Reference.md](Reference.md).*

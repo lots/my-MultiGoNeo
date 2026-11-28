@@ -13,7 +13,7 @@ const pkg = require('./package.json')
 
 // Manual, feature register and beginner tutorial, copied to the install root so
 // they are available offline beside MultiGo Neo.exe.
-const documentationFiles = ['README.md', 'Features.md', 'Tutorial.md', 'Reference.md', 'README.pdf', 'Features.pdf', 'Tutorial.pdf', 'Reference.pdf']
+const documentationFiles = ['README.md', 'Features.md', 'Tutorial.md', 'Reference.md', 'MultiGo-Neo-icon.png', 'README.pdf', 'Features.pdf', 'Tutorial.pdf', 'Reference.pdf']
   .filter((file) => fs.existsSync(path.join(__dirname, file)))
 
 // Local SGF study records. The folder is git-ignored, so a clean clone or CI
