@@ -1,6 +1,6 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Reference — Version 1.1.29
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Reference <span class="doc-version">Version 1.1.29</span>
 
-**Version 1.1.29 · 2026-11-28**
+**Last updated 2026-11-28**
 
 This is the lookup document for every user-invokable command in MultiGo Neo: menu items,
 toolbar buttons, mouse actions, shortcuts, dialogs and special modes. For a guided introduction

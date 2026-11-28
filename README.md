@@ -1,4 +1,4 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Version 1.1.29
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo <span class="doc-version">Version 1.1.29</span>
 
 MultiGo Neo is a **tree-based Go SGF editor/player** for the desktop. Its functional
 reference is [`lots/my-Sabaki`](https://github.com/lots/my-Sabaki) — a study fork of

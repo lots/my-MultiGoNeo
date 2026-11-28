@@ -1,6 +1,6 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Feature Register — Version 1.1.29
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Feature Register <span class="doc-version">Version 1.1.29</span>
 
-**Version:** 1.1.29 · **Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.29](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.29)
+**Updated:** 2026-11-28 · **Repository:** [lots/my-MultiGoNeo](https://github.com/lots/my-MultiGoNeo) · **Latest release:** [v1.1.29](https://github.com/lots/my-MultiGoNeo/releases/tag/v1.1.29)
 
 This document tabulates every direct feature request captured during the project's working
 sessions, what was delivered, and when it first shipped. A second section lists the notable

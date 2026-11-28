@@ -1,6 +1,6 @@
-# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Beginner Tutorial — Version 1.1.29
+# ![MultiGo Neo app icon](MultiGo-Neo-icon.png) MultiGo Neo — Beginner Tutorial <span class="doc-version">Version 1.1.29</span>
 
-**Version 1.1.29 · about 10 minutes · no Go experience required**
+**About 10 minutes · no Go experience required**
 
 This tutorial walks through the most common task: **open a game record, replay it, try a variation, save your work, score it and export a picture**. Follow the steps in order; each one tells you what you should see.
 
