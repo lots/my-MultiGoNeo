@@ -79,6 +79,8 @@ Released 2026-11-28. The Windows artifacts are `MultiGo-Neo-1.1.28-setup.exe` an
 - **Options → Customize Toolbar → View Toolbar…** lists all seven buttons, so each can be hidden
   or restored independently; Reset All restores them.
 - The rotate/flip/reset buttons use the existing View commands and shortcuts (`G` resets).
+- **App icon** now uses `asset/MultiGo-Neo-classic.ico` — the single black stone on the classic
+  goban background — for the app, installer and portable exe.
 
 ### Version 1.1.27
 
@@ -1746,7 +1748,7 @@ scripts/verify-capture-sound-test-ui.mjs CDP + WAV test for the sound-test page
 scripts/verify-setup-ui.mjs CDP test for merged Preferences categories, apply/cancel/reset and defaults
 scripts/verify-engine-ui.mjs CDP test for attach, genmove, analysis and the GTP console
 scripts/build-sabaki-bundle.mjs  rebuilds src/sabaki-bundle.js
-scripts/make-icon.ps1     regenerates the lighter Classic kaya goban icon (GDI+, no tools needed)
+scripts/make-icon.ps1     publishes asset/MultiGo-Neo-classic.ico into build/ (no external tools)
 build/icon.ico            shared Windows icon for the app, installer, uninstaller and portable exe (16-256 px)
 build/icon-512.png        512 px icon export for store/desktop use
 ```
